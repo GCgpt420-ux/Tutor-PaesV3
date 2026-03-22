@@ -1,0 +1,77 @@
+name: Security CI
+
+on:
+  pull_request:
+    paths:
+      - "tutorpaes/**"
+      - ".github/workflows/security-ci.yml"
+  push:
+    branches:
+      - "main"
+    paths:
+      - "tutorpaes/**"
+      - ".github/workflows/security-ci.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Semgrep
+        run: python -m pip install --upgrade pip semgrep
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config=auto \
+            --error \
+            --metrics=off \
+            --exclude=node_modules \
+            --exclude=.next \
+            --exclude=venv \
+            --exclude=.venv \
+            .
+
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+          format: "table"
+          exit-code: "1"

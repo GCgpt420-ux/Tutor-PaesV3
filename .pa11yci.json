@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "timeout": 30000,
+    "standard": "WCAG2AA",
+    "wait": 1000
+  },
+  "urls": [
+    "http://localhost:6006/iframe.html?id=ui-button--default",
+    "http://localhost:6006/iframe.html?id=ui-input--default",
+    "http://localhost:6006/iframe.html?id=ui-card--default",
+    "http://localhost:6006/iframe.html?id=design-system-components-choicebutton-choicebutton--default",
+    "http://localhost:6006/iframe.html?id=design-system-components-quiztopbar-quiztopbar--default"
+  ]
+}

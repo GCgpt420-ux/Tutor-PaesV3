@@ -1,0 +1,68 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+app.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data folders
+Data_paes/
+
+# PDF Processing Scripts (work in progress)
+scripts/0_orquestador_maestro.py
+scripts/1_procesador_pdf.py
+scripts/2_generador_json.py
+scripts/3_chunificador.py
+scripts/json_extractor.py
+scripts/wsl_stability_test.py
+scripts/QUICK_START.md
+scripts/docs/

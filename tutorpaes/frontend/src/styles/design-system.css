@@ -1,0 +1,48 @@
+/* 
+  TutorPAES Design System Tokens 
+  ==============================
+  Estos tokens definen la identidad visual "Premium & Aggressive" 
+  que Stitch debe seguir para generar los nuevos componentes.
+*/
+
+:root {
+  /* Colors - Deep Dark Base */
+  --paes-bg-deep: #0B1220;
+  --paes-bg-card: #0F1623;
+  --paes-border: #1E293B;
+  
+  /* Brand Colors - Vibrant */
+  --brand-primary: #3B82F6;    /* Electric Blue */
+  --brand-secondary: #8B5CF6;  /* Purple Accent */
+  --brand-accent: #10B981;     /* Success / Progress Emerald */
+  --brand-danger: #EF4444;     /* Error / Warning Red */
+  
+  /* Glassmorphism Effects */
+  --glass-bg: rgba(15, 22, 35, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(12px);
+  
+  /* Typography */
+  --font-main: 'Geist', sans-serif;
+  --font-display: 'Geist', sans-serif; /* For headers, could be Inter or Outfit in future */
+  
+  /* Spacing & Radii */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --spacing-section: 2rem;
+}
+
+/* Base Utility Classes for Stitch */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

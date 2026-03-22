@@ -1,0 +1,61 @@
+name: A11y — Storybook
+
+on:
+  pull_request:
+    paths:
+      - "tutorpaes/frontend/**"
+      - ".github/workflows/a11y-storybook.yml"
+  workflow_dispatch: {}
+
+jobs:
+  a11y-storybook:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: tutorpaes/frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tutorpaes/frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify storybook script
+        id: storybook_check
+        run: |
+          if npm pkg get scripts.build-storybook | grep -q null; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Storybook
+        if: steps.storybook_check.outputs.enabled == 'true'
+        run: npm run build-storybook
+
+      - name: Serve storybook-static
+        if: steps.storybook_check.outputs.enabled == 'true'
+        run: npx http-server storybook-static -p 6006 &
+
+      - name: Wait for storybook
+        if: steps.storybook_check.outputs.enabled == 'true'
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://localhost:6006/iframe.html >/dev/null; then
+              echo "storybook up"; break;
+            fi;
+            sleep 1;
+          done
+
+      - name: Run pa11y-ci
+        if: steps.storybook_check.outputs.enabled == 'true'
+        run: npx pa11y-ci --config ../.pa11yci.json

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ia_bot_db
+    environment:
+      POSTGRES_DB: mvp_db
+      POSTGRES_USER: mvp
+      POSTGRES_PASSWORD: mvp
+    ports:
+      - "5432:5432"
+    volumes:
+      - ia_bot_pgdata:/var/lib/postgresql/data
+
+volumes:
+  ia_bot_pgdata:

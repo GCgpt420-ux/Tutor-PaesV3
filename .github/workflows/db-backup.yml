@@ -1,0 +1,46 @@
+name: DB Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: "Retención de backups locales en días"
+        required: false
+        default: "14"
+  schedule:
+    - cron: "15 3 * * *"
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Validate backup secret
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "Falta secret BACKUP_DATABASE_URL" >&2
+            exit 1
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+
+      - name: Run backup script
+        run: bash scripts/db-backup.sh
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_DIR: ${{ github.workspace }}/backups/db
+          BACKUP_RETENTION_DAYS: ${{ inputs.retention_days || '14' }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/db/*
+          if-no-files-found: error
+          retention-days: 14
