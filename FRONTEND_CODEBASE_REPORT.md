@@ -3021,5 +3021,112 @@ export const MATERIA_LABELS: Record<MateriaId, string> = {
 
 ---
 
-*Informe generado: Marzo 17, 2026*
+*Informe base generado: Marzo 17, 2026*
 *Frontend TutorPAES - Auditoría Completa de Codebase*
+
+---
+
+## Actualizacion Rapida (Marzo 30, 2026)
+
+> Nota: Este documento contiene snapshots historicos. Para decisiones de diseno y ejecucion, usa esta seccion como fuente de verdad actual.
+
+### Cambios confirmados recientemente
+
+- Se agrego la ruta de facturacion para evitar 404:
+  - `app/protected/billing/page.tsx`
+- El dashboard principal fue redisenado con enfoque gamificado:
+  - Hero con nivel, XP y racha
+  - Tarjetas por materia con precision visual
+  - IA movida al final para priorizar progreso/accion
+- El logout frontend en `/api/auth/logout` ya fue ajustado para limpiar cookies y coordinar con backend.
+- El script de desarrollo fue robustecido para evitar estados inconsistentes por puertos ocupados:
+  - `scripts/dev-up.sh` ahora carga `DATABASE_URL` desde `backend/.env`
+  - Si hay procesos previos en 8000/3000, los limpia o falla con mensaje claro
+
+### Riesgos abiertos a considerar
+
+- El estilo visual global todavia mezcla bloques de diseño antiguo y nuevo.
+- Existen vistas con tono visual muy distinto entre si (inconsistencia de marca).
+- Se requiere un sistema de lenguaje visual unificado por seccion (auth, dashboard, ensayos, perfil, billing).
+
+---
+
+## Prompt Listo Para Consultar Otra IA (Plan + Estilo)
+
+Copia y pega este prompt en la IA que quieras usar:
+
+```text
+Actua como Lead Product Designer + Senior Frontend Engineer para Next.js 16 (App Router) + Tailwind.
+
+Contexto del producto:
+- Plataforma: TutorPAES (estudiantes de ensenanza media en Chile, preparacion PAES)
+- Objetivo: que el frontend se vea mas atractivo, energetico y memorable para adolescentes, sin perder claridad academica.
+- Estado actual: ya existe frontend funcional con auth, dashboard, ensayos, cursos, perfil, billing, y tutor IA.
+- Problema: experiencia visual inconsistente y en partes demasiado plana.
+
+Stack y restricciones:
+- Next.js 16.1.x App Router
+- React 19
+- Tailwind CSS
+- Mantener rutas y logica de negocio existentes
+- No romper autenticacion/proxy API
+- Priorizar performance y mobile first
+
+Entregables que necesito de ti:
+1) Plan de rediseño en 3 fases (quick wins 1-2 dias, consolidacion 1 semana, refinamiento 2-3 semanas).
+2) Direccion visual concreta (tipografia, paleta, motion, composicion, componentes clave).
+3) Design system minimo viable:
+   - Tokens (color, spacing, radius, shadows, motion)
+   - Variantes de botones/cards/badges/inputs
+   - Reglas de consistencia por modulo (auth, dashboard, ensayos, perfil, billing)
+4) Mapa de prioridades por pantallas:
+   - /auth/login, /auth/sign-up
+   - /protected (dashboard)
+   - /protected/ensayos y /protected/ensayos/[exam_id]
+   - /protected/cursos
+   - /protected/perfil
+   - /protected/billing
+5) Propuesta de interacciones que enganchen a estudiantes:
+   - Gamificacion elegante (XP, racha, objetivos)
+   - Feedback visual de progreso
+   - Estados vacios utiles y motivadores
+6) Guia de copy UX (tono juvenil, directo, motivador, no infantil).
+7) Checklist de implementacion tecnica (por archivo o modulo) para ejecutar sin romper produccion.
+
+Formato de respuesta:
+- Primero: resumen ejecutivo (max 12 lineas)
+- Luego: tabla priorizada por impacto/esfuerzo
+- Luego: plan detallado por fase
+- Luego: mini style guide (tokens + ejemplos concretos de clases Tailwind)
+- Finalmente: backlog de tareas tecnicas accionables (con orden sugerido)
+
+Importante:
+- Evita disenos genericos tipo plantilla.
+- No uses propuestas irreales o muy costosas de mantener.
+- Quiero algo visualmente potente, pero implementable por un equipo pequeno.
+```
+
+---
+
+## 11. Actualización Estética "Scholarly Kinetic" (Marzo 2026)
+
+Se refactorizó extensamente el frontend hacia el sistema de diseño estructurado "Scholarly Kinetic", eliminando todas las inconsistencias de "modo claro" visuales y los estilos brutalistas agresivos.
+
+### Pilares del Nuevo Diseño:
+1. **Tokens Semánticos Strictos:** Reemplazo de utilidades estáticas genéricas de Tailwind (`bg-white`, `bg-gray-50`, `text-gray-900`) por tokens de diseño puros y adaptativos: `bg-surface-base`, `bg-surface-raised`, `bg-surface-container`, `text-text-primary`, `text-text-tertiary`.
+2. **Glassmorphism & Tonal Layering:** Transición a componentes oscuros translúcidos. Uso de contenedores `.glass-card` con `backdrop-blur`, `border-white/5` y "glows" sutiles (Ej. `shadow-[0_0_30px_rgba(...)]`) desplazando los *drop-shadows* pesados o el *brutalism* plano.
+3. **Tipografía Editorial de Alto Contraste:** Se implementó una jerarquía dual: 
+   - Elementos primarios usan agruparamiento ajustado (`tracking-tight`, `text-4xl`).
+   - Meta-datos, *overlines* y botones usan mayúsculas extendidas (`uppercase`, `text-[10px]`, `tracking-[0.2em]`, `tracking-widest`).
+
+### Componentes y Vistas Principales Refactorizadas:
+- **`app/protected/ensayos/[exam_id]/resultados/page.tsx`**: Vista de resultados convertida a formato premium, erradicando fondos blancos estáticos y agregando tarjetas de métricas tipo dashboard oscuro táctico con colores semánticos (`success`, `brand-danger`).
+- **`src/features/profile/views/profile-page-view.tsx`**: Renovación completa (y corrección de sintaxis JSX) estructurando los formularios modulares de "Misión", "Identidad", "Objetivos Académicos" y configuración de "Seguridad".
+- **`src/features/pricing/views/pricing-view.tsx`**: Migración de la oferta de suscripción ("Inversión Académica") a un esquema oscuro con luces de acento asimétricas y botones destacados de "Activar Acceso Total".
+- **`src/components/layout/sidebar.tsx`**: Navegación lateral rediseñada con `surface-base`; redibujados los estados activos para los items del menú con bordes reflectivos y animaciones fluidas al *hover*.
+- **`src/features/exams/components/create-exam-modal.tsx` y `question-card.tsx`**: Paneles de configuración interactiva y visualización de preguntas estandarizados sobre `bg-surface-raised/20` para reducir fatiga visual en pruebas extendidas.
+- **`src/features/dashboard/components/topic-card.tsx` & `subject-card.tsx`**: Bloques de progresión convertidos en *Glass-Cards* dinámicos; indicadores de "Completitud" y barras de XP actualizados a azul vibrante (`brand-primary`).
+
+---
+
+*Última actualización: 30 de Marzo, 2026*

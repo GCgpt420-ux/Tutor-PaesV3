@@ -7,16 +7,20 @@ import type { NextRequest } from 'next/server'
 function buildCsp(nonce: string) {
   const isDev = process.env.NODE_ENV !== 'production'
 
-  const scriptSrc = [
-    "script-src 'self'",
-    `'nonce-${nonce}'`,
-    "'strict-dynamic'",
-    isDev ? "'unsafe-eval'" : '',
-    'https:',
-    'http:',
-  ]
-    .filter(Boolean)
-    .join(' ')
+  const scriptSrc = isDev
+    ? [
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "https:",
+        "http:",
+      ]
+    : [
+        "script-src 'self'",
+        `'nonce-${nonce}'`,
+        "'strict-dynamic'",
+        "https:",
+      ]
+  
+  const scriptSrcString = scriptSrc.join(' ')
 
   return [
     "default-src 'self'",
@@ -24,8 +28,8 @@ function buildCsp(nonce: string) {
     "frame-ancestors 'none'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    `style-src 'self' 'nonce-${nonce}' 'unsafe-inline'`,
-    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    scriptSrcString,
     "connect-src 'self' https: http://127.0.0.1:8000 http://localhost:8000",
     "form-action 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl",
   ].join('; ')

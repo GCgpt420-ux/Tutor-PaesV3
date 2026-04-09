@@ -8,7 +8,6 @@ import {
   XCircle, 
   Loader, 
   Sparkles, 
-  History,
   MessageCircle,
   X
 } from 'lucide-react';
@@ -18,7 +17,6 @@ import { useAiTutor } from '@/src/features/ai/hooks/use-ai-tutor';
 import type {
   NextQuestionResponse,
   BackendQuestionOut,
-  BackendAnswerIn,
   BackendAnswerOut,
   QuizState,
 } from '@/src/types/quiz';
@@ -39,7 +37,17 @@ const ProgressBar = ({ current, total }: { current: number; total: number }) => 
   );
 };
 
-const QuestionCard = ({ number, category, content }: { number: number; category: string; content: string }) => (
+const QuestionCard = ({
+  number,
+  category,
+  content,
+  readingText,
+}: {
+  number: number;
+  category: string;
+  content: string;
+  readingText?: string | null;
+}) => (
   <div className="w-full max-w-3xl text-left pt-4">
     <div className="flex items-center gap-3 mb-6 group">
       <div className="h-6 w-1 bg-brand-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
@@ -47,6 +55,18 @@ const QuestionCard = ({ number, category, content }: { number: number; category:
         Materia: <span className="text-zinc-300">{category}</span>
       </span>
     </div>
+
+    {readingText && readingText.trim().length > 0 && (
+      <section className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
+        <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+          Texto base
+        </p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
+          {readingText}
+        </p>
+      </section>
+    )}
+
     <div className="space-y-4">
       <span className="text-sm font-bold text-brand-primary/60 font-mono">Q.0{number}</span>
       <h1 className="text-2xl md:text-3xl font-display font-semibold leading-[1.4] text-zinc-100 tracking-tight">
@@ -86,7 +106,7 @@ export default function QuizPage() {
 
   // CARGAR PREGUNTA
   const loadNextQuestion = useCallback(async () => {
-    if (!subject_code || !topic_code) {
+    if (!subject_code || !topic_code || subject_code === 'undefined' || topic_code === 'undefined') {
       setQuiz((prev) => ({ ...prev, loading: false, error: 'Parámetros no encontrados' }));
       return;
     }
@@ -187,7 +207,7 @@ export default function QuizPage() {
         isFinished: response.is_attempt_finished,
         attemptId: response.attempt_id,
       }));
-    } catch (err) {
+    } catch {
       setQuiz((prev) => ({ ...prev, loading: false, error: 'Error al enviar respuesta' }));
       aiTutor.setExternalLoading(false);
     }
@@ -211,7 +231,16 @@ export default function QuizPage() {
             </div>
             <h1 className="text-4xl font-black text-zinc-100 mb-2">{percentage}% CORRECTO</h1>
             <p className="text-zinc-400 mb-8">Has completado el entrenamiento de {topic_code}.</p>
-            <button onClick={() => router.back()} className="px-8 py-4 bg-white text-black font-bold rounded-xl uppercase tracking-widest text-sm hover:scale-105 transition-all">
+            <button
+              onClick={() => {
+                if (quiz.attemptId) {
+                  router.push(`/protected/resultados?attempt_id=${quiz.attemptId}`);
+                  return;
+                }
+                router.back();
+              }}
+              className="px-8 py-4 bg-white text-black font-bold rounded-xl uppercase tracking-widest text-sm hover:scale-105 transition-all"
+            >
                 Finalizar Misión
             </button>
         </div>
@@ -250,6 +279,7 @@ export default function QuizPage() {
             <QuestionCard 
               number={quiz.questionsAnswered + 1} 
               category={topic_code} 
+              readingText={quiz.question?.reading_text}
               content={quiz.question?.prompt || ''} 
             />
 
@@ -303,7 +333,13 @@ export default function QuizPage() {
                   </button>
               ) : (
                   <button 
-                    onClick={loadNextQuestion}
+                    onClick={() => {
+                      if (quiz.isFinished && quiz.attemptId) {
+                        router.push(`/protected/resultados?attempt_id=${quiz.attemptId}`);
+                        return;
+                      }
+                      loadNextQuestion();
+                    }}
                     className="w-full py-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-black uppercase tracking-widest text-xs shadow-[0_5px_15px_rgba(255,255,255,0.2)] transition-all"
                   >
                       {quiz.isFinished ? 'Ver Resultados Finales' : 'Siguiente Desafío'}
@@ -342,7 +378,7 @@ export default function QuizPage() {
                 messages={aiTutor.messages} 
                 loading={aiTutor.loading} 
                 error={aiTutor.error} 
-                sendMessage={aiTutor.sendMessage} 
+          sendMessage={(text) => aiTutor.sendMessage(text, quiz.attemptId ? String(quiz.attemptId) : undefined)} 
             />
         </div>
       </aside>

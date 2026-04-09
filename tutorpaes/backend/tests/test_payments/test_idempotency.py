@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from app.api.v1.endpoints import payments as payments_endpoints
 from app.db.session import get_db
+from app.core.auth import get_current_user
 
 
 class FakeDB:
@@ -46,6 +47,10 @@ def test_payment_confirmation_idempotent(client, monkeypatch):
         yield fake_db
 
     app.dependency_overrides[get_db] = override_get_db
+
+    # El fix de IDOR requiere autenticación. Inyectamos el usuario dueño del pago.
+    authenticated_user = SimpleNamespace(id=10, email="user@example.com", name="Test", is_admin=False)
+    app.dependency_overrides[get_current_user] = lambda: authenticated_user
 
     monkeypatch.setattr(
         payments_endpoints,

@@ -6,8 +6,13 @@ import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer
 import { Send, Loader2, Sparkles, MessageCircle } from 'lucide-react';
 import { useAiTutor } from '../hooks/use-ai-tutor';
 
+interface TutorMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface AiTutorChatProps {
-  messages?: any[];
+  messages?: TutorMessage[];
   loading?: boolean;
   error?: string | null;
   sendMessage?: (text: string) => Promise<void>;

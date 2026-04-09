@@ -4,19 +4,19 @@ import { LogoutButton } from "@/src/features/auth/components/logout-button";
 
 export function DashboardHeader() {
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#0F1623]/80 border-b border-white/10">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-surface-default/85 border-b border-surface-container">
       <div className="flex h-16 items-center justify-between px-6">
         
         {/* Logo + sección */}
         <div className="flex items-center gap-4">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+          <div className="p-2 rounded-xl bg-brand-primary/20 border border-brand-primary/40 shadow-elevation-sm">
             <span className="text-white font-bold text-xs">TP</span>
           </div>
           <div>
-            <p className="text-sm font-bold text-zinc-50">
+            <p className="text-sm font-display tracking-tight text-text-primary">
               Preu PAES
             </p>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
+            <p className="text-[10px] text-text-tertiary uppercase tracking-widest font-bold">
               Dashboard de estudio
             </p>
           </div>
@@ -24,9 +24,9 @@ export function DashboardHeader() {
 
         {/* Acciones */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 border border-white/5">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-raised/70 border border-surface-container">
             <div className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-            <span className="text-xs font-medium text-zinc-300">
+            <span className="text-xs font-medium text-text-secondary">
               Sesión activa
             </span>
           </div>
@@ -37,7 +37,11 @@ export function DashboardHeader() {
           </div>
 
           {/* Avatar */}
-          <button className="relative h-9 w-9 rounded-full bg-gradient-to-br from-brand-secondary to-brand-primary flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)] hover:scale-105 transition-transform">
+          <button
+            type="button"
+            aria-label="Abrir perfil"
+            className="interactive-focus relative h-10 w-10 rounded-full border border-brand-primary/40 bg-brand-primary/20 text-white flex items-center justify-center hover:bg-brand-primary/35 transition-colors"
+          >
             <span className="text-sm font-bold text-white">U</span>
           </button>
         </div>

@@ -4,8 +4,8 @@ import { Button } from '@/src/components/ui/button';
 import { Card } from '@/src/components/ui/card';
 import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer';
 import { useAiExplanation } from '@/src/features/ai/hooks/use-ai-explanation';
-import { Sparkles, Loader2, Lock } from 'lucide-react';
-import Link from 'next/link';
+import { Sparkles, Loader2 } from 'lucide-react';
+import { STUDY_TIPS } from '@/src/lib/constants/study-tips';
 
 interface AiExplanationProps {
   questionId: string;
@@ -21,13 +21,6 @@ export function AiExplanation({
   const { loading, explanation, error, requestExplanation } = useAiExplanation();
   const [tipIndex, setTipIndex] = useState(0);
 
-  const studyTips = [
-    'Tip PAES: Revisa el enunciado y subraya palabras clave antes de responder.',
-    'Tip PAES: Si dudas entre dos opciones, elimina primero la claramente incorrecta.',
-    'Tip PAES: En matematicas, verifica unidades y signos para evitar errores simples.',
-    'Tip PAES: Respira 10 segundos entre preguntas dificiles para mantener enfoque.',
-  ];
-
   useEffect(() => {
     if (!loading) {
       setTipIndex(0);
@@ -35,11 +28,11 @@ export function AiExplanation({
     }
 
     const intervalId = window.setInterval(() => {
-      setTipIndex((prev) => (prev + 1) % studyTips.length);
+      setTipIndex((prev) => (prev + 1) % STUDY_TIPS.length);
     }, 5000);
 
     return () => window.clearInterval(intervalId);
-  }, [loading, studyTips.length]);
+  }, [loading]);
 
   async function handleGetExplanation() {
     await requestExplanation({ questionId, selectedAnswer, attemptId });
@@ -62,7 +55,7 @@ export function AiExplanation({
           <p className="text-sm font-medium text-brand-accent flex items-center gap-2">
             <Sparkles className="h-4 w-4 animate-pulse" aria-hidden="true" /> Analizando tu respuesta...
           </p>
-          <p className="text-sm text-zinc-400 mt-2">{studyTips[tipIndex]}</p>
+          <p className="text-sm text-zinc-400 mt-2">{STUDY_TIPS[tipIndex]}</p>
         </Card>
       )}
 

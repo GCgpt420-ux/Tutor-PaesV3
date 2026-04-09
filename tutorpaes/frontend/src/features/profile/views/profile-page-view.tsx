@@ -2,34 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Save, GraduationCap, School, BookOpen, UserCircle, Lock, Eye, EyeOff } from 'lucide-react';
+import { Save, GraduationCap, School, BookOpen, UserCircle, Lock, Eye, EyeOff, Zap } from 'lucide-react';
 import { apiFetch } from '@/src/lib/api/client';
-
-interface UserProfile {
-  user_id: number;
-  email: string;
-  name: string;
-  is_admin: boolean;
-  age?: number | null;
-  academic_level?: string | null;
-  target_university?: string | null;
-  target_degree?: string | null;
-}
-
-interface ProfileFormData {
-  name: string;
-  email: string;
-  age: number | null;
-  academic_level: string;
-  target_university: string;
-  target_degree: string;
-}
+import { useProfile, useUpdateProfile, ProfileFormData } from '@/src/features/profile/hooks/use-profile';
 
 export function ProfilePageView() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { data: user, isLoading: loading, isError, error: queryError } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
@@ -52,39 +31,17 @@ export function ProfilePageView() {
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadUser() {
-      try {
-        const data = await apiFetch<UserProfile>('/auth/me');
-        if (isMounted) {
-          setUser(data);
-          setFormData({
-            name: data.name || '',
-            email: data.email || '',
-            age: data.age || null,
-            academic_level: data.academic_level || '',
-            target_university: data.target_university || '',
-            target_degree: data.target_degree || '',
-          });
-        }
-      } catch {
-        if (isMounted) {
-          setError('No se pudo cargar el perfil. Inicia sesión nuevamente.');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        age: user.age || null,
+        academic_level: user.academic_level || '',
+        target_university: user.target_university || '',
+        target_degree: user.target_degree || '',
+      });
     }
-
-    loadUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  }, [user]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -94,24 +51,19 @@ export function ProfilePageView() {
     }));
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setProfileMessage(null);
 
-    try {
-      await apiFetch('/auth/me', {
-        method: 'PUT',
-        body: JSON.stringify(formData),
-      });
-
-      setProfileMessage({ type: 'success', text: '¡Perfil actualizado correctamente!' });
-      setTimeout(() => setProfileMessage(null), 3000);
-    } catch {
-      setProfileMessage({ type: 'error', text: 'Error al actualizar el perfil.' });
-    } finally {
-      setSaving(false);
-    }
+    updateProfileMutation.mutate(formData, {
+      onSuccess: () => {
+        setProfileMessage({ type: 'success', text: '¡Perfil actualizado correctamente!' });
+        setTimeout(() => setProfileMessage(null), 3000);
+      },
+      onError: () => {
+        setProfileMessage({ type: 'error', text: 'Error al actualizar el perfil.' });
+      }
+    });
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -136,6 +88,8 @@ export function ProfilePageView() {
 
     try {
       setPasswordLoading(true);
+      // Mantendremos esto con apiFetch por ahora para este paso, 
+      // ideal sería extraerlo también a un mutador de react-query.
       await apiFetch('/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({
@@ -161,49 +115,63 @@ export function ProfilePageView() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-500">Cargando perfil...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div className="relative">
+          <div className="h-16 w-16 border-t-4 border-b-4 border-brand-primary rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <UserCircle className="h-6 w-6 text-brand-primary" />
+          </div>
+        </div>
+        <p className="text-text-tertiary font-black uppercase tracking-[0.2em] text-xs">Sincronizando perfil...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-600 bg-red-50 p-4 rounded-lg">{error}</p>
+      <div className="flex justify-center items-center min-h-[60vh] p-6 text-center">
+        <div className="glass-card p-10 border-brand-danger/30 bg-brand-danger/5 animate-error-shake">
+          <p className="text-brand-danger font-black uppercase tracking-widest text-sm mb-2">Error de Acceso</p>
+          <p className="text-text-secondary text-sm">{queryError instanceof Error ? queryError.message : 'Error desconocido'}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-black text-zinc-50 uppercase tracking-tight">Mi Perfil</h1>
-          <p className="text-zinc-400 font-medium">Completa tu información para personalizar tus misiones.</p>
+    <div className="max-w-5xl mx-auto space-y-8 pb-20 p-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="h-1.5 w-12 bg-brand-primary rounded-full" />
+            <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Panel de Control</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-text-primary uppercase tracking-tight">Mi Perfil</h1>
+          <p className="text-text-tertiary font-medium text-lg">Personaliza tu entorno de entrenamiento y objetivos académicos.</p>
         </div>
 
-        <div className="bg-zinc-900/80 backdrop-blur-sm p-4 rounded-2xl border-2 border-zinc-800 shadow-xl flex items-center gap-5">
-          <div>
-            <p className="text-xs text-brand-primary font-bold uppercase tracking-wider">Plan actual</p>
-            <p className="text-lg font-black text-zinc-50 uppercase">Free</p>
+        <div className="glass-card p-6 border-white/10 bg-surface-raised/40 shadow-2xl flex items-center gap-8 min-w-[320px]">
+          <div className="flex-1">
+            <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-1">Tu Suscripción</p>
+            <p className="text-2xl font-black text-text-primary uppercase tracking-tighter">Plan Free</p>
           </div>
 
           <Link
             href="/pricing"
-            className="bg-brand-primary hover:bg-brand-primary/90 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-brand-primary/20 transition-all text-sm whitespace-nowrap flex items-center gap-2"
+            className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-primary/20 transition-all flex items-center gap-2 group"
           >
-            Mejorar Plan
+            Subir de Nivel
+            <Zap className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
           </Link>
         </div>
       </div>
 
       {profileMessage && (
         <div
-          className={`p-4 rounded-xl text-sm font-bold border-2 ${
+          className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border transition-all ${
             profileMessage.type === 'success'
-              ? 'bg-brand-accent/10 border-brand-accent/20 text-brand-accent'
-              : 'bg-red-900/20 border-red-900/50 text-red-400 animate-error-shake'
+              ? 'bg-success/10 border-success/20 text-success'
+              : 'bg-brand-danger/10 border-brand-danger/20 text-brand-danger animate-error-shake'
           }`}
         >
           {profileMessage.text}
@@ -211,133 +179,133 @@ export function ProfilePageView() {
       )}
 
       {passwordSuccess && (
-        <div className="p-4 rounded-xl text-sm font-bold border-2 bg-brand-accent/10 border-brand-accent/20 text-brand-accent">
-          Contraseña actualizada exitosamente
+        <div className="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border bg-success/10 border-success/20 text-success">
+          Contraseña actualizada exitosamente en el núcleo
         </div>
       )}
 
       {user && (
-        <>
-          <div className="bg-surface-raised/80 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-zinc-800 overflow-hidden">
-            <div className="p-8">
-              <form onSubmit={handleProfileSubmit} className="space-y-8">
-                <div>
-                  <h2 className="text-xl font-black text-zinc-50 uppercase tracking-wide mb-6 flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20">
+        <div className="grid grid-cols-1 gap-10">
+          <div className="glass-card bg-surface-raised/10 rounded-3xl border-white/5 overflow-hidden">
+            <div className="p-10">
+              <form onSubmit={handleProfileSubmit} className="space-y-12">
+                <section>
+                  <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.2em] mb-8 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
                       <UserCircle className="w-5 h-5 text-brand-primary" />
                     </div>
-                    Información Personal
+                    Información de Identidad
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Correo Electrónico</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">E-mail de Acceso</label>
                       <input
                         type="email"
                         value={formData.email}
                         disabled
-                        className="w-full p-4 bg-zinc-950/50 border-2 border-zinc-800 rounded-xl text-zinc-500 cursor-not-allowed font-medium"
+                        className="w-full p-4 bg-zinc-950/50 border border-white/5 rounded-2xl text-text-tertiary cursor-not-allowed font-medium text-sm"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Nombre Completo</label>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Nombre Operativo</label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleProfileChange}
                         placeholder="Ej: Juan Pérez"
-                        className="w-full p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium"
+                        className="w-full p-4 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Edad</label>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Edad</label>
                       <input
                         type="number"
                         name="age"
                         value={formData.age || ''}
                         onChange={handleProfileChange}
                         placeholder="17"
-                        className="w-full p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium"
+                        className="w-full p-4 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
                       />
                     </div>
                   </div>
-                </div>
+                </section>
 
-                <hr className="border-2 border-zinc-800/50" />
+                <div className="h-px bg-white/5 w-full" />
 
-                <div>
-                  <h2 className="text-xl font-black text-zinc-50 uppercase tracking-wide mb-6 flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-brand-accent/10 border border-brand-accent/20">
-                      <GraduationCap className="w-5 h-5 text-brand-accent" />
+                <section>
+                  <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.2em] mb-8 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-brand-primary" />
                     </div>
-                    Misiones Académicas
+                    Objetivos Académicos
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Situación Actual</label>
-                      <div className="relative">
-                        <School className="absolute left-4 top-4 w-5 h-5 text-zinc-500" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px) font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Situación Actual</label>
+                      <div className="relative group">
                         <select
                           name="academic_level"
                           value={formData.academic_level}
                           onChange={handleProfileChange}
-                          className="w-full pl-12 p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium appearance-none"
+                          className="w-full p-4 pl-12 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm appearance-none"
                         >
-                          <option value="" className="bg-zinc-900">Selecciona tu nivel...</option>
-                          <option value="3ro Medio" className="bg-zinc-900">3ro Medio</option>
-                          <option value="4to Medio" className="bg-zinc-900">4to Medio</option>
-                          <option value="Egresado" className="bg-zinc-900">Egresado / Año Sabático</option>
-                          <option value="Trabajando" className="bg-zinc-900">Trabajando y Estudiando</option>
+                          <option value="" className="bg-surface-raised">Seleccionar nivel...</option>
+                          <option value="3ro Medio" className="bg-surface-raised">3ro Medio</option>
+                          <option value="4to Medio" className="bg-surface-raised">4to Medio</option>
+                          <option value="Egresado" className="bg-surface-raised">Egresado / Año Sabático</option>
+                          <option value="Trabajando" className="bg-surface-raised">Trabajando y Estudiando</option>
                         </select>
+                        <School className="absolute left-4 top-4 w-4 h-4 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Universidad Objetivo</label>
-                      <div className="relative">
-                        <School className="absolute left-4 top-4 w-5 h-5 text-zinc-500" />
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Universidad Objetivo</label>
+                      <div className="relative group">
                         <input
                           type="text"
                           name="target_university"
                           value={formData.target_university}
                           onChange={handleProfileChange}
                           placeholder="Ej: Universidad de Chile"
-                          className="w-full pl-12 p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium"
+                          className="w-full p-4 pl-12 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
                         />
+                        <School className="absolute left-4 top-4 w-4 h-4 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                       </div>
                     </div>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Especialidad</label>
-                      <div className="relative">
-                        <BookOpen className="absolute left-4 top-4 w-5 h-5 text-zinc-500" />
+                    <div className="space-y-3 md:col-span-2">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Especialidad / Carreras</label>
+                      <div className="relative group">
+                        <BookOpen className="absolute left-4 top-4 w-4 h-4 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
                         <input
                           type="text"
                           name="target_degree"
                           value={formData.target_degree}
                           onChange={handleProfileChange}
-                          placeholder="Ej: Ingeniería"
-                          className="w-full pl-12 p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium"
+                          placeholder="Ej: Ingeniería Civil / Medicina"
+                          className="w-full p-4 pl-12 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
                         />
                       </div>
                     </div>
                   </div>
-                </div>
+                </section>
 
-                <div className="flex justify-end pt-6">
+                <div className="flex justify-end pt-4">
                   <button
                     type="submit"
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-4 px-8 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-brand-primary/20 uppercase tracking-widest text-sm"
+                    disabled={updateProfileMutation.isPending}
+                    className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 text-white font-black py-4 px-10 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-primary/20 uppercase tracking-[0.2em] text-[10px] group"
                   >
-                    {saving ? (
-                      <>Guardando...</>
+                    {updateProfileMutation.isPending ? (
+                      <>Sincronizando...</>
                     ) : (
                       <>
-                        <Save className="w-5 h-5" />
-                        Guardar
+                        <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        Actualizar Archivos
                       </>
                     )}
                   </button>
@@ -346,100 +314,108 @@ export function ProfilePageView() {
             </div>
           </div>
 
-          <div className="bg-surface-raised/80 backdrop-blur-sm rounded-3xl shadow-2xl border-2 border-zinc-800 overflow-hidden mt-8">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-black text-zinc-50 uppercase tracking-wide flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20">
-                    <Lock className="w-5 h-5 text-red-500" />
+          <div className="glass-card bg-surface-raised/5 rounded-3xl border-white/5 overflow-hidden">
+            <div className="p-10">
+              <div className="flex items-center justify-between mb-10">
+                <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.2em] flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-brand-danger/10 border border-brand-danger/20 flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-brand-danger" />
                   </div>
-                  Seguridad
+                  Seguridad de Acceso
                 </h2>
                 <button
                   onClick={() => setShowChangePassword(!showChangePassword)}
-                  className="text-sm text-brand-primary hover:text-brand-primary/80 font-bold uppercase tracking-wide transition-colors"
+                  className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${
+                    showChangePassword 
+                      ? 'bg-white/5 border-white/10 text-text-tertiary hover:text-text-primary' 
+                      : 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary hover:bg-brand-primary/20'
+                  }`}
                 >
-                  {showChangePassword ? 'Cancelar' : 'Cambiar Contraseña'}
+                  {showChangePassword ? 'Cancelar' : 'Cambiar Password'}
                 </button>
               </div>
 
               {showChangePassword && (
-                <form onSubmit={handleChangePassword} className="space-y-6">
+                <form onSubmit={handleChangePassword} className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
                   {passwordError && (
-                    <p className="text-sm font-bold text-red-400 bg-red-900/20 border-2 border-red-900/50 p-4 rounded-xl animate-error-shake">
-                      {passwordError}
-                    </p>
+                    <div className="bg-brand-danger/10 border border-brand-danger/20 px-6 py-4 rounded-2xl flex gap-3 animate-error-shake">
+                      <span className="text-brand-danger font-black uppercase tracking-widest text-[10px]">{passwordError}</span>
+                    </div>
                   )}
 
-                  <div>
-                    <label className="block text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                      Contraseña Actual
-                    </label>
-                    <div className="relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">
+                        Token Actual
+                      </label>
+                      <div className="relative group">
+                        <input
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full p-4 pr-12 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
+                          placeholder="Contraseña vigente"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-4 top-4 text-text-tertiary hover:text-text-primary transition-colors"
+                        >
+                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">
+                        Nueva Secuencia
+                      </label>
+                      <div className="relative group">
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full p-4 pr-12 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
+                          placeholder="Nueva contraseña de acceso"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-4 top-4 text-text-tertiary hover:text-text-primary transition-colors"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 md:col-span-2">
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">
+                        Confirmar Nueva Secuencia
+                      </label>
                       <input
-                        type={showCurrentPassword ? 'text' : 'password'}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium pr-12"
-                        placeholder="Ingresa tu contraseña actual"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full p-4 bg-zinc-950/20 border border-white/10 rounded-2xl text-text-primary placeholder:text-zinc-700 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all font-medium text-sm"
+                        placeholder="Repite la nueva contraseña"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-4 top-4 text-zinc-500 hover:text-zinc-300 transition-colors"
-                      >
-                        {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                      Nueva Contraseña
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showNewPassword ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium pr-12"
-                        placeholder="Ingresa tu nueva contraseña"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-4 top-4 text-zinc-500 hover:text-zinc-300 transition-colors"
-                      >
-                        {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={passwordLoading}
+                      className="bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 text-white font-black py-4 px-10 rounded-2xl transition-all shadow-xl shadow-brand-primary/20 uppercase tracking-[0.2em] text-[10px]"
+                    >
+                      {passwordLoading ? 'Cifrando...' : 'Actualizar Llave de Acceso'}
+                    </button>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                      Confirmar Nueva Contraseña
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full p-4 bg-zinc-950 border-2 border-zinc-800 rounded-xl text-zinc-50 placeholder:text-zinc-600 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-medium"
-                      placeholder="Confirma tu nueva contraseña"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={passwordLoading}
-                    className="w-full bg-brand-primary hover:bg-brand-primary/90 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-brand-primary/20 uppercase tracking-wide mt-2"
-                  >
-                    {passwordLoading ? 'Actualizando...' : 'Guardar Contraseña'}
-                  </button>
                 </form>
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

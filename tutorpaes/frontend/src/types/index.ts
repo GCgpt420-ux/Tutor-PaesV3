@@ -35,3 +35,31 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
 }
+
+// Billing & Payments types
+export interface Invoice {
+  id: number;
+  invoice_number: string;
+  status: 'issued' | 'paid' | 'cancelled';
+  issue_date: string;
+  due_date: string;
+  total_amount: number;
+  pdf_url?: string;
+}
+
+export interface BillingItem {
+  payment_id: number;
+  buy_order: string;
+  amount: number;
+  plan: 'monthly' | 'annual';
+  status: 'pending' | 'authorized' | 'failed';
+  created_at?: string;
+  authorized_at?: string;
+  invoice?: Invoice;
+}
+
+export interface BillingHistory {
+  payments: BillingItem[];
+  total_spent: number;
+  count: number;
+}

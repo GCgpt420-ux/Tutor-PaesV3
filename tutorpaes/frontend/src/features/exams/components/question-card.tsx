@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Crosshair, TerminalSquare, AlertTriangle } from 'lucide-react';
 import { AiExplanation } from './AiExplanation';
 
 interface QuestionCardProps {
@@ -47,71 +47,65 @@ export function QuestionCard({
   }));
 
   const difficultyColors = {
-    facil: 'bg-green-100 text-green-800',
-    medio: 'bg-yellow-100 text-yellow-800',
-    dificil: 'bg-red-100 text-red-800',
+    facil: 'bg-green-500/10 text-green-500 border border-green-500/30',
+    medio: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30',
+    dificil: 'bg-red-500/10 text-red-500 border border-red-500/30',
   };
 
-  // Construir mensaje para WhatsApp
-  const buildWhatsAppMessage = () => {
-    const optionsText = optionsWithLetters
-      .map((opt) => `${opt.letter}. ${opt.value}`)
-      .join('\n');
-
-    const message = `Hola, tengo una duda con esta pregunta:\n\n*Pregunta:*\n${question.prompt}\n\n*Opciones:*\n${optionsText}\n\n*Dificultad:* ${question.difficulty}`;
-    return encodeURIComponent(message);
-  };
-
-  const whatsappLink = `https://wa.me/56945950373?text=${buildWhatsAppMessage()}`;
+  const difficultyLevel = question.difficulty.toLowerCase();
 
   return (
-    <div className="bg-surface-default border border-zinc-800 rounded-2xl shadow-md overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-zinc-800/50 to-zinc-900 border-b border-zinc-800 p-6">
-        <div className="flex items-start justify-between mb-4">
-          <h2 className="text-xl font-bold text-zinc-50 flex-1">{question.prompt}</h2>
-          <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+    <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-sm shadow-2xl overflow-hidden relative">
+      {/* Decorative Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none mix-blend-overlay" />
+
+      {/* Header Táctico */}
+      <div className="bg-white/5 border-b border-white/10 p-6 relative z-10">
+        <div className="flex items-start justify-between mb-6 gap-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TerminalSquare className="h-4 w-4 text-brand-primary" />
+            <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
+              Misión ID: #{question.question_id}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                difficultyColors[question.difficulty as keyof typeof difficultyColors] ||
+              className={`px-3 py-1 rounded-sm text-[9px] font-mono font-black uppercase tracking-[0.2em] ${
+                difficultyColors[difficultyLevel as keyof typeof difficultyColors] ||
                 difficultyColors.medio
               }`}
             >
-              {question.difficulty}
+              Nvl: {question.difficulty}
             </span>
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors font-semibold text-sm"
-              title="Consultar en WhatsApp"
-            >
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004c-1.325 0-2.851.123-4.102.271-.638.077-1.195.202-1.586.355-.529.212-1.035.557-1.29 1.067-.256.512-.257 1.088-.164 1.646.209 1.254 1.75 3.518 4.769 5.679 1.012.662 2.195 1.283 3.408 1.629 1.512.451 2.894.36 3.777-.121 1.289-.695 2.067-2.277 2.067-3.829 0-1.104-.213-2.105-.64-2.962-.426-.856-1.064-1.412-1.9-1.662-.529-.16-1.136-.277-1.77-.277z" />
-              </svg>
-              Ayuda
-            </a>
           </div>
         </div>
+
+        <h2 className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tighter mb-4 pr-12">
+          {question.prompt}
+        </h2>
+
         {/* Leyenda extraída del texto previo si hay reading_text */}
         {question.reading_text && (
-          <div className="mt-4 rounded-lg overflow-hidden bg-zinc-900/60 border border-zinc-700 relative w-full p-4 italic text-zinc-300 text-sm">
+          <div className="mt-6 border-l-2 border-brand-primary/50 bg-brand-primary/5 p-5 italic text-zinc-400 font-mono text-xs leading-relaxed">
             {question.reading_text}
           </div>
         )}
       </div>
 
-      {/* Opciones */}
-      <fieldset className="p-6 space-y-3">
-        <legend className="text-sm font-semibold text-zinc-300 mb-4">Elige una respuesta:</legend>
+      {/* Opciones Tipo Terminal */}
+      <fieldset className="p-6 md:p-8 space-y-4 relative z-10">
+        <legend className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-brand-primary mb-6 flex items-center gap-2">
+          <Crosshair className="h-3 w-3" /> Insertar Coordenada Optima
+        </legend>
 
         {optionsWithLetters.map((option) => (
           <label
             key={option.value}
-            className={`w-full flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            className={`w-full flex items-center p-4 border transition-all cursor-pointer group ${
               selectedAnswer === option.value
-                ? 'border-brand-primary bg-zinc-900/80'
-                : 'border-zinc-700 bg-zinc-900/40 hover:border-brand-primary hover:bg-zinc-900/60'
+                ? 'border-brand-primary bg-brand-primary/10 shadow-[inset_4px_0_0_0_rgba(99,102,241,1)]'
+                : 'border-white/5 bg-black/40 hover:border-white/20 hover:bg-white/5'
             }`}
           >
             <input
@@ -124,12 +118,12 @@ export function QuestionCard({
               aria-label={`Opción ${option.letter}: ${option.value}`}
             />
             <div className="flex items-center gap-4 w-full">
-              {/* Indicador de opción */}
+              {/* Indicador de opción Vector */}
               <div
-                className={`flex-shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold ${
+                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center font-mono font-black text-lg transition-all ${
                   selectedAnswer === option.value
-                    ? 'border-brand-primary bg-brand-primary text-white'
-                    : 'border-zinc-600 text-zinc-400'
+                    ? 'bg-brand-primary text-white scale-110 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
+                    : 'bg-white/5 text-zinc-500 border border-white/10 group-hover:bg-white/10 group-hover:text-white'
                 }`}
                 aria-hidden="true"
               >
@@ -137,39 +131,59 @@ export function QuestionCard({
               </div>
 
               {/* Texto de opción */}
-              <span className="text-zinc-50 font-medium">{option.value}</span>
+              <span className={`font-medium transition-colors ${selectedAnswer === option.value ? 'text-white' : 'text-zinc-400 group-hover:text-white'}`}>
+                {option.value}
+              </span>
             </div>
           </label>
         ))}
       </fieldset>
 
-      {/* Explicación (toggle) */}
-      <div className="border-t border-zinc-800 p-6 bg-zinc-900/50">
+      {/* Explicación (toggle) Táctico */}
+      <div className="border-t border-white/10 bg-black/40 relative z-10">
         <button
           onClick={() => setShowExplanation(!showExplanation)}
-          className="flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-primary/80"
+          className="flex items-center justify-center w-full py-4 gap-2 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-primary hover:bg-brand-primary/10 transition-colors border-b border-transparent hover:border-brand-primary/30"
         >
           <Info className="h-4 w-4" />
-          {showExplanation ? 'Ocultar' : 'Ver'} explicación
+          {showExplanation ? 'OCULTAR TELEMETRÍA' : 'ACTIVAR TELEMETRÍA DE ASISTENCIA'}
         </button>
 
         {showExplanation && (
-          <div className="mt-3 space-y-4">
+          <div className="p-6 md:p-8 space-y-6">
             {/* Explicación Estática */}
             {explanation && (
-              <div className="p-4 bg-zinc-900/80 border border-brand-primary/20 rounded-lg text-sm text-zinc-300">
-                <p className="font-semibold text-brand-primary mb-2">Explicación:</p>
-                <p>{explanation}</p>
+              <div className="p-6 bg-zinc-950 border border-white/10 relative">
+                <div className="absolute top-0 left-0 w-2 h-full bg-zinc-700" />
+                <p className="font-mono font-black text-zinc-500 uppercase tracking-[0.2em] text-[9px] mb-3">Descifrado Base:</p>
+                <p className="text-zinc-300 text-sm">{explanation}</p>
               </div>
             )}
             
-            {/* Explicación IA (Se muestra solo si hay una respuesta seleccionada y es incorrecta) */}
+            {/* Explicación IA */}
             {selectedAnswer && selectedAnswer !== correctAnswer && (
-              <AiExplanation
-                questionId={question.question_id.toString()}
-                selectedAnswer={selectedAnswer}
-                attemptId={attemptId}
-              />
+              <div className="border border-brand-accent/20 bg-brand-accent/5 rounded-none p-1">
+                <div className="bg-black p-4 flex items-center gap-3 border-b border-brand-accent/10 mb-4">
+                  <span className="w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
+                  <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-accent">
+                    Intervención IA Generativa
+                  </span>
+                </div>
+                <AiExplanation
+                  questionId={question.question_id.toString()}
+                  selectedAnswer={selectedAnswer}
+                  attemptId={attemptId}
+                />
+              </div>
+            )}
+
+            {!selectedAnswer && (
+              <div className="flex items-center gap-3 p-4 bg-orange-500/10 border border-orange-500/20">
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                <span className="text-[10px] font-mono font-bold text-orange-400 uppercase tracking-widest">
+                  Para activar IA debes ingresar un intento erróneo previo.
+                </span>
+              </div>
             )}
           </div>
         )}

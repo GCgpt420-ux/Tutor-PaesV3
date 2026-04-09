@@ -9,9 +9,15 @@ pydantic-settings>=2.0.0
 email-validator>=2.2.0
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt>=4.0.1,<5.0.0
 python-multipart
 python-dotenv
 openai>=1.0.0
+
+# Alternative LLM Providers (for development/testing with free tiers)
+groq>=0.4.0
+cerebras-cloud-sdk>=0.1.0
+
 transbank-sdk>=4.0.0
 slowapi>=0.1.9
 sentry-sdk[fastapi]>=2.14.0

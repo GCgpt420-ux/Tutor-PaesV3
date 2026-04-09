@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func, desc
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -8,11 +8,70 @@ from app.db.models import (
 )
 from app.core.exceptions import not_found, bad_request
 from app.core.auth import get_current_user
+from fastapi import Query
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+class RankingEntryOut(BaseModel):
+    rank: int
+    user_id: int
+    name: str
+    total_attempts: int
+    average_score: float
+    best_score: int
+    accuracy: float
+
+
+@router.get("/ranking", response_model=List[RankingEntryOut])
+def get_users_ranking(
+    limit: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
+    rows = db.execute(
+        select(
+            User.id.label("user_id"),
+            func.coalesce(User.name, "Estudiante").label("name"),
+            func.count(Attempt.id).label("total_attempts"),
+            func.coalesce(func.avg(Attempt.score), 0).label("average_score"),
+            func.coalesce(func.max(Attempt.score), 0).label("best_score"),
+            func.coalesce(
+                (func.sum(Attempt.correct_count) * 100.0)
+                / func.nullif(func.sum(Attempt.total_questions), 0),
+                0,
+            ).label("accuracy"),
+        )
+        .join(Attempt, Attempt.user_id == User.id)
+        .where(Attempt.status == "completed")
+        .group_by(User.id, User.name)
+        .order_by(
+            desc("average_score"),
+            desc("accuracy"),
+            desc("total_attempts"),
+            User.id.asc(),
+        )
+        .limit(limit)
+    ).all()
+
+    ranking: list[RankingEntryOut] = []
+    for idx, row in enumerate(rows):
+        ranking.append(
+            RankingEntryOut(
+                rank=idx + 1,
+                user_id=int(row.user_id),
+                name=str(row.name),
+                total_attempts=int(row.total_attempts or 0),
+                average_score=round(float(row.average_score or 0), 2),
+                best_score=int(row.best_score or 0),
+                accuracy=round(float(row.accuracy or 0), 2),
+            )
+        )
+
+    return ranking
 
 @router.get("/{user_id}/stats")
 def user_stats(

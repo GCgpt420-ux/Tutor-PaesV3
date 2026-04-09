@@ -79,22 +79,19 @@ def update_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
 
+    # Mantener is_admin y role SIEMPRE sincronizados para evitar estado inconsistente.
+    # Regla única: is_admin == True <=> role == "admin".
     if payload.role is not None:
         user.role = payload.role
-        if payload.role == "admin":
-            user.is_admin = True
-        elif payload.is_admin is None:
-            user.is_admin = False
+        user.is_admin = payload.role == "admin"
 
     if payload.is_admin is not None:
         user.is_admin = payload.is_admin
-        if payload.is_admin and user.role != "admin":
-            user.role = "admin"
+        user.role = "admin" if payload.is_admin else (payload.role or "student")
 
     if payload.is_active is not None:
         user.is_active = payload.is_active
 
-    db.add(user)
     db.commit()
     db.refresh(user)
 

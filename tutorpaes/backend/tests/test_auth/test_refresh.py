@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from app.core.config import settings
 from app.core.auth import create_refresh_token
 from app.db.session import get_db
+from app.db.models import RevokedToken
 
 
 def test_refresh_token_valid(client):
@@ -14,7 +15,13 @@ def test_refresh_token_valid(client):
     user = SimpleNamespace(id=10, email="student@example.com", name="Student", is_admin=False, is_active=True)
 
     class FakeDB:
-        def scalar(self, _query):
+        def scalar(self, query):
+            try:
+                entity = query.column_descriptions[0]["entity"]
+                if entity is RevokedToken:
+                    return None
+            except (AttributeError, IndexError, KeyError):
+                pass
             return user
 
     def override_get_db():

@@ -78,6 +78,38 @@ wait_for_url() {
 	return 1
 }
 
+ensure_port_free_or_stop_known() {
+	local port="$1"
+	local label="$2"
+	local expected_proc="$3"
+
+	local line pid
+	line="$(ss -lntp "sport = :${port}" 2>/dev/null | tail -n +2 | head -n 1 || true)"
+	if [[ -z "$line" ]]; then
+		return 0
+	fi
+
+	pid="$(echo "$line" | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | head -n 1)"
+	if [[ -n "$pid" ]] && echo "$line" | grep -Eqi "$expected_proc"; then
+		echo "[dev-up] ${label}: puerto :${port} ocupado por proceso previo (pid=${pid}), cerrando..."
+		kill "$pid" 2>/dev/null || true
+		for _ in 1 2 3 4 5 6 7 8 9 10; do
+			if ss -lntp "sport = :${port}" 2>/dev/null | tail -n +2 | head -n 1 | grep -q .; then
+				sleep 0.2
+			else
+				break
+			fi
+		done
+	fi
+
+	if ss -lntp "sport = :${port}" 2>/dev/null | tail -n +2 | head -n 1 | grep -q .; then
+		echo "[dev-up] ERROR: ${label}: puerto :${port} sigue ocupado por otro proceso." >&2
+		echo "[dev-up] Sugerencia: ejecuta scripts/dev-down.sh o libera el puerto manualmente." >&2
+		ss -lntp "sport = :${port}" 2>/dev/null >&2 || true
+		exit 1
+	fi
+}
+
 mkdir -p "${RUNTIME_DIR}"
 
 echo "[dev-up] Root: ${ROOT_DIR}"
@@ -90,6 +122,27 @@ else
 	docker compose up -d
 	echo "[dev-up] Esperando a que Postgres esté listo..."
 	sleep 3
+fi
+
+# Normaliza DATABASE_URL para ejecución local en host.
+# Si no viene definida, usa credenciales canónicas del docker-compose local.
+# Si viene con host `db` (resoluble solo dentro de red Docker), la adapta a localhost.
+DEFAULT_LOCAL_DATABASE_URL="postgresql+psycopg://mvp:mvp@127.0.0.1:5432/mvp_db"
+ENV_FILE_PATH="${ROOT_DIR}/tutorpaes/backend/.env"
+if [[ -z "${DATABASE_URL:-}" && -f "${ENV_FILE_PATH}" ]]; then
+	ENV_DATABASE_URL="$(grep -E '^DATABASE_URL=' "${ENV_FILE_PATH}" | tail -n1 | cut -d '=' -f2- | sed -E 's/^"(.*)"$/\1/')"
+	if [[ -n "${ENV_DATABASE_URL}" ]]; then
+		export DATABASE_URL="${ENV_DATABASE_URL}"
+		echo "[dev-up] DATABASE_URL cargada desde backend/.env"
+	fi
+fi
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+	export DATABASE_URL="${DEFAULT_LOCAL_DATABASE_URL}"
+	echo "[dev-up] DATABASE_URL no definida en entorno ni backend/.env; usando default local (${DEFAULT_LOCAL_DATABASE_URL})"
+elif [[ "${DATABASE_URL}" == *"@db:"* ]]; then
+	export DATABASE_URL="${DATABASE_URL//@db:/@127.0.0.1:}"
+	echo "[dev-up] DATABASE_URL detectada con host 'db'; adaptada a localhost para host-run"
 fi
 
 VENV_BIN="venv/bin"
@@ -128,6 +181,8 @@ else
 	"${VENV_PY}" -m scripts.seed_user
 fi
 
+ensure_port_free_or_stop_known "${BACKEND_PORT}" "Backend" "uvicorn|python"
+
 echo "[dev-up] 4) Backend (uvicorn) en background: ${BACKEND_HOST}:${BACKEND_PORT}"
 # Compat: limpiamos archivos antiguos si existen.
 rm -f .uvicorn.pid .uvicorn.log
@@ -141,6 +196,8 @@ if ! wait_for_url "http://${BACKEND_HOST}:${BACKEND_PORT}/api/v1/health/" "Backe
 	tail -n 120 "${RUNTIME_DIR}/backend.uvicorn.log" >&2 || true
 	exit 1
 fi
+
+ensure_port_free_or_stop_known "${FRONTEND_PORT}" "Frontend" "next-server|next dev|node"
 
 echo "[dev-up] 5) Frontend (next dev) en background: ${FRONTEND_HOST}:${FRONTEND_PORT}"
 cd "${ROOT_DIR}/tutorpaes/frontend"

@@ -39,12 +39,11 @@ export function useAiTutor(): UseAiTutorReturn {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const response = await fetch('/api/v1/ai/chat', {
+      const response = await fetch('/api/backend/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Aquí deberías añadir el token de Auth si es necesario, 
-          // dependiendo de cómo manejes get_current_user
+          // El proxy se encarga de inyectar las cookies/headers de Auth.
         },
         body: JSON.stringify({
           message: text,
@@ -61,17 +60,16 @@ export function useAiTutor(): UseAiTutorReturn {
       
       if (!reader) throw new Error('No se pudo inicializar el lector de stream.');
 
-      // Añadir mensaje del asistente vacío para ir llenándolo
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
       let assistantResponse = '';
+      let sseBuffer = '';
       
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const events = chunk.split('\n\n');
+        sseBuffer += decoder.decode(value, { stream: true });
+        const events = sseBuffer.split('\n\n');
+        sseBuffer = events.pop() ?? '';
 
         for (const event of events) {
           if (event.startsWith('data: ')) {
@@ -79,14 +77,20 @@ export function useAiTutor(): UseAiTutorReturn {
             if (dataStr === '[DONE]') break;
             
             assistantResponse += dataStr;
-            
-            // Actualizar el último mensaje (el del asistente)
+
+            // Evita condición de carrera: si el primer chunk llega antes de que React
+            // pinte el placeholder, crea/actualiza el mensaje del asistente en una sola operación.
             setMessages((prev) => {
-              const last = prev[prev.length - 1];
-              if (last && last.role === 'assistant') {
-                return [...prev.slice(0, -1), { role: 'assistant', content: assistantResponse }];
+              const next = [...prev];
+              const last = next[next.length - 1];
+
+              if (!last || last.role !== 'assistant') {
+                next.push({ role: 'assistant', content: assistantResponse });
+                return next;
               }
-              return prev;
+
+              next[next.length - 1] = { role: 'assistant', content: assistantResponse };
+              return next;
             });
           }
         }

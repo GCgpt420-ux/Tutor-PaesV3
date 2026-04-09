@@ -1,88 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SubjectCard } from '@/src/features/dashboard/components/subject-card';
+import { resolveMateriaId } from '@/src/lib/theme/materia-colors';
 import { Loader } from 'lucide-react';
-import { apiFetch } from '@/src/lib/api/client';
-
-interface Subject {
-  subject_id: number;
-  subject_code: string;
-  name: string;
-  topics: Array<{
-    topic_id: number;
-    topic_code: string;
-    name: string;
-  }>;
-}
+import { useSubjects } from '@/src/features/courses/hooks/use-courses';
 
 export function CoursesPageView() {
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Primero obtener el ID del examen PAES
-        const exams = await apiFetch<Array<{ exam_id: number; code: string; name: string }>>('/catalog/exams/');
-        const paesExam = exams.find((e) => e.code === 'PAES');
-
-        if (!paesExam) {
-          throw new Error('No se encontró el examen PAES');
-        }
-
-        // Obtener las materias del examen PAES
-        const subjectsData = await apiFetch<Subject[]>(`/catalog/subjects/?exam_id=${paesExam.exam_id}`);
-        setSubjects(subjectsData);
-      } catch (err) {
-        console.error('Error fetching subjects:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar cursos');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSubjects();
-  }, []);
+  const { data: subjects = [], isLoading: loading, isError, error: queryError } = useSubjects();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-4">
-          <Loader className="h-10 w-10 text-blue-600 animate-spin" />
-          <p className="text-gray-600">Cargando cursos...</p>
+          <Loader className="h-10 w-10 text-brand-primary animate-spin" />
+          <p className="text-text-tertiary font-medium uppercase tracking-widest text-sm">Escaneando catálogo...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <p className="text-red-700 font-semibold">Error</p>
-          <p className="text-red-600 text-sm mt-1">{error}</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="glass-card p-8 border-brand-danger/30 bg-brand-danger/5 text-center animate-error-shake">
+          <p className="text-brand-danger font-black uppercase tracking-widest mb-2">Error de Sincronización</p>
+          <p className="text-text-secondary text-sm">
+            {queryError instanceof Error ? queryError.message : 'Error al cargar cursos'}
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Catálogo de Cursos</h1>
-        <p className="text-gray-600 mt-2">Selecciona una materia para empezar a estudiar</p>
+    <div className="w-full max-w-6xl mx-auto">
+      <div className="mb-10 flex flex-col gap-2">
+        <h1 className="text-3xl md:text-4xl font-black text-text-primary uppercase tracking-tight">Catálogo de Cursos</h1>
+        <p className="text-text-tertiary font-medium">Selecciona una materia base para iniciar tu fase de entrenamiento.</p>
       </div>
 
       {subjects.length === 0 ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-          <p className="text-blue-900">No hay cursos disponibles en este momento</p>
+        <div className="glass-card p-16 text-center border-dashed border-white/10 bg-surface-raised/10">
+          <p className="text-text-secondary font-bold uppercase tracking-wider">No hay cursos disponibles</p>
+          <p className="text-text-tertiary text-sm mt-1">Vuelve a intentarlo más tarde o contacta a soporte.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -91,7 +53,8 @@ export function CoursesPageView() {
               key={subject.subject_id}
               id={subject.subject_id.toString()}
               name={subject.name}
-              description={`Código: ${subject.subject_code} · ${subject.topics.length} temas`}
+              materiaId={resolveMateriaId(subject.name)}
+              description={`${subject.subject_code} · ${subject.topics?.length || 0} temas integrados`}
               onClick={() => router.push(`/protected/cursos/${subject.subject_id}`)}
             />
           ))}

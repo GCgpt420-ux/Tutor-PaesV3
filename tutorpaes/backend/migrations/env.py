@@ -9,7 +9,6 @@ import os
 from dotenv import load_dotenv
 from app.db.base import Base # creado por gabriel
 from app.db import models # creado por gabriel
-from app.core.config import settings # creado por gabriel
 #
 target_metadata = Base.metadata
 # this is the Alembic Config object, which provides
@@ -18,12 +17,23 @@ config = context.config
 # Load environment variables from .env file
 load_dotenv()
 
-# esto se cambio - usar settings.DATABASE_URL porque se ocupaba una url hardcodeada
+# Prioridad de URL para migraciones:
+# 1) ALEMBIC_DATABASE_URL (usuario migrador con permisos DDL)
+# 2) DATABASE_URL (fallback, útil en dev)
+migration_url = os.getenv("ALEMBIC_DATABASE_URL") or os.getenv("DATABASE_URL")
+if not migration_url:
+    raise RuntimeError("Missing database URL. Define ALEMBIC_DATABASE_URL or DATABASE_URL")
 
-config.set_main_option(
-    "sqlalchemy.url",
-    settings.DATABASE_URL
-)
+# Compatibilidad Railway/Heroku:
+# - postgres://...
+# - postgresql://...
+# Alembic/SQLAlchemy en este proyecto usa psycopg v3.
+if migration_url.startswith("postgres://"):
+    migration_url = "postgresql+psycopg://" + migration_url[len("postgres://") :]
+elif migration_url.startswith("postgresql://"):
+    migration_url = "postgresql+psycopg://" + migration_url[len("postgresql://") :]
+
+config.set_main_option("sqlalchemy.url", migration_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

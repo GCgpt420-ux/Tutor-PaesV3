@@ -22,37 +22,27 @@ export function ExamTimer({ timeLeft, totalSeconds }: ExamTimerProps) {
     };
   }, [timeLeft, totalSeconds]);
 
-  const getColor = () => {
-    if (timeLeft <= 60) return 'text-red-600';
-    if (isWarning) return 'text-orange-600';
-    return 'text-green-600';
+  const getColors = () => {
+    if (timeLeft <= 60) return { text: 'text-brand-danger', bg: 'bg-brand-danger/10 border-brand-danger/20', fill: 'bg-brand-danger shadow-[0_0_10px_rgba(239,68,68,0.5)]' };
+    if (isWarning) return { text: 'text-warning', bg: 'bg-warning/10 border-warning/20', fill: 'bg-warning shadow-[0_0_10px_rgba(245,158,11,0.5)]' };
+    return { text: 'text-success', bg: 'bg-success/10 border-success/20', fill: 'bg-success shadow-[0_0_10px_rgba(16,185,129,0.5)]' };
   };
 
-  const getBgColor = () => {
-    if (timeLeft <= 60) return 'from-red-50 to-red-50';
-    if (isWarning) return 'from-orange-50 to-orange-50';
-    return 'from-green-50 to-green-50';
-  };
+  const colors = getColors();
 
   return (
-    <div className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg bg-gradient-to-r ${getBgColor()}`}>
-      <div className={`text-2xl font-bold ${getColor()}`}>
+    <div className={`flex flex-col items-center gap-2 px-5 py-3 rounded-2xl glass-card backdrop-blur-xl ${colors.bg} transition-all duration-500`}>
+      <div className={`text-2xl font-black tabular-nums tracking-tight ${colors.text}`}>
         {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>
-      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
         <div
-          className={`h-full transition-all ${
-            timeLeft <= 60
-              ? 'bg-red-600'
-              : isWarning
-              ? 'bg-orange-600'
-              : 'bg-green-600'
-          }`}
+          className={`h-full transition-all duration-1000 ease-linear ${colors.fill}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <p className={`text-xs font-semibold ${getColor()}`}>
-        {timeLeft <= 60 ? '¡Tiempo limitado!' : 'Tiempo restante'}
+      <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${colors.text}`}>
+        {timeLeft <= 60 ? 'Inminente' : 'Cronómetro'}
       </p>
     </div>
   );

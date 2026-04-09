@@ -41,7 +41,7 @@ describe('QuestionCard (Accesibility & Render Test)', () => {
 
     // Verifica que el prompt se leyó y el fieldset legend existe
     expect(screen.getByText('¿Cuál es la capital de Chile?')).toBeInTheDocument();
-    expect(screen.getByText('Elige una respuesta:')).toBeInTheDocument();
+    expect(screen.getByText(/Insertar Coordenada Optima/i)).toBeInTheDocument();
 
     // Validar que las opciones sean input radios seleccionables (cumpliendo a11y)
     const radios = screen.getAllByRole('radio');

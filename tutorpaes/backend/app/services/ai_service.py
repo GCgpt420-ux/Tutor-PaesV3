@@ -1,10 +1,10 @@
 from datetime import timezone
 from app.db.models import (
-    AttemptFeedback, Question, QuestionChoice, QuestionExplanation, 
+    AttemptFeedback, Question, QuestionChoice, QuestionExplanation,
     User, Attempt, Topic, AttemptStatus
 )
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select
+from sqlalchemy import func, select, case, and_
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timedelta
 
@@ -22,79 +22,57 @@ except ImportError:
 def _get_user_performance_by_topic(user: User, db: Session, limit_days: int = 30) -> Dict[str, Dict]:
     """
     Obtiene el desempeño del usuario por tema en los últimos N días.
-    
+    Usa una sola query SQL agregada (sin N+1).
+
     Returns:
         {
             'topic_code': {
-                'total': 10,
-                'correct': 7,
-                'accuracy': 0.7,
-                'difficulty_avg': 1.8,
-                'recent': True  # Si respondió en los últimos 7 días
+                'topic_name': str,
+                'total': int,
+                'correct': int,
+                'accuracy': float,
+                'difficulty_avg': float,
+                'recent': bool  # Si respondió en los últimos 7 días
             }
         }
     """
-    from sqlalchemy import func as sa_func
-    
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=limit_days)
-    
-    # Obtener todos los intentos del usuario en este período
-    attempts = db.query(Attempt).filter(
-        Attempt.user_id == user.id,
-        Attempt.status == "completed"
+    recent_cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+
+    # Una sola query que agrega todo en PostgreSQL, sin bucles Python ni N+1.
+    rows = db.execute(
+        select(
+            Topic.code.label("topic_code"),
+            Topic.name.label("topic_name"),
+            func.sum(Attempt.total_questions).label("total"),
+            func.sum(Attempt.correct_count).label("correct"),
+            func.avg(Question.difficulty).label("difficulty_avg"),
+            func.bool_or(Attempt.completed_at >= recent_cutoff).label("recent"),
+        )
+        .join(Attempt, Attempt.topic_id == Topic.id)
+        .join(Question, Question.topic_id == Topic.id)
+        .where(
+            Attempt.user_id == user.id,
+            Attempt.status == "completed",
+            Attempt.completed_at >= cutoff_date,
+        )
+        .group_by(Topic.id, Topic.code, Topic.name)
     ).all()
-    
-    # Filtrar por fecha en Python (safer with timezone awareness)
-    attempts = [a for a in attempts if a.completed_at and a.completed_at.replace(tzinfo=None) >= cutoff_date]
-    
-    performance = {}
-    
-    for attempt in attempts:
-        if not attempt.topic:
-            continue
-            
-        topic_code = attempt.topic.code
-        
-        if topic_code not in performance:
-            performance[topic_code] = {
-                'topic_name': attempt.topic.name,
-                'total': 0,
-                'correct': 0,
-                'incorrect': 0,
-                'omitted': 0,
-                'difficulty_levels': [],
-            }
-        
-        perf = performance[topic_code]
-        perf['total'] += attempt.total_questions or 0
-        perf['correct'] += attempt.correct_count or 0
-        perf['incorrect'] += attempt.incorrect_count or 0
-        perf['omitted'] += attempt.omitted_count or 0
-        
-        # Recolectar dificultades
-        questions = db.query(Question).filter(
-            Question.topic_id == attempt.topic_id
-        ).all()
-        for q in questions:
-            perf['difficulty_levels'].append(q.difficulty or 1)
-    
-    # Calcular métricas agregadas
-    for topic_code, data in performance.items():
-        total = data['total']
-        if total > 0:
-            data['accuracy'] = round(data['correct'] / total, 3)
-            data['difficulty_avg'] = round(sum(data['difficulty_levels']) / len(data['difficulty_levels']), 1) if data['difficulty_levels'] else 1.0
-        else:
-            data['accuracy'] = 0
-            data['difficulty_avg'] = 1.0
-        
-        # Marcar si es reciente (últimos 7 días)
-        recent_cutoff = datetime.now(timezone.utc) - timedelta(days=7)
-        recent_attempts = [a for a in attempts if a.topic and a.topic.code == topic_code and a.completed_at and a.completed_at.replace(tzinfo=None) >= recent_cutoff]
-        data['recent'] = len(recent_attempts) > 0
-        
-        del data['difficulty_levels']  # Limpiar datos temporales
-    
+
+    performance: Dict[str, Dict] = {}
+    for row in rows:
+        total = int(row.total or 0)
+        correct = int(row.correct or 0)
+        performance[row.topic_code] = {
+            "topic_name": row.topic_name,
+            "total": total,
+            "correct": correct,
+            "incorrect": total - correct,
+            "accuracy": round(correct / total, 3) if total > 0 else 0.0,
+            "difficulty_avg": round(float(row.difficulty_avg or 1.0), 1),
+            "recent": bool(row.recent),
+        }
+
     return performance
 
 
@@ -143,27 +121,27 @@ def _get_user_overall_level(user: User, db: Session) -> Tuple[str, float]:
 def _get_common_wrong_options(user: User, question: Question, db: Session, limit: int = 3) -> List[str]:
     """
     Identifica las opciones incorrectas más comúnmente seleccionadas por el usuario
-    en preguntas del mismo tema.
+    en preguntas del mismo tema. Una sola query SQL agregada (sin N+1).
     """
-    attempts = db.query(Attempt).filter(
-        Attempt.user_id == user.id,
-        Attempt.topic_id == question.topic_id
+    rows = db.execute(
+        select(
+            QuestionChoice.label,
+            func.count(AttemptFeedback.id).label("count"),
+        )
+        .join(AttemptFeedback, AttemptFeedback.selected_choice_id == QuestionChoice.id)
+        .join(Attempt, Attempt.id == AttemptFeedback.attempt_id)
+        .where(
+            Attempt.user_id == user.id,
+            Attempt.topic_id == question.topic_id,
+            AttemptFeedback.is_correct == False,  # noqa: E712
+            QuestionChoice.is_correct == False,  # noqa: E712
+        )
+        .group_by(QuestionChoice.label)
+        .order_by(func.count(AttemptFeedback.id).desc())
+        .limit(limit)
     ).all()
-    
-    wrong_patterns = {}
-    for attempt in attempts:
-        feedbacks = db.query(AttemptFeedback).filter(
-            AttemptFeedback.attempt_id == attempt.id,
-            AttemptFeedback.is_correct == False
-        ).all()
-        
-        for fb in feedbacks:
-            if fb.selected_choice_id:
-                choice = db.get(QuestionChoice, fb.selected_choice_id)
-                if choice and not choice.is_correct:
-                    wrong_patterns[choice.label] = wrong_patterns.get(choice.label, 0) + 1
-    
-    return sorted(wrong_patterns.items(), key=lambda x: x[1], reverse=True)[:limit]
+
+    return [(row.label, row.count) for row in rows]
 
 
 # ============================================================================

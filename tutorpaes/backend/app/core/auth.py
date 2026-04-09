@@ -1,4 +1,3 @@
-from datetime import timezone
 """
 JWT Authentication Module
 
@@ -7,7 +6,8 @@ Se utiliza HS256 con expiración de 24 horas.
 Incluye encriptación y verificación de contraseñas con Bcrypt.
 """
 
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import Depends, HTTPException, status, Header, Cookie
@@ -17,7 +17,7 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.db.models import User
+from app.db.models import User, RevokedToken
 from sqlalchemy import select
 
 # ---------------------------------------------------------
@@ -40,6 +40,7 @@ def get_password_hash(password: str) -> str:
 def _create_token(user_id: int, expires_delta: timedelta, token_type: str) -> str:
     payload = {
         "sub": str(user_id),
+        "jti": uuid.uuid4().hex,
         "exp": datetime.now(timezone.utc) + expires_delta,
         "iat": datetime.now(timezone.utc),
         "type": token_type,
@@ -86,15 +87,12 @@ def create_reset_password_token(user_id: int) -> str:
     )
 
 
-def decode_token(token: str, expected_type: str = "access") -> Optional[int]:
+def decode_token(token: str, expected_type: str = "access") -> Optional[dict]:
     """
     Decodifica y valida un token JWT.
-    
-    Args:
-        token: Token JWT
-        
+
     Returns:
-        user_id si es válido, None si no lo es
+        dict con {user_id, jti, exp} si es válido, None si no lo es.
     """
     try:
         payload = jwt.decode(
@@ -107,9 +105,26 @@ def decode_token(token: str, expected_type: str = "access") -> Optional[int]:
             return None
 
         user_id: int = int(payload.get("sub"))
-        return user_id
+        jti: str = payload.get("jti", "")
+        exp: int = payload.get("exp", 0)
+        return {"user_id": user_id, "jti": jti, "exp": exp}
     except (ExpiredSignatureError, JWTError, ValueError, TypeError):
         return None
+
+
+def is_token_revoked(jti: str, db: Session) -> bool:
+    """Devuelve True si el jti está en la blacklist."""
+    return db.scalar(select(RevokedToken).where(RevokedToken.jti == jti)) is not None
+
+
+def revoke_token(jti: str, exp: int, db: Session) -> None:
+    """Añade un jti a la blacklist. exp es el timestamp UNIX del token."""
+    if not jti:
+        return
+    expires_at = datetime.fromtimestamp(exp, tz=timezone.utc)
+    entry = RevokedToken(jti=jti, expires_at=expires_at)
+    db.merge(entry)  # merge ignora duplicados (unique constraint)
+    db.commit()
 
 
 def get_current_user(
@@ -153,19 +168,27 @@ def get_current_user(
             detail="Token no proporcionado",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    user_id = decode_token(token)
-    
-    if user_id is None:
+
+    token_data = decode_token(token)
+
+    if token_data is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    # Verificar que el token no haya sido revocado (logout)
+    if is_token_revoked(token_data["jti"], db):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesión cerrada. Por favor inicia sesión de nuevo.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     # Obtener usuario de la base de datos
     try:
-        user = db.scalar(select(User).where(User.id == user_id))
+        user = db.scalar(select(User).where(User.id == token_data["user_id"]))
     except OperationalError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -185,9 +208,14 @@ def get_current_user(
 def require_admin_user(
     user: User = Depends(get_current_user),
 ) -> User:
-    """Guard de admin basado en el estado persistido (is_admin) del usuario."""
+    """
+    Guard de admin. Chequea is_admin Y role == 'admin' para detectar
+    inconsistencias entre ambos campos hasta que se unifiquen en una migración.
+    """
+    is_admin = getattr(user, "is_admin", False)
+    is_admin_role = getattr(user, "role", "") == "admin"
 
-    if not getattr(user, "is_admin", False):
+    if not (is_admin or is_admin_role):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -197,3 +225,18 @@ def require_admin_user(
             },
         )
     return user
+
+
+def cleanup_expired_revoked_tokens(db: Session) -> int:
+    """
+    Elimina tokens revocados cuya fecha de expiración ya pasó.
+    Debe llamarse periódicamente (ej: al inicio del proceso, o con un scheduler).
+    Retorna el número de filas eliminadas.
+    """
+    from sqlalchemy import delete as sql_delete
+    now = datetime.now(timezone.utc)
+    result = db.execute(
+        sql_delete(RevokedToken).where(RevokedToken.expires_at < now)
+    )
+    db.commit()
+    return result.rowcount

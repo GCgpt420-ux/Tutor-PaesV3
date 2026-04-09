@@ -7,6 +7,7 @@ from jose import jwt
 from app.core.auth import create_access_token
 from app.core.config import settings
 from app.db.session import get_db
+from app.db.models import RevokedToken
 
 
 def test_protected_route_with_valid_token(client):
@@ -26,7 +27,14 @@ def test_protected_route_with_valid_token(client):
     )
 
     class FakeDB:
-        def scalar(self, _query):
+        def scalar(self, query):
+            # Return None for blacklist checks, user for everything else
+            try:
+                entity = query.column_descriptions[0]["entity"]
+                if entity is RevokedToken:
+                    return None
+            except (AttributeError, IndexError, KeyError):
+                pass
             return user
 
     def override_get_db():

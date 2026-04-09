@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session, selectinload
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -123,7 +123,7 @@ def create_custom_exam(
 
 
 @router.get("/exams/")
-def get_exams(db: Session = Depends(get_db)):
+def get_exams(response: Response, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/exams/
     
@@ -139,15 +139,14 @@ def get_exams(db: Session = Depends(get_db)):
         }
     ]
     """
-    exams = db.scalars(select(Exam)).all()
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+
+    exams = db.scalars(
+        select(Exam).options(selectinload(Exam.subjects))
+    ).all()
     
-    result = []
-    for exam in exams:
-        subjects = db.scalars(
-            select(Subject).where(Subject.exam_id == exam.id)
-        ).all()
-        
-        result.append({
+    return [
+        {
             "exam_id": exam.id,
             "code": exam.code,
             "name": exam.name,
@@ -158,15 +157,15 @@ def get_exams(db: Session = Depends(get_db)):
                     "subject_code": s.code,
                     "name": s.name
                 }
-                for s in subjects
+                for s in exam.subjects
             ]
-        })
-    
-    return result
+        }
+        for exam in exams
+    ]
 
 
 @router.get("/subjects/")
-def get_subjects(exam_id: int = Query(...), db: Session = Depends(get_db)):
+def get_subjects(exam_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/subjects/?exam_id=1
     
@@ -188,16 +187,26 @@ def get_subjects(exam_id: int = Query(...), db: Session = Depends(get_db)):
     exam = db.scalar(select(Exam).where(Exam.id == exam_id))
     if not exam:
         raise not_found("exam_not_found", f"Exam {exam_id} not found")
-    
+
+    if response:
+        response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+
     subjects = db.scalars(
-        select(Subject).where(Subject.exam_id == exam_id)
+        select(Subject)
+        .where(Subject.exam_id == exam_id)
+        .options(selectinload(Subject.topics))
     ).all()
-    
-    result = []
-    for subject in subjects:
-        topics = db.scalars(_topics_with_active_questions_query(subject.id)).all()
-        
-        result.append({
+
+    active_topic_ids: set[int] = set(
+        db.scalars(select(Topic.id).where(Topic.id.in_(
+            select(Topic.id)
+            .join(Question, Question.topic_id == Topic.id)
+            .where(Question.is_active == True, Topic.subject_id.in_([s.id for s in subjects]))  # noqa: E712
+        ))).all()
+    )
+
+    return [
+        {
             "subject_id": subject.id,
             "subject_code": subject.code,
             "name": subject.name,
@@ -207,15 +216,16 @@ def get_subjects(exam_id: int = Query(...), db: Session = Depends(get_db)):
                     "topic_code": t.code,
                     "name": t.name
                 }
-                for t in topics
+                for t in subject.topics
+                if t.id in active_topic_ids
             ]
-        })
-    
-    return result
+        }
+        for subject in subjects
+    ]
 
 
 @router.get("/topics/")
-def get_topics(subject_id: int = Query(...), db: Session = Depends(get_db)):
+def get_topics(subject_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/topics/?subject_id=1
     
@@ -250,7 +260,7 @@ def get_topics(subject_id: int = Query(...), db: Session = Depends(get_db)):
 
 
 @router.get("/topics/{topic_id}")
-def get_topic_detail(topic_id: int, db: Session = Depends(get_db)):
+def get_topic_detail(topic_id: int, response: Response, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/topics/{topic_id}
 
@@ -271,6 +281,8 @@ def get_topic_detail(topic_id: int, db: Session = Depends(get_db)):
     if not topic:
         raise not_found("topic_not_found", f"Topic {topic_id} not found")
 
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+
     return {
         "topic_id": topic.id,
         "code": topic.code,
@@ -280,7 +292,7 @@ def get_topic_detail(topic_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/exams/{exam_id}")
-def get_exam_detail(exam_id: int, db: Session = Depends(get_db)):
+def get_exam_detail(exam_id: int, response: Response, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/exams/{exam_id}
     
@@ -304,39 +316,45 @@ def get_exam_detail(exam_id: int, db: Session = Depends(get_db)):
         ]
     }
     """
-    exam = db.scalar(select(Exam).where(Exam.id == exam_id))
+    exam = db.scalar(
+        select(Exam).where(Exam.id == exam_id).options(selectinload(Exam.subjects).selectinload(Subject.topics))
+    )
     if not exam:
         raise not_found("exam_not_found", f"Exam {exam_id} not found")
-    
-    subjects = db.scalars(
-        select(Subject).where(Subject.exam_id == exam_id)
-    ).all()
-    
-    result = {
+
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+
+    subject_ids = [s.id for s in exam.subjects]
+    active_topic_ids: set[int] = set(
+        db.scalars(select(Topic.id).where(Topic.id.in_(
+            select(Question.topic_id).where(Question.is_active == True, Question.topic_id.in_(  # noqa: E712
+                select(Topic.id).where(Topic.subject_id.in_(subject_ids))
+            ))
+        ))).all()
+    ) if subject_ids else set()
+
+    return {
         "exam_id": exam.id,
         "code": exam.code,
         "name": exam.name,
-        "subjects": []
+        "subjects": [
+            {
+                "subject_id": subject.id,
+                "subject_code": subject.code,
+                "name": subject.name,
+                "topics": [
+                    {
+                        "topic_id": t.id,
+                        "topic_code": t.code,
+                        "name": t.name
+                    }
+                    for t in subject.topics
+                    if t.id in active_topic_ids
+                ]
+            }
+            for subject in exam.subjects
+        ]
     }
-    
-    for subject in subjects:
-        topics = db.scalars(_topics_with_active_questions_query(subject.id)).all()
-        
-        result["subjects"].append({
-            "subject_id": subject.id,
-            "code": subject.code,
-            "name": subject.name,
-            "topics": [
-                {
-                    "topic_id": t.id,
-                    "code": t.code,
-                    "name": t.name
-                }
-                for t in topics
-            ]
-        })
-    
-    return result
 
 
 @router.get("/exams/{exam_id}/questions")
@@ -407,13 +425,13 @@ def get_subject_detail(subject_id: int, db: Session = Depends(get_db)):
     
     return {
         "subject_id": subject.id,
-        "code": subject.code,
+        "subject_code": subject.code,
         "name": subject.name,
         "exam_id": subject.exam_id,
         "topics": [
             {
                 "topic_id": t.id,
-                "code": t.code,
+                "topic_code": t.code,
                 "name": t.name
             }
             for t in topics

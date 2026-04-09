@@ -1,98 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Loader, Plus, Calendar, FileText } from 'lucide-react';
 import { ExamCard } from '@/src/features/dashboard/components/exam-card';
 import { CreateExamModal } from '@/src/features/exams/components/create-exam-modal';
-import { apiFetch } from '@/src/lib/api/client';
-
-interface Exam {
-  exam_id: number;
-  code: string;
-  name: string;
-  is_custom?: boolean;
-  subjects: Array<{
-    subject_id: number;
-    subject_code: string;
-    name: string;
-  }>;
-}
-
-interface ExamCardData {
-  id: string;
-  title: string;
-  type: 'oficial' | 'personalizado';
-  scheduled_at: string | null;
-  duration_minutes: number;
-  is_active: boolean;
-  created_by: string | null;
-  created_at: string;
-}
+import { useExamsListUI } from '@/src/features/exams/hooks/use-exams';
+import { useQueryClient } from '@tanstack/react-query';
+import { examsKeys } from '@/src/features/exams/hooks/use-exams';
 
 type TabType = 'oficial' | 'personalizado';
 
 export default function EnsayosPage() {
   const [activeTab, setActiveTab] = useState<TabType>('oficial');
-  const [officialExams, setOfficialExams] = useState<ExamCardData[]>([]);
-  const [customExams, setCustomExams] = useState<ExamCardData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const queryClient = useQueryClient();
 
-  const loadExams = async () => {
-    const exams = await apiFetch<Exam[]>('/catalog/exams/');
+  const { data, isLoading: loading, isError, error: queryError } = useExamsListUI();
 
-    const officialExamsData: ExamCardData[] = exams
-      .filter((exam) => !exam.is_custom)
-      .map((exam) => ({
-        id: exam.exam_id.toString(),
-        title: exam.name,
-        type: 'oficial' as const,
-        scheduled_at: null,
-        duration_minutes: 180,
-        is_active: true,
-        created_by: null,
-        created_at: new Date().toISOString(),
-      }));
-
-    const customExamsData: ExamCardData[] = exams
-      .filter((exam) => exam.is_custom)
-      .map((exam) => ({
-        id: exam.exam_id.toString(),
-        title: exam.name,
-        type: 'personalizado' as const,
-        scheduled_at: null,
-        duration_minutes: 150,
-        is_active: true,
-        created_by: null,
-        created_at: new Date().toISOString(),
-      }));
-
-    setOfficialExams(officialExamsData);
-    setCustomExams(customExamsData);
-  };
-
-  useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        await loadExams();
-      } catch (err) {
-        console.error('Error fetching exams:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar ensayos');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExams();
-  }, []);
+  const officialExams = data?.officialExams || [];
+  const customExams = data?.customExams || [];
 
   const handleExamCreated = () => {
     setShowCreateModal(false);
-    void loadExams();
+    queryClient.invalidateQueries({ queryKey: examsKeys.separatedList() });
     setActiveTab('personalizado');
   };
 
@@ -160,10 +90,10 @@ export default function EnsayosPage() {
       </div>
 
       {/* Error */}
-      {error && (
+      {isError && (
         <div className="mb-6 bg-red-900/20 border-2 border-red-900/50 rounded-xl p-4 animate-error-shake">
           <p className="text-red-400 font-bold uppercase tracking-wider text-sm">Error</p>
-          <p className="text-red-300 text-sm mt-1">{error}</p>
+          <p className="text-red-300 text-sm mt-1">{queryError instanceof Error ? queryError.message : 'Error al cargar ensayos'}</p>
         </div>
       )}
 

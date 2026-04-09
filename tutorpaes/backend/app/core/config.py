@@ -65,14 +65,25 @@ class Settings(BaseSettings):
     # Quiz
     QUIZ_TOPIC_MAX_QUESTIONS: int = 15
 
-    # Configuración OpenAI LLM
+    # Configuración LLM - Proveedor actual (openai, groq, cerebras)
+    LLM_PROVIDER: str = "openai"
+    LLM_TEMPERATURE: float = 0.7
+    LLM_MAX_TOKENS: int = 500
+    LLM_TIMEOUT_SECONDS: int = 25
+    LLM_MAX_RETRIES: int = 1
+    AI_ENABLE_LLM: bool = True
+
+    # Configuración OpenAI (proveedor: openai)
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-3.5-turbo"
-    OPENAI_TEMPERATURE: float = 0.7
-    OPENAI_MAX_TOKENS: int = 500
-    OPENAI_TIMEOUT_SECONDS: int = 25
-    OPENAI_MAX_RETRIES: int = 1
-    AI_ENABLE_LLM: bool = True
+
+    # Configuración Groq (proveedor: groq) - Modelos gratuitos con cuotas
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "mixtral-8x7b-32768"
+
+    # Configuración Cerebras (proveedor: cerebras) - Modelos gratuitos con cuotas
+    CEREBRAS_API_KEY: str = ""
+    CEREBRAS_MODEL: str = "llama-3.1-70b"
 
     # Inicialización de DB (solo desarrollo)
     AUTO_CREATE_TABLES: bool = False
@@ -91,6 +102,18 @@ class Settings(BaseSettings):
         description="Clave API Transbank (requerido)"
     )
     TBK_ENVIRONMENT: str = "integration"
+
+    # Credenciales de integración/sandbox de Transbank (solo para guardrail de seguridad).
+    # En producción, estas deben ser diferentes a TBK_COMMERCE_CODE y TBK_API_KEY.
+    # Valores públicos del SDK de Transbank (documentación oficial).
+    TBK_INTEGRATION_COMMERCE_CODE: str = Field(
+        default="597055555532",
+        description="Código de comercio de sandbox Transbank (valor público de SDK)"
+    )
+    TBK_INTEGRATION_API_KEY: str = Field(
+        default="<TRANSBANK_INTEGRATION_API_KEY>",
+        description="API key de sandbox Transbank (valor público de SDK)"
+    )
     
     # URL de retorno de pago
     PAYMENT_RETURN_URL: Optional[str] = Field(
@@ -123,6 +146,16 @@ class Settings(BaseSettings):
     SENTRY_PROFILES_SAMPLE_RATE: float = Field(
         default=0.1,
         description="Porcentaje de perfiles de rendimiento para Sentry (0.0 a 1.0)"
+    )
+
+    # Connection pool (tune per number of Gunicorn/Uvicorn workers)
+    DB_POOL_SIZE: int = Field(
+        default=10,
+        description="Conexiones base del pool por worker (recomendado: max_pg_connections / num_workers)"
+    )
+    DB_POOL_MAX_OVERFLOW: int = Field(
+        default=20,
+        description="Conexiones extra permitidas sobre pool_size (burst)"
     )
 
     # Opcional: caché Redis
@@ -179,6 +212,24 @@ class Settings(BaseSettings):
             raise RuntimeError(
                 f"Configuración crítica incompleta. Define estas variables de entorno: {joined_fields}"
             )
+
+        # Guardrail crítico: evita mezclar credenciales de integración en producción.
+        env = (self.ENVIRONMENT or "").strip().lower()
+        tbk_env = (self.TBK_ENVIRONMENT or "").strip().lower()
+
+        if env == "production":
+            if tbk_env != "production":
+                raise RuntimeError(
+                    "Configuración insegura: ENVIRONMENT=production requiere TBK_ENVIRONMENT=production."
+                )
+
+            if (
+                self.TBK_COMMERCE_CODE == self.TBK_INTEGRATION_COMMERCE_CODE
+                or self.TBK_API_KEY == self.TBK_INTEGRATION_API_KEY
+            ):
+                raise RuntimeError(
+                    "Configuración insegura: se detectaron credenciales Transbank de integración en producción."
+                )
 
 
 settings = Settings()

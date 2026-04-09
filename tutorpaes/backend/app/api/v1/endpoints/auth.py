@@ -6,7 +6,7 @@ Maneja el registro seguro de usuarios y la validación de contraseñas mediante 
 from typing import Optional
 import re
 from pydantic import BaseModel, EmailStr, field_validator
-from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Request, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
@@ -20,7 +20,9 @@ from app.core.auth import (
     decode_token,
     get_current_user, 
     get_password_hash, 
-    verify_password
+    verify_password,
+    is_token_revoked,
+    revoke_token,
 )
 from app.core.rate_limiter import limiter
 
@@ -239,8 +241,14 @@ def refresh_session(
             detail="Refresh token inválido o expirado",
         )
 
+    if is_token_revoked(user_id["jti"], db):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesión revocada. Por favor inicia sesión de nuevo.",
+        )
+
     try:
-        user = db.scalar(select(User).where(User.id == user_id, User.is_active == True))
+        user = db.scalar(select(User).where(User.id == user_id["user_id"], User.is_active == True))
     except OperationalError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -261,6 +269,42 @@ def refresh_session(
         "name": user.name,
         "is_admin": user.is_admin,
     }
+
+
+@router.post("/logout", status_code=204)
+@limiter.limit("20/minute")
+def logout(
+    request: Request,
+    authorization: str = Header(None),
+    access_token: Optional[str] = Cookie(default=None),
+    refresh_token: Optional[str] = Cookie(default=None),
+    db: Session = Depends(get_db),
+):
+    """
+    Invalida el access_token y refresh_token del usuario.
+    Ambos JTIs se escriben en la blacklist revoked_tokens.
+    El frontend debe borrar sus cookies después de llamar este endpoint.
+    """
+    raw_access = None
+    if authorization:
+        try:
+            scheme, raw_access = authorization.split(" ")
+            if scheme.lower() != "bearer":
+                raw_access = None
+        except ValueError:
+            pass
+    if not raw_access:
+        raw_access = access_token
+
+    if raw_access:
+        token_data = decode_token(raw_access, expected_type="access")
+        if token_data and token_data.get("jti"):
+            revoke_token(token_data["jti"], token_data["exp"], db)
+
+    if refresh_token:
+        refresh_data = decode_token(refresh_token, expected_type="refresh")
+        if refresh_data and refresh_data.get("jti"):
+            revoke_token(refresh_data["jti"], refresh_data["exp"], db)
 
 
 @router.get("/me", response_model=UserMeOut)
@@ -418,14 +462,14 @@ def reset_password(request: Request, payload: ResetPasswordIn, db: Session = Dep
             detail="Las nuevas contraseñas no coinciden."
         )
 
-    user_id = decode_token(payload.token, expected_type="reset_password")
-    if not user_id:
+    token_data = decode_token(payload.token, expected_type="reset_password")
+    if not token_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El enlace de recuperación es inválido o ha expirado (30 min)."
         )
 
-    user = db.scalar(select(User).where(User.id == user_id))
+    user = db.scalar(select(User).where(User.id == token_data["user_id"]))
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado.")
 

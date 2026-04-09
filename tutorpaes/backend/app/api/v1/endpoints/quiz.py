@@ -1,12 +1,14 @@
+import random
+
 from datetime import timezone
 from datetime import datetime
 from typing import Optional, Union
 import logging
-import random
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
 from app.core.exceptions import not_found, bad_request
@@ -233,6 +235,8 @@ def submit_answer(
 
     is_correct = bool(choice.is_correct)
 
+    # SELECT FOR UPDATE: bloquea la fila existente mientras procesamos para evitar
+    # la race condition de dos requests concurrentes creando dos attempts en_progreso.
     attempt = db.scalar(
         select(Attempt)
         .where(
@@ -243,20 +247,43 @@ def submit_answer(
             Attempt.status == "in_progress",
         )
         .order_by(Attempt.id.desc())
+        .with_for_update()
     )
     if not attempt:
-        attempt = Attempt(
-            user_id=user_id,
-            exam_id=exam.id,
-            subject_id=subject.id,
-            topic_id=topic.id,
-            status="in_progress",
-            started_at=datetime.now(timezone.utc),
-            total_questions=0,
-            correct_count=0,
-        )
-        db.add(attempt)
-        db.flush()
+        try:
+            attempt = Attempt(
+                user_id=user_id,
+                exam_id=exam.id,
+                subject_id=subject.id,
+                topic_id=topic.id,
+                status="in_progress",
+                started_at=datetime.now(timezone.utc),
+                total_questions=0,
+                correct_count=0,
+            )
+            db.add(attempt)
+            db.flush()
+        except IntegrityError:
+            # Race condition: otro request creó el attempt justo antes que nosotros.
+            # Hacemos rollback del flush y recuperamos el que ganó la carrera.
+            db.rollback()
+            attempt = db.scalar(
+                select(Attempt)
+                .where(
+                    Attempt.user_id == user_id,
+                    Attempt.exam_id == exam.id,
+                    Attempt.subject_id == subject.id,
+                    Attempt.topic_id == topic.id,
+                    Attempt.status == "in_progress",
+                )
+                .order_by(Attempt.id.desc())
+                .with_for_update()
+            )
+            if not attempt:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={"error": "attempt_conflict", "detail": "No se pudo crear ni recuperar el intento activo.", "code": "INTERNAL_ERROR"},
+                )
 
     feedback_text = "¡Correcto!" if is_correct else "Incorrecto."
     ai_payload = {}

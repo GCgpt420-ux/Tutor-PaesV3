@@ -1,10 +1,9 @@
-from datetime import timezone
 """
 Payments Endpoints - Transbank Integration
 Handles payment creation and confirmation for premium plan subscriptions.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
@@ -12,10 +11,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from app.db.session import get_db
-from app.db.models import User, Payment, UserEntitlement
+from app.db.models import User, Payment, UserEntitlement, Invoice
 from app.core.auth import get_current_user
 from app.core.rate_limiter import limiter
 from app.services.transbank_service import create_payment_order, confirm_payment
+from app.services.invoice_service import get_user_billing_history, get_invoice_by_id
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -48,6 +48,34 @@ class PaymentStatusOut(BaseModel):
     status: str
     created_at: str
     authorized_at: Optional[str] = None
+
+
+# Billing & Invoice Models
+class InvoiceOut(BaseModel):
+    id: int
+    invoice_number: str
+    status: str
+    issue_date: str
+    due_date: str
+    total_amount: int
+    pdf_url: Optional[str] = None
+
+
+class BillingItemOut(BaseModel):
+    payment_id: int
+    buy_order: str
+    amount: int
+    plan: str
+    status: str
+    created_at: Optional[str] = None
+    authorized_at: Optional[str] = None
+    invoice: Optional[InvoiceOut] = None
+
+
+class BillingHistoryOut(BaseModel):
+    payments: list[BillingItemOut]
+    total_spent: int
+    count: int
 
 
 # -----------------------------------------------------------------------
@@ -119,29 +147,32 @@ def confirm_payment_endpoint(
     request: Request,
     token_ws: str = Query(..., description="Transbank token from redirect"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Confirms a Transbank payment and activates the subscription.
     Called after user returns from Transbank payment page.
+    Requires authentication to prevent IDOR: only the owner of the payment can confirm it.
     """
-    
-    if not token_ws:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing token_ws parameter"
-        )
-    
-    # Find the payment by token without requiring an interactive session.
     payment = db.scalar(
-        select(Payment).where(
-            Payment.token_ws == token_ws
-        )
+        select(Payment).where(Payment.token_ws == token_ws)
     )
-    
+
     if not payment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Payment not found or already processed"
+        )
+
+    # IDOR guard: el pago debe pertenecer al usuario autenticado.
+    if payment.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "forbidden",
+                "detail": "No tienes permiso para confirmar este pago.",
+                "code": "IDOR_BLOCKED",
+            },
         )
     
     try:
@@ -221,6 +252,166 @@ def confirm_payment_endpoint(
         )
 
 
+# -----------------------------------------------------------------------
+# BILLING & INVOICE ENDPOINTS
+# -----------------------------------------------------------------------
+
+@router.get("/history", response_model=BillingHistoryOut)
+@limiter.limit("30/minute")
+def get_billing_history(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """
+    Retorna el historial de pagos e invoices del usuario autenticado.
+    
+    Returns:
+        - payments: Lista de pagos con sus invoices asociados
+        - total_spent: Monto total gastado (en pesos)
+        - count: Número de transacciones
+    """
+    try:
+        history = get_user_billing_history(user.id, db, limit=limit)
+        
+        # Transformar datos al formato de respuesta
+        billing_items = []
+        for item in history.get("payments", []):
+            invoice_data = None
+            if item.get("invoice"):
+                invoice_data = InvoiceOut(
+                    id=item["invoice"].get("id"),
+                    invoice_number=item["invoice"].get("invoice_number"),
+                    status=item["invoice"].get("status"),
+                    issue_date=item["invoice"].get("issue_date") or "",
+                    due_date=item["invoice"].get("due_date") or "",
+                    total_amount=item["invoice"].get("total_amount", 0),
+                    pdf_url=f"/api/v1/payments/invoices/{item['invoice'].get('id')}/download",
+                )
+            
+            billing_items.append(
+                BillingItemOut(
+                    payment_id=item["payment_id"],
+                    buy_order=item["buy_order"],
+                    amount=item["amount"],
+                    plan=item["plan"],
+                    status=item["status"],
+                    created_at=item["created_at"],
+                    authorized_at=item["authorized_at"],
+                    invoice=invoice_data,
+                )
+            )
+        
+        return BillingHistoryOut(
+            payments=billing_items,
+            total_spent=history["total_spent"],
+            count=history["count"],
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching billing history"
+        )
+
+
+@router.get("/invoices/{invoice_id}")
+@limiter.limit("30/minute")
+def get_invoice(
+    invoice_id: int,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Retorna los detalles de una invoice específica.
+    Solo el propietario del pago/invoice puede acceder.
+    """
+    try:
+        invoice = get_invoice_by_id(invoice_id, db)
+        
+        if not invoice:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invoice not found"
+            )
+        
+        # IDOR guard: verificar que la invoice pertenece al usuario
+        if invoice.user_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permiso para acceder a esta invoice"
+            )
+        
+        return InvoiceOut(
+            id=invoice.id,
+            invoice_number=invoice.invoice_number,
+            status=invoice.status,
+            issue_date=invoice.issue_date.isoformat(),
+            due_date=invoice.due_date.isoformat(),
+            total_amount=invoice.total_amount,
+            pdf_url=f"/api/v1/payments/invoices/{invoice.id}/download",
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching invoice"
+        )
+
+
+@router.get("/invoices/{invoice_id}/download")
+@limiter.limit("20/minute")
+def download_invoice_pdf(
+    invoice_id: int,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Descarga el PDF de una invoice.
+    Stub: actualmente retorna un placeholder.
+    
+    TODO: Implementar generación real de PDF:
+    - Usar reportlab o weasyprint
+    - Almacenar en S3 o storage local
+    - Retornar archivo descargable
+    """
+    try:
+        invoice = get_invoice_by_id(invoice_id, db)
+        
+        if not invoice:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invoice not found"
+            )
+        
+        # IDOR guard
+        if invoice.user_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permiso para descargar esta invoice"
+            )
+        
+        return {
+            "message": "PDF generation in progress",
+            "invoice_number": invoice.invoice_number,
+            "status": "placeholder",
+            "note": "Implementación de descarga de PDF en progreso",
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error downloading invoice"
+        )
+
+
 @router.get("/{payment_id}", response_model=PaymentStatusOut)
 def get_payment_status(
     payment_id: int,
@@ -230,20 +421,19 @@ def get_payment_status(
     """
     Get the status of a specific payment.
     """
-    
     payment = db.scalar(
         select(Payment).where(
             (Payment.id == payment_id) &
             (Payment.user_id == user.id)
         )
     )
-    
+
     if not payment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Payment not found"
         )
-    
+
     return {
         "id": payment.id,
         "amount": payment.amount,

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import {
-  Loader,
   Award,
-  BookOpen,
   Zap,
   ArrowRight,
   Target,
   BarChart3,
+  Flame,
+  Server,
+  TerminalSquare
 } from 'lucide-react';
 import { ProgressChart } from '@/src/features/dashboard/components/progress-chart';
 import { AttemptHistory } from '@/src/features/dashboard/components/attempt-history';
@@ -17,6 +18,15 @@ import { QuickAccess } from '@/src/features/dashboard/components/quick-access';
 import { apiFetch } from '@/src/lib/api/client';
 import { getCurrentUser } from '@/src/lib/auth/current-user';
 import { AiTutorChat } from '@/src/features/ai/components/AiTutorChat';
+
+// ─── Gamification ─────────────────────────────────────────────────────────────
+const XP_PER_LEVEL = 500;
+function calcXP(totalCorrect: number, totalAttempts: number) {
+  return totalCorrect * 15 + totalAttempts * 25;
+}
+function calcLevel(xp: number) {
+  return Math.floor(xp / XP_PER_LEVEL) + 1;
+}
 
 interface DashboardStats {
   totalAttempts: number;
@@ -90,6 +100,7 @@ export function ProtectedView() {
   const [topicStats, setTopicStats] = useState<TopicData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -98,9 +109,10 @@ export function ProtectedView() {
 
         const user = await getCurrentUser();
         if (!user?.user_id) {
-          setError('No autenticado');
+          setError('Conexión rehusada.');
           return;
         }
+        setUserName((user as unknown as { name?: string })?.name?.split(' ')[0] || '');
 
         const [statsResponse, attemptsResponse] = await Promise.all([
           apiFetch<UserStatsResponse>(`/users/${user.user_id}/stats`),
@@ -170,7 +182,7 @@ export function ProtectedView() {
         setTopicStats(topicsPayload);
       } catch (err) {
         console.error('Unexpected error:', err);
-        setError('Error inesperado al cargar el dashboard');
+        setError('Error crítico. Datos no recuperables.');
       } finally {
         setLoading(false);
       }
@@ -181,132 +193,208 @@ export function ProtectedView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <Loader className="h-10 w-10 text-blue-600 animate-spin" />
-          <p className="text-gray-600">Cargando dashboard...</p>
+      <div className="flex min-h-[50vh] items-center justify-center animate-pulse" aria-busy="true">
+        <div className="flex flex-col items-center gap-4 text-brand-primary">
+          <TerminalSquare className="h-10 w-10 opacity-50" />
+          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando Sistema...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400">
-          Inicio
-        </h1>
-        <p className="text-zinc-400 mt-2 font-medium">
-          Tu centro de entrenamiento personalizado. ¿Qué quieres lograr hoy?
-        </p>
-      </div>
+    <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
 
-      {/* Living AI Hero Section */}
-      <div className="w-full mb-8">
-        <div className="h-[500px]">
-          <AiTutorChat />
-        </div>
-      </div>
+      {/* ─── HERO BOLD ──────────────────────────────────────────────── */}
+      {(() => {
+        const totalXP = stats ? calcXP(stats.totalCorrect, stats.totalAttempts) : 0;
+        const level = calcLevel(totalXP);
+        const xpInCurrentLevel = totalXP % XP_PER_LEVEL;
+        const xpPercent = Math.round((xpInCurrentLevel / XP_PER_LEVEL) * 100);
+        const streakDays = stats?.streakDays ?? 0;
+        const heroMsg = stats && stats.totalAttempts > 0
+          ? stats.averageScore >= 600 ? 'PUNTAJE ÓPTIMO. SIGUE ESCALANDO.' : 'MÉTRICAS EN PELIGRO. INICIA SIMULACIÓN.'
+          : 'SIN DATOS. REQUIERE ENTRENAMIENTO.';
+        return (
+          <section className="relative overflow-hidden border border-white/10 bg-black/50 p-8 md:p-10 shadow-2xl backdrop-blur-md">
+            {/* GRID OVERLAY TÁCTICO */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:12px_12px] opacity-20 pointer-events-none mix-blend-overlay" />
+            
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-primary/10 blur-[100px]" />
+            </div>
 
-      {/* Acceso Rápido */}
-      <QuickAccess />
+            <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="mb-4 flex flex-wrap items-center gap-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">
+                    <Server className="h-3 w-3 text-green-500" />
+                    CONEXIÓN ENCRIPTADA {userName ? `[USR_0X${userName.toUpperCase()}]` : ''}
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-mono font-black text-brand-primary uppercase tracking-[0.2em]">
+                    NIVEL_TACTICO_{level}
+                  </span>
+                </div>
 
-      {/* Error */}
+                <h2 className="mb-6 text-3xl font-black uppercase tracking-tighter leading-none text-white md:text-5xl">
+                  {heroMsg}
+                </h2>
+
+                <div className="max-w-md">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-white/50">
+                      PROGRESO DE RANGO [{level} → {level + 1}]
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-brand-primary">
+                      {xpInCurrentLevel} / {XP_PER_LEVEL} DATOS
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden border border-white/10 bg-black">
+                    <div
+                      className="h-full bg-brand-primary shadow-[0_0_15px_rgba(99,102,241,0.6)]"
+                      style={{ width: `${xpPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-shrink-0 items-stretch gap-4">
+                <div className="flex flex-col items-center justify-center border border-white/10 bg-black/80 w-24 p-4 shadow-inner">
+                  <Flame className={`mb-1 h-6 w-6 ${streakDays > 0 ? 'text-orange-500 fill-orange-500/20 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'text-zinc-700'}`} />
+                  <span className="text-2xl font-black tracking-tighter text-white">{streakDays}</span>
+                  <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-zinc-500 mt-1">DÍAS</span>
+                </div>
+                
+                <Link
+                  href="/protected/ensayos"
+                  className="flex items-center justify-center gap-2 bg-white px-8 text-black font-black uppercase tracking-[0.2em] text-[10px] transition-all hover:bg-zinc-200 hover:scale-[1.02]"
+                >
+                  ABRIR SIMULADOR
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* ─── ACCESO RÁPIDO ────────────────────────────────────────────────── */}
+      <QuickAccess 
+        streakDays={stats?.streakDays || 0} 
+        chartData={attempts.length > 0 ? attempts.slice(0, 7).map(a => a.accuracy).reverse() : undefined} 
+      />
+
+      {/* ─── RENDIMIENTO POR MATERIA ──────────────────────────────────────── */}
+      {(() => {
+        const groups = topicStats.reduce<Record<string, number[]>>((acc, t) => {
+          if (!acc[t.subjectName]) acc[t.subjectName] = [];
+          acc[t.subjectName].push(t.accuracy);
+          return acc;
+        }, {});
+        const COLORS: Record<string, string> = {
+          Matemática: '#6366f1', Lenguaje: '#ec4899', Ciencias: '#10b981', Historia: '#f59e0b',
+        };
+        const cards = Object.entries(groups).map(([name, accs]) => {
+          const avg = Math.round(accs.reduce((s, a) => s + a, 0) / accs.length);
+          const ck = Object.keys(COLORS).find((k) => name.toLowerCase().includes(k.toLowerCase()));
+          return { name, avg, color: ck ? COLORS[ck] : '#6366f1' };
+        });
+        if (cards.length === 0) return null;
+        return (
+          <section>
+            <h2 className="mb-4 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
+              Eficacia por Vector
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {cards.map(({ name, avg, color }) => (
+                <Link
+                  key={name}
+                  href="/protected/cursos"
+                  className="group relative flex flex-col justify-between overflow-hidden border border-white/5 bg-black/40 p-5 transition-all duration-300 hover:border-white/20 hover:bg-white/5"
+                >
+                  <div className="absolute left-0 top-0 h-full w-1" style={{ background: color, opacity: 0.8 }} />
+                  <div className="absolute right-0 top-0 p-2 opacity-10">
+                    <Target style={{ color }} className="h-10 w-10" />
+                  </div>
+                  
+                  <div className="mt-1 relative z-10">
+                    <p className="mb-2 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">{name}</p>
+                    <p className="text-4xl font-black tracking-tighter text-white">{avg}<span className="text-lg text-zinc-600">%</span></p>
+                  </div>
+                  
+                  <div className="mt-8 relative z-10 w-full flex items-center justify-between border-t border-white/5 pt-3">
+                    <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-zinc-500">ACERTIVIDAD</span>
+                    <ArrowRight className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" style={{ color }} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* ─── ERROR ────────────────────────────────────────────────────────── */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700 font-semibold">Error</p>
-          <p className="text-red-600 text-sm mt-1">{error}</p>
+        <div role="alert" className="border-l-4 border-brand-danger bg-brand-danger/10 p-4 animate-error-shake">
+          <p className="font-mono text-xs font-black uppercase tracking-widest text-brand-danger">ALERTA DEL SISTEMA</p>
+          <p className="mt-1 text-sm text-zinc-400">{error}</p>
         </div>
       )}
 
-      {/* Estadísticas Principales - Si hay data */}
+      {/* ─── KPI + CHARTS ─────────────────────────────────────────────────── */}
       {stats && stats.totalAttempts > 0 ? (
         <>
-          {/* Grid de KPIs (Bento Grid Style) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Puntaje Promedio */}
-            <div className="glass-card p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-brand-primary/20 transition-colors" />
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Puntaje Pr.</h3>
-                <div className="p-2 bg-brand-primary/20 rounded-lg text-brand-primary">
-                  <Award className="h-5 w-5" />
-                </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {/* KPI 1 */}
+            <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-primary/50 transition-colors">
+              <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Pts Reales</p>
+                <Award className="h-4 w-4 text-brand-primary" />
               </div>
-              <p className="text-4xl font-bold text-zinc-50">{stats.averageScore}</p>
-              <p className="text-xs text-brand-primary mt-2 font-medium tracking-wide">Escala PAES</p>
+              <p className="text-5xl font-black tracking-tighter text-white">{stats.averageScore}</p>
             </div>
-
-            {/* Precisión */}
-            <div className="glass-card p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-brand-accent/20 transition-colors" />
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Precisión</h3>
-                <div className="p-2 bg-brand-accent/20 rounded-lg text-brand-accent">
-                  <Target className="h-5 w-5" />
-                </div>
+            {/* KPI 2 */}
+            <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-accent/50 transition-colors">
+              <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Previsión</p>
+                <Target className="h-4 w-4 text-brand-accent" />
               </div>
-              <p className="text-4xl font-bold text-zinc-50">{stats.accuracyPercentage}%</p>
-              <p className="text-xs text-brand-accent mt-2 font-medium tracking-wide">
-                {stats.totalCorrect} de {stats.totalCorrect + stats.totalIncorrect}
-              </p>
+              <p className="text-5xl font-black tracking-tighter text-white">{stats.accuracyPercentage}<span className="text-2xl text-zinc-600">%</span></p>
             </div>
-
-            {/* Ensayos Completados */}
-            <div className="glass-card p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-secondary/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-brand-secondary/20 transition-colors" />
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Ensayos</h3>
-                <div className="p-2 bg-brand-secondary/20 rounded-lg text-brand-secondary">
-                  <BarChart3 className="h-5 w-5" />
-                </div>
+            {/* KPI 3 */}
+            <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-secondary/50 transition-colors">
+              <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Operaciones</p>
+                <BarChart3 className="h-4 w-4 text-brand-secondary" />
               </div>
-              <p className="text-4xl font-bold text-zinc-50">{stats.totalAttempts}</p>
-              <p className="text-xs text-brand-secondary mt-2 font-medium tracking-wide">Completados</p>
+              <p className="text-5xl font-black tracking-tighter text-white">{stats.totalAttempts}</p>
             </div>
-
-            {/* Racha */}
-            <div className="glass-card p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-orange-500/20 transition-colors" />
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Racha</h3>
-                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-400">
-                  <Zap className="h-5 w-5" />
-                </div>
+            {/* KPI 4 */}
+            <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-orange-500/50 transition-colors">
+              <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Cadena</p>
+                <Zap className="h-4 w-4 text-orange-500" />
               </div>
-              <p className="text-4xl font-bold text-zinc-50">{stats.streakDays}</p>
-              <p className="text-xs text-orange-400 mt-2 font-medium tracking-wide">Días seguidos</p>
+              <p className="text-5xl font-black tracking-tighter text-white">{stats.streakDays}</p>
             </div>
-
           </div>
 
-          {/* Gráfico de Progreso y Top Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Gráfico Principal */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ProgressChart attempts={attempts} />
             </div>
-
-            {/* Estadísticas Rápidas */}
             <div className="space-y-4">
-              <div className="glass-card p-6">
-                <h3 className="text-lg font-bold text-zinc-100 mb-4">Últimos Resultados</h3>
-                <div className="space-y-3">
-                  {attempts.slice(0, 3).map((attempt) => (
-                    <div key={attempt.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-zinc-100 line-clamp-1">
-                          {attempt.exam_title}
-                        </p>
-                        <p className="text-xs text-zinc-400">
-                          {new Date(attempt.finished_at).toLocaleDateString('es-CL')}
-                        </p>
+              <div className="bg-black/60 border border-white/5 p-6 h-full">
+                <h3 className="mb-6 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 border-b border-white/10 pb-3">Registro de Misiones</h3>
+                <div className="space-y-4">
+                  {attempts.slice(0, 4).map((attempt) => (
+                    <div key={attempt.id} className="flex items-start justify-between border-b border-dashed border-white/10 pb-4 last:border-0 last:pb-0">
+                      <div className="min-w-0 flex-1 pr-4">
+                        <p className="truncate text-sm font-bold text-white uppercase tracking-tight">{attempt.exam_title}</p>
+                        <p className="text-[9px] font-mono text-zinc-600 mt-1">{new Date(attempt.finished_at).toLocaleDateString('es-CL')}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black text-brand-primary">{attempt.score_total}</p>
-                        <p className="text-xs text-zinc-400">{attempt.accuracy}%</p>
+                      <div className="flex-shrink-0 text-right bg-white/5 px-2 py-1 border border-white/10">
+                        <p className="text-xs font-black font-mono text-brand-primary">{attempt.score_total}</p>
                       </div>
                     </div>
                   ))}
@@ -315,28 +403,34 @@ export function ProtectedView() {
             </div>
           </div>
 
-          {/* Estadísticas por Tema */}
           {topicStats.length > 0 && <TopicStats topics={topicStats} />}
-
-          {/* Historial Completo */}
           <AttemptHistory attempts={attempts} />
         </>
       ) : (
-        <div className="glass-card p-12 text-center border-dashed border-white/20">
-          <BookOpen className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
-          <p className="text-zinc-300 font-bold text-lg mb-2">Sin ensayos completados aún</p>
-          <p className="text-zinc-500 mb-6">
-            Completa tu primer ensayo para ver estadísticas y progreso
-          </p>
+        <div className="border border-dashed border-white/20 bg-black/30 p-16 text-center">
+          <TerminalSquare className="mx-auto mb-6 h-12 w-12 text-zinc-700" />
+          <p className="mb-2 text-xl font-black uppercase tracking-tighter text-white">REPOSOTORIO VACÍO</p>
+          <p className="mb-8 text-sm text-zinc-500 font-mono">Ejecute su primer simulador para poblar la base de datos.</p>
           <Link
             href="/protected/ensayos"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
+            className="inline-flex items-center gap-2 bg-white px-8 py-3 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-colors"
           >
-            Ir a Ensayos
-            <ArrowRight className="h-4 w-4" />
+            MÓDULO SIMULACIONES <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       )}
+
+      {/* ─── ASISTENTE IA ─────────────────────────────────────────────────── */}
+      <section>
+        <h2 className="mb-4 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
+          Terminal IA
+        </h2>
+        <div className="h-[420px] rounded-sm border border-white/10 overflow-hidden bg-black/60 shadow-2xl relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-brand-primary/50" />
+          <AiTutorChat />
+        </div>
+      </section>
+
     </div>
   );
 }

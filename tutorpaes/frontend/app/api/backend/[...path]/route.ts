@@ -4,7 +4,8 @@ import { API_BASE_URL } from '@/src/lib/server/auth-session';
 
 async function forwardRequest(request: NextRequest, path: string[]) {
   const accessToken = request.cookies.get('access_token')?.value;
-  const targetUrl = `${API_BASE_URL}/api/v1/${path.join('/')}${request.nextUrl.search}`;
+  const hasTrailingSlash = request.nextUrl.pathname.endsWith('/');
+  const targetUrl = `${API_BASE_URL}/api/v1/${path.join('/')}${hasTrailingSlash ? '/' : ''}${request.nextUrl.search}`;
   const method = request.method;
   const headers = new Headers();
 
@@ -18,6 +19,8 @@ async function forwardRequest(request: NextRequest, path: string[]) {
   }
 
   const body = method === 'GET' || method === 'HEAD' ? undefined : await request.text();
+  console.log(`[Proxy] Forwarding ${method} to ${targetUrl}`);
+  
   const backendResponse = await fetch(targetUrl, {
     method,
     headers,
@@ -27,9 +30,13 @@ async function forwardRequest(request: NextRequest, path: string[]) {
   const responseBody = await backendResponse.arrayBuffer();
   const responseHeaders = new Headers();
   const responseContentType = backendResponse.headers.get('content-type');
+  const responseCacheControl = backendResponse.headers.get('cache-control');
 
   if (responseContentType) {
     responseHeaders.set('Content-Type', responseContentType);
+  }
+  if (responseCacheControl) {
+    responseHeaders.set('Cache-Control', responseCacheControl);
   }
 
   return new NextResponse(responseBody, {

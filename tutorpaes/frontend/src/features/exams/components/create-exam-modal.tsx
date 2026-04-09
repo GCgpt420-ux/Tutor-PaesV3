@@ -193,59 +193,63 @@ export function CreateExamModal({ onClose, onExamCreated }: CreateExamModalProps
     );
   };
 
-  const toggleTopic = (topicId: string) => {
-    setSelectedTopics((prev) =>
-      prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
-    );
-  };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
+    <div className="fixed inset-0 bg-surface-base/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+      <div className="bg-surface-raised/90 backdrop-blur-xl border border-white/10 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Crear Ensayo</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/5">
+          <div>
+            <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">Crear Ensayo</h2>
+            <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mt-1">Simulador Personalizado</p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
             aria-label="Cerrar"
           >
-            <X className="h-6 w-6 text-gray-600" />
+            <X className="h-5 w-5 text-text-tertiary group-hover:text-text-primary transition-colors" />
           </button>
         </div>
 
         {/* Contenido */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto custom-scrollbar">
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700 text-sm">{error}</p>
+            <div className="bg-brand-danger/10 border border-brand-danger/20 rounded-xl p-4 flex gap-3 animate-error-shake">
+              <AlertCircle className="h-5 w-5 text-brand-danger flex-shrink-0 mt-0.5" />
+              <p className="text-brand-danger text-xs font-bold uppercase tracking-wide leading-relaxed">{error}</p>
             </div>
           )}
 
           {/* Título */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Título del Ensayo
+          <div className="space-y-3">
+            <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">
+              Denominación del Ensayo
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Mi ensayo de Matemática"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ej: Simulacro Matemática M1"
+              className="w-full px-5 py-4 bg-zinc-950/50 border border-white/10 rounded-xl text-text-primary placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all font-medium"
               maxLength={100}
             />
-            <p className="text-xs text-gray-500 mt-1">{title.length}/100</p>
+            <div className="flex justify-end">
+              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{title.length}/100</p>
+            </div>
           </div>
 
           {/* Duración */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Duración (minutos)
-            </label>
-            <div className="flex gap-2 items-center">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">
+                Ventana de Tiempo
+              </label>
+              <span className="text-lg font-black text-brand-primary uppercase tracking-tighter">
+                {durationMinutes} <span className="text-xs font-medium text-text-tertiary">min</span>
+              </span>
+            </div>
+            <div className="px-1">
               <input
                 type="range"
                 min="15"
@@ -253,138 +257,94 @@ export function CreateExamModal({ onClose, onExamCreated }: CreateExamModalProps
                 step="15"
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-brand-primary"
               />
-              <span className="text-lg font-bold text-blue-600 min-w-fit">
-                {durationMinutes}m
-              </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Sugerencia: 150 minutos (2h 30m) para un ensayo completo
+            <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
+              Recomendado: 150 min para simulación oficial
             </p>
           </div>
 
-            {/* Dificultad y número de preguntas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Dificultad</label>
-                <select
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as 'all' | 'easy' | 'medium' | 'hard')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">Cualquiera</option>
-                  <option value="easy">Fácil</option>
-                  <option value="medium">Intermedio</option>
-                  <option value="hard">Difícil</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Filtra las preguntas por dificultad</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Número de preguntas</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={5}
-                    max={200}
-                    step={1}
-                    value={numQuestions}
-                    onChange={(e) => setNumQuestions(Number(e.target.value))}
-                    className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="text-sm font-bold text-blue-600 w-14 text-right">{numQuestions}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Máx: 200 preguntas. Se seleccionarán aleatoriamente.</p>
-              </div>
+          {/* Dificultad y número de preguntas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">Dificultad</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as 'all' | 'easy' | 'medium' | 'hard')}
+                className="w-full px-4 py-3 bg-zinc-950/50 border border-white/10 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/50 appearance-none font-medium text-sm"
+              >
+                <option value="all" className="bg-surface-raised">Cualquiera</option>
+                <option value="easy" className="bg-surface-raised">Nivel Base</option>
+                <option value="medium" className="bg-surface-raised">Nivel Intermedio</option>
+                <option value="hard" className="bg-surface-raised">Nivel Avanzado</option>
+              </select>
             </div>
 
+            <div className="space-y-3">
+              <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">Carga de Preguntas</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min={5}
+                  max={200}
+                  step={1}
+                  value={numQuestions}
+                  onChange={(e) => setNumQuestions(Number(e.target.value))}
+                  className="flex-1 h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-brand-accent"
+                />
+                <span className="text-sm font-black text-brand-accent w-10 text-right">{numQuestions}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Materias */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Materias (Opcional)
+          <div className="space-y-4">
+            <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em]">
+              Módulos Evaluados
             </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
               {!loadingCatalog && subjects.length === 0 && (
-                <p className="text-sm text-gray-500">No hay materias disponibles para crear ensayo aún.</p>
+                <p className="text-xs text-zinc-600 font-bold uppercase tracking-wider italic">No hay módulos cargados</p>
               )}
               {subjects.map((subject) => (
                 <label
                   key={subject.id}
-                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
+                  className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer group ${
+                    selectedSubjects.includes(subject.id)
+                      ? 'border-brand-primary/40 bg-brand-primary/10'
+                      : 'border-white/5 bg-white/[0.02] hover:border-white/20'
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={selectedSubjects.includes(subject.id)}
                     onChange={() => toggleSubject(subject.id)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-white/10 bg-zinc-950 text-brand-primary focus:ring-brand-primary focus:ring-offset-0"
                   />
-                  <span className="text-sm text-gray-900">{subject.name}</span>
+                  <span className={`text-sm font-bold transition-colors ${selectedSubjects.includes(subject.id) ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
+                    {subject.name}
+                  </span>
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Selecciona las materias de las que deseas incluir preguntas
-            </p>
           </div>
 
-          {/* Temas específicos (si hay materias seleccionadas) */}
-          {topics.length > 0 && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-3">Temas específicos (Opcional)</label>
-
-              <div className="flex items-center gap-3 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTopics(topics.map((t) => t.id))}
-                  className="min-h-[44px] px-3 py-1 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 text-sm"
-                >
-                  Seleccionar todos
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTopics([])}
-                  className="min-h-[44px] px-3 py-1 bg-gray-50 text-gray-700 rounded-lg border border-gray-100 text-sm"
-                >
-                  Limpiar
-                </button>
-                <p className="text-xs text-gray-500 ml-auto">Puedes elegir temas concretos</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                {topics.map((topic) => (
-                  <label
-                    key={topic.id}
-                    className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedTopics.includes(topic.id)}
-                      onChange={() => toggleTopic(topic.id)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-900">{topic.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Botones */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-4 pt-6 border-t border-white/5">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 min-h-[44px] px-4 py-2 border border-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 py-4 bg-white/5 border border-white/10 text-text-secondary font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/10 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 min-h-[44px] px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors"
+              className="flex-1 py-4 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-brand-primary/20 transition-all"
             >
-              {loading ? 'Creando...' : 'Crear Ensayo'}
+              {loading ? 'Generando...' : 'Iniciar Misión'}
             </button>
           </div>
         </form>

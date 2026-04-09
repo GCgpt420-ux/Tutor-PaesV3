@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/src/components/ui/button';
-import { Card } from '@/src/components/ui/card';
 import { apiFetch } from '@/src/lib/api/client';
 import { Check, Loader2, Sparkles } from 'lucide-react';
 
@@ -24,76 +22,102 @@ export function PricingView() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-            Elige el plan perfecto para ti
+    <div className="min-h-screen bg-surface-base py-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-20 space-y-4 animate-in fade-in slide-in-from-top-10 duration-700">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="h-px w-12 bg-brand-primary" />
+            <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Inversión Académica</span>
+            <span className="h-px w-12 bg-brand-primary" />
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black text-text-primary uppercase tracking-tight">
+            Evoluciona tu <span className="text-brand-primary">Potencial</span>
           </h1>
-          <p className="mt-4 text-xl text-gray-600">
-            Asegura tu puntaje en la PAES con nuestra IA personalizada.
+          <p className="max-w-2xl mx-auto text-lg text-text-tertiary font-medium">
+            Accede a la tecnología de entrenamiento más avanzada para asegurar tu ingreso a la educación superior.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+        <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
           {/* Plan Gratuito */}
-          <Card className="p-8 relative bg-white border-gray-200 shadow-sm flex flex-col">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Básico</h2>
-            <p className="text-gray-500 mb-6">Perfecto para conocer la plataforma</p>
-            <div className="mb-6">
-              <span className="text-5xl font-extrabold text-gray-900">$0</span>
-              <span className="text-gray-500 font-medium">/mes</span>
+          <div className="glass-card p-10 relative bg-surface-raised/10 border-white/5 flex flex-col group hover:border-brand-primary/20 transition-all duration-500">
+            <div className="mb-8">
+              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Protocolo Básico</h2>
+              <p className="text-text-tertiary text-xs font-medium uppercase tracking-wider">Exploración Inicial</p>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
-              <li className="flex items-start gap-3 text-gray-700">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span>Ensayos PAES ilimitados</span>
+            
+            <div className="mb-10 flex items-baseline gap-2">
+              <span className="text-6xl font-black text-text-primary tracking-tighter">$0</span>
+              <span className="text-text-tertiary font-black uppercase tracking-widest text-[10px]">/ clp</span>
+            </div>
+
+            <ul className="space-y-6 mb-12 flex-1">
+              <li className="flex items-start gap-4 text-text-secondary group-hover:text-text-primary transition-colors">
+                <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                <span className="text-sm font-medium">Simulacros PAES ilimitados</span>
               </li>
-              <li className="flex items-start gap-3 text-gray-700">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span><strong>5 explicaciones IA</strong> al día</span>
+              <li className="flex items-start gap-4 text-text-secondary group-hover:text-text-primary transition-colors">
+                <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                <span className="text-sm font-medium"><strong>5 explicaciones IA</strong> por ciclo diario</span>
+              </li>
+              <li className="flex items-start gap-4 text-text-tertiary opacity-40">
+                <Check className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm font-medium line-through">Análisis táctico detallado</span>
               </li>
             </ul>
-            <Button className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200" disabled>
-              Plan Actual
-            </Button>
-          </Card>
+
+            <button className="w-full bg-white/5 border border-white/10 text-white/40 cursor-not-allowed py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px]" disabled>
+              Asignado Actual
+            </button>
+          </div>
+
           {/* Plan Premium */}
-          <Card className="p-8 relative bg-white border-purple-500 shadow-xl ring-2 ring-purple-500 flex flex-col">
-            <div className="absolute top-0 right-6 transform -translate-y-1/2">
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-sm flex items-center gap-1">
-                <Sparkles className="h-4 w-4" /> Recomendado
+          <div className="glass-card p-10 relative bg-brand-primary/5 border-brand-primary/30 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] flex flex-col animate-in fade-in zoom-in-95 duration-1000">
+            <div className="absolute top-0 right-10 transform -translate-y-1/2">
+              <span className="bg-brand-primary text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl flex items-center gap-2">
+                <Sparkles className="h-3 w-3 fill-current" /> Recomendado
               </span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Premium</h2>
-            <p className="text-gray-500 mb-6">Máximo rendimiento y explicaciones sin límite</p>
-            <div className="mb-6">
-              <span className="text-5xl font-extrabold text-gray-900">$7.900</span>
-              <span className="text-gray-500 font-medium">/mes</span>
+
+            <div className="mb-8">
+              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Protocolo Premium</h2>
+              <p className="text-brand-primary text-xs font-black uppercase tracking-wider">Máximo Desempeño</p>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
-              <li className="flex items-start gap-3 text-gray-700">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span>Todo lo del plan básico</span>
+
+            <div className="mb-10 flex items-baseline gap-2">
+              <span className="text-6xl font-black text-text-primary tracking-tighter">$7.900</span>
+              <span className="text-text-tertiary font-black uppercase tracking-widest text-[10px]">/ mensual</span>
+            </div>
+
+            <ul className="space-y-6 mb-12 flex-1">
+              <li className="flex items-start gap-4 text-text-secondary">
+                <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                <span className="text-sm font-medium">Todo el contenido del protocolo básico</span>
               </li>
-              <li className="flex items-start gap-3 text-gray-900 font-semibold">
-                <Check className="h-5 w-5 text-purple-600 flex-shrink-0" />
-                <span>Explicaciones IA Ilimitadas </span>
+              <li className="flex items-start gap-4 text-text-primary">
+                <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                <span className="text-sm font-bold">Explicaciones IA con el Tutor Ilimitadas</span>
+              </li>
+              <li className="flex items-start gap-4 text-text-primary">
+                <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                <span className="text-sm font-bold">Feedback instantáneo avanzado</span>
               </li>
             </ul>
-            <div className="space-y-3 mt-auto">
-              <Button
-                onClick={() => handleUpgrade('monthly')}
-                disabled={loading !== null}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 text-lg"
-              >
-                {loading === 'monthly' ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Procesando...</>
-                ) : (
-                  'Obtener Premium Mensual'
-                )}
-              </Button>
-            </div>
-          </Card>
+
+            <button
+              onClick={() => handleUpgrade('monthly')}
+              disabled={loading !== null}
+              className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl shadow-brand-primary/20 flex items-center justify-center group"
+            >
+              {loading === 'monthly' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  Activar Acceso Total
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.ai import router as ai_router
+from app.api.v1.endpoints.ai_chat import router as ai_chat_router
 from app.api.v1.endpoints.catalog import router as catalog_router
 from app.api.v1.endpoints.quiz import router as quiz_router
 from app.api.v1.endpoints.users import router as users_router
@@ -24,8 +25,9 @@ from app.core.config import settings
 from app.core.rate_limiter import limiter
 from app.core.request_context import get_request_id, reset_request_id, set_request_id
 from app.core.logging_config import setup_logging
+from app.core.auth import cleanup_expired_revoked_tokens
 from app.db.base import Base
-from app.db.session import engine
+from app.db.session import engine, SessionLocal
 
 settings.validate_runtime_requirements()
 
@@ -53,6 +55,17 @@ async def lifespan(_app: FastAPI):
     except Exception:
         logger.exception("Database not ready during startup")
         raise
+
+    # Limpiar tokens revocados expirados al arrancar. Mantiene la tabla pequeña
+    # sin necesitar un scheduler externo. Si la DB no está lista, se loguea y continúa.
+    try:
+        with SessionLocal() as db:
+            deleted = cleanup_expired_revoked_tokens(db)
+            if deleted:
+                logger.info("Startup cleanup: %s expired revoked tokens deleted", deleted)
+    except Exception:
+        logger.warning("Could not cleanup expired revoked tokens at startup (non-fatal)")
+
     yield
 
 
@@ -72,6 +85,20 @@ app.add_middleware(
 )
 
 app.state.limiter = limiter
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """Agrega HTTP security headers a todas las respuestas."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    if settings.ENVIRONMENT == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
 
 
 @app.middleware("http")
@@ -160,7 +187,6 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
         },
     )
 
-from app.api.v1.endpoints.ai_chat import router as ai_chat_router
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")

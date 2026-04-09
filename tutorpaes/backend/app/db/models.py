@@ -214,11 +214,15 @@ class User(Base):
     )
 
     # Relaciones
-    attempts: Mapped[List["Attempt"]] = relationship(back_populates="user", lazy="selectin")
+    # lazy="select" (default): carga bajo demanda. NO usar selectin aquí porque
+    # get_current_user() corre en cada request y selectin cargaría TODOS los attempts
+    # del usuario en memoria, lo que es costoso para usuarios activos.
+    attempts: Mapped[List["Attempt"]] = relationship(back_populates="user", lazy="select")
     study_sessions: Mapped[List["StudySession"]] = relationship(back_populates="user")
     progress: Mapped[List["UserProgress"]] = relationship(back_populates="user")
     entitlements: Mapped[List["UserEntitlement"]] = relationship(back_populates="user")
     payments: Mapped[List["Payment"]] = relationship(back_populates="user")
+    invoices: Mapped[List["Invoice"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     chat_messages: Mapped[List["ChatMessage"]] = relationship(back_populates="user")
     ai_usage_logs: Mapped[List["AIUsageLog"]] = relationship(back_populates="user")
 
@@ -353,6 +357,15 @@ class Attempt(Base):
     __table_args__ = (
         Index("ix_attempts_user_status", "user_id", "status"),
         Index("ix_attempts_user_completed", "user_id", "completed_at"),
+        # Partial unique index: solo un intento in_progress por usuario/exam/subject/topic.
+        # Previene la race condition de crear dos attempts simultáneos.
+        # NOTA: Requiere migración de Alembic para aplicarse en la DB.
+        Index(
+            "uq_attempts_one_active_per_user_topic",
+            "user_id", "exam_id", "subject_id", "topic_id",
+            unique=True,
+            postgresql_where="status = 'in_progress'",
+        ),
     )
 
 
@@ -565,8 +578,86 @@ class Payment(Base):
     authorized_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="payments")
+    invoice: Mapped[Optional["Invoice"]] = relationship(back_populates="payment", uselist=False)
 
     __table_args__ = (
         Index("ix_payments_user_status", "user_id", "status"),
         Index("ix_payments_created", "created_at"),
+    )
+
+
+class Invoice(Base):
+    """
+    Boleta/Factura generada automáticamente cuando un pago es autorizado.
+    Contiene toda la información tributaria requerida en Chile (PAES o SII).
+    """
+    __tablename__ = "invoices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id", ondelete="CASCADE"), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    # Invoice identifiers
+    invoice_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)  # Número secuencial
+    folio: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Folio PAES (si aplica)
+
+    # Amount breakdown
+    subtotal: Mapped[int] = mapped_column(Integer)  # Monto antes de IVA (centavos)
+    iva_amount: Mapped[int] = mapped_column(Integer, default=0)  # IVA 19% (si aplica en Chile)
+    total_amount: Mapped[int] = mapped_column(Integer)  # Total incluyendo IVA
+
+    # Dates
+    issue_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # Fecha de vencimiento
+    
+    # Invoice state
+    status: Mapped[str] = mapped_column(String(32), default="issued", index=True)  # issued, paid, cancelled
+    
+    # Document storage
+    pdf_file_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)  # URL del PDF generado
+    pdf_file_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)  # Ruta local relativa
+    
+    # IVA & Tax info (for audit)
+    tax_info: Mapped[dict] = mapped_column(JSONB, default=dict)  # {"iva_rate": 0.19, "tax_id": "..."}
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    # Relationships
+    payment: Mapped["Payment"] = relationship(back_populates="invoice")
+    user: Mapped["User"] = relationship(back_populates="invoices")
+
+    __table_args__ = (
+        Index("ix_invoices_user_status", "user_id", "status"),
+        Index("ix_invoices_created", "created_at"),
+        Index("ix_invoices_payment", "payment_id"),
+    )
+
+
+class RevokedToken(Base):
+    """
+    Blacklist de JTIs (JWT IDs) revocados.
+
+    Cuando un usuario hace logout, el jti de su access_token y refresh_token
+    se almacena aquí. get_current_user rechaza cualquier token cuyo jti esté presente.
+    Un job periódico o trigger puede limpiar filas con expires_at < NOW().
+    """
+    __tablename__ = "revoked_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    jti: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_revoked_tokens_expires", "expires_at"),
     )

@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.models import Payment
+from app.services.invoice_service import create_invoice_from_payment
 
 
 def _ensure_transbank_available() -> None:
@@ -120,7 +121,9 @@ def create_payment_order(
         
     except Exception as e:
         db.rollback()
-        raise Exception(f"Error creating payment order: {str(e)}")
+        # Log el error completo pero no exponerlo al caller directo;
+        # el endpoint debe capturar y devolver un mensaje genérico.
+        raise RuntimeError("Error creating payment order") from e
 
 
 def confirm_payment(token: str, db: Session) -> dict:
@@ -177,6 +180,10 @@ def confirm_payment(token: str, db: Session) -> dict:
                 "authorization_code": authorization_code,
                 "confirmed_at": datetime.now(timezone.utc).isoformat(),
             }
+            db.commit()
+            
+            # ✅ Generar invoice automáticamente cuando el pago es autorizado
+            invoice = create_invoice_from_payment(payment, db)
             
         else:
             # Pago rechazado
@@ -186,8 +193,7 @@ def confirm_payment(token: str, db: Session) -> dict:
                 "status": response_status,
                 "error_at": datetime.now(timezone.utc).isoformat(),
             }
-        
-        db.commit()
+            db.commit()
         
         return {
             "success": is_approved,
@@ -199,7 +205,7 @@ def confirm_payment(token: str, db: Session) -> dict:
         
     except Exception as e:
         db.rollback()
-        raise Exception(f"Error confirming payment: {str(e)}")
+        raise RuntimeError("Error confirming payment") from e
 
 
 def get_payment_status(token: str, db: Session) -> dict:
