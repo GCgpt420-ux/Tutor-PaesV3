@@ -178,3 +178,61 @@ def test_get_topics_subject_not_found(client):
     app.dependency_overrides[get_db] = lambda: (yield _TopicsDB(subject=None))
     response = client.get("/api/v1/catalog/topics/?subject_id=999")
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# GET /catalog/subjects-with-topics
+# ---------------------------------------------------------------------------
+
+class _SubjectsWithTopicsDB:
+    def __init__(self, exam=None, subjects=None, active_topic_ids=None):
+        self._exam = exam
+        self._subjects = subjects or []
+        self._active_topic_ids = active_topic_ids or []
+        self.scalars_calls = 0
+
+    def scalar(self, _q):
+        return self._exam
+
+    def scalars(self, _q):
+        self.scalars_calls += 1
+        if self.scalars_calls == 1:
+            return SimpleNamespace(all=lambda: self._subjects)
+        if self.scalars_calls == 2:
+            return SimpleNamespace(all=lambda: self._active_topic_ids)
+        raise AssertionError("Unexpected extra query pattern (possible N+1 regression)")
+
+
+def test_get_subjects_with_topics_bulk_query_pattern(client):
+    from app.main import app
+
+    topic1 = _make_topic(1, subject_id=1)
+    topic2 = _make_topic(2, subject_id=1)
+    topic3 = _make_topic(3, subject_id=2)
+    subj1 = _make_subject(1, exam_id=1, topics=[topic1, topic2])
+    subj2 = _make_subject(2, exam_id=1, topics=[topic3])
+    exam = _make_exam(1, subjects=[subj1, subj2])
+
+    fake_db = _SubjectsWithTopicsDB(
+        exam=exam,
+        subjects=[subj1, subj2],
+        active_topic_ids=[1, 3],
+    )
+    app.dependency_overrides[get_db] = lambda: (yield fake_db)
+
+    response = client.get("/api/v1/catalog/subjects-with-topics?exam_id=1")
+    assert response.status_code == 200
+
+    body = response.json()
+    assert len(body) == 2
+    assert [t["topic_id"] for t in body[0]["topics"]] == [1]
+    assert [t["topic_id"] for t in body[1]["topics"]] == [3]
+    assert fake_db.scalars_calls == 2
+
+
+def test_get_subjects_with_topics_exam_not_found(client):
+    from app.main import app
+
+    app.dependency_overrides[get_db] = lambda: (yield _SubjectsWithTopicsDB(exam=None))
+    response = client.get("/api/v1/catalog/subjects-with-topics?exam_id=999")
+    assert response.status_code == 404
