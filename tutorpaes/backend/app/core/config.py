@@ -213,8 +213,23 @@ class Settings(BaseSettings):
                 f"Configuración crítica incompleta. Define estas variables de entorno: {joined_fields}"
             )
 
-        # Guardrail crítico: evita mezclar credenciales de integración en producción.
+        # Enforce Redis requirement in production (distributed rate limiting)
         env = (self.ENVIRONMENT or "").strip().lower()
+        if env == "production" and not self.REDIS_URL:
+            raise RuntimeError(
+                "Configuración insegura: ENVIRONMENT=production REQUIERE REDIS_URL. "
+                "Rate limiting debe ser distribuido entre workers. "
+                "Configura Redis via REDIS_URL."
+            )
+
+        # Enforce Redis in staging for consistent limits
+        if env == "staging" and not self.REDIS_URL:
+            raise RuntimeError(
+                "Configuración insegura: ENVIRONMENT=staging REQUIERE REDIS_URL. "
+                "Configura Redis via REDIS_URL."
+            )
+
+        # Guardrail crítico: evita mezclar credenciales de integración en producción.
         tbk_env = (self.TBK_ENVIRONMENT or "").strip().lower()
 
         if env == "production":
