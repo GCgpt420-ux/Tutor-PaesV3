@@ -88,3 +88,6 @@ BOT - copia/
 !tsconfig.json
 !.pa11yci.json
 !composer.json
+
+# Git worktrees for isolated development
+.worktrees/
