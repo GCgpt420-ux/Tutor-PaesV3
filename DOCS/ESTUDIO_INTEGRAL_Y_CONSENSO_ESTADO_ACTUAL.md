@@ -3,8 +3,13 @@
 ## Estado del documento
 - Tipo: documento de sintesis ejecutiva y tecnica.
 - Estado: vigente.
-- Ultima revision: 2026-03-15.
+- Ultima revision: 2026-04-23.
 - Objetivo: consolidar el contexto real del proyecto, cruzando documentacion, codigo, pruebas, CI y scripts operativos.
+
+## Actualizacion de consenso (2026-04-23)
+- Estado consolidado: post-MVP tecnico avanzado, con fases base completadas.
+- Implementacion: alta en nucleo backend y alta en integraciones clave (IA y pagos/facturacion).
+- Madurez global: medio-alta para piloto y escalamiento controlado; aun con brechas operativas para produccion de mayor exigencia.
 
 ## 1. Proposito
 Este documento resume en un solo lugar:

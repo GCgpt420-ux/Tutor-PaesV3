@@ -3,7 +3,12 @@
 ## Estado del documento
 - Tipo: reporte técnico de verificación.
 - Propósito: evidencias de pruebas y criterios de aceptación.
-- Última revisión: 2026-03-13.
+- Última revisión: 2026-04-23.
+
+## Actualizacion de estado (2026-04-23)
+- Implementacion validada: si, a nivel backend con fallback.
+- Madurez de integracion: media-alta (tecnicamente estable, operativamente dependiente de cuota/proveedor).
+- Riesgo residual: bajo para continuidad funcional por fallback; medio para calidad premium si OpenAI no esta disponible.
 
 ## Resultado global
 Integración validada en backend para generación de explicaciones, con fallback disponible ante fallas del proveedor.

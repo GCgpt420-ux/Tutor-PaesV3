@@ -2,6 +2,13 @@
 
 Este repositorio contiene el código fuente completo y estructurado para la plataforma **Tutor PAES**.
 
+## Estado Actualizado (2026-04-23)
+
+- Estado de implementacion: nucleo funcional implementado de punta a punta (auth, catalogo, quiz, IA, pagos y facturacion).
+- Nivel de madurez actual: alto para demostracion y pilotos controlados; medio-alto para despliegue productivo inicial.
+- Calidad observada: suites de backend y frontend en verde segun ultimo corte de validacion registrado.
+- Pendientes criticos: CI unificada, smoke tests automatizados de preproduccion y hardening de observabilidad.
+
 > [!NOTE]
 > **Contexto de IA:** Este repositorio ha sido estabilizado y escalado a través de las Fases 1 a 6. El estado actual representa una plataforma conectada en Full-Stack con integración de múltiples LLMs, facturación automática y un sistema de UI moderno de cristal (Glassmorphism).
 

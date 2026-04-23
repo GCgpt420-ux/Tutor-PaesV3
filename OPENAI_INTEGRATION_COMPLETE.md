@@ -3,7 +3,12 @@
 ## Estado del documento
 - Tipo: resumen ejecutivo histórico.
 - Propósito: registrar alcance implementado sin duplicar guías operativas.
-- Última revisión: 2026-03-13.
+- Última revisión: 2026-04-23.
+
+## Actualizacion de estado (2026-04-23)
+- Implementacion: completa en backend con fallback operativo.
+- Nivel de calidad: alto para continuidad de servicio (degradacion controlada cuando el proveedor no responde).
+- Dependencia externa: disponibilidad final condicionada por claves y cuota activa del proveedor.
 
 ## Estado actual
 La integración OpenAI está implementada en backend con fallback a reglas y endpoints de verificación operativa.

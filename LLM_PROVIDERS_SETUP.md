@@ -1,5 +1,11 @@
 # LLM Providers Setup - TutorPAES
 
+## Estado Actualizado (2026-04-23)
+
+- Implementacion: arquitectura multi-proveedor operativa (OpenAI, Groq, Cerebras) con seleccion por entorno.
+- Cobertura tecnica: alta en backend, incluyendo fallback para continuidad de servicio.
+- Madurez operacional: media-alta, sujeta al estado de cuotas y credenciales de cada proveedor.
+
 ## Overview
 
 TutorPAES ahora soporta **múltiples proveedores de LLM** para mayor flexibilidad en desarrollo y producción:
@@ -95,7 +101,7 @@ OPENAI_MODEL=gpt-4o-mini
 - ❌ Costo por uso (requiere tarjeta de crédito válida)
 - ❌ Quota agotada si no hay suscripción activa
 
-**Estado actual:** OpenAI tiene suscripción agotada (429 insufficient_quota)
+**Estado actual:** el comportamiento de OpenAI depende del estado de cuota y facturacion de la cuenta configurada.
 
 ---
 

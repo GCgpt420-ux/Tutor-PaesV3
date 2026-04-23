@@ -1,5 +1,12 @@
 # 📄 Documento de Cambios - Fase 3.2: Integración de Facturación
 
+## Estado Actualizado (2026-04-23)
+
+- Implementacion: flujo de facturacion integrado en backend y expuesto al frontend.
+- Cobertura funcional: alta para historial y emision logica de invoices.
+- Madurez de entrega documental/binaria: media, porque la descarga PDF sigue descrita como placeholder/stub en este documento.
+- Riesgo residual: bajo-medio en demo; medio para productivo hasta cerrar generacion PDF final y almacenamiento definitivo.
+
 **Fecha:** 2026-04-06  
 **Versión:** 1.0  
 **Estado:** Completada ✅

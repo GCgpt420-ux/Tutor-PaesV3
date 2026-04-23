@@ -1,5 +1,10 @@
 # Analisis Detallado del Proyecto TutorPAES
 
+## Estado actualizado (2026-04-23)
+- Implementacion general: alta en funcionalidades core de la plataforma.
+- Nivel de madurez actual: medio-alto para continuidad de desarrollo y piloto; medio para operacion productiva exigente.
+- Prioridad de cierre: automatizacion operativa (CI unificada, smoke preprod, observabilidad y alertamiento).
+
 ## 1. Objetivo del documento
 Este documento describe el estado tecnico actual del proyecto, su arquitectura, flujos principales, riesgos y lineas de trabajo recomendadas para facilitar colaboracion y mantenimiento.
 
