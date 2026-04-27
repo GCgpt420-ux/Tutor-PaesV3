@@ -59,10 +59,9 @@ describe('billingFormatters', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('returns a string for empty input', () => {
-      // formatDate does not handle empty strings — it throws RangeError.
-      // Callers must ensure dates are non-empty before calling.
-      expect(() => billingFormatters.formatDate('')).toThrow();
+    it('returns a fallback for empty input', () => {
+      const result = billingFormatters.formatDate('');
+      expect(result).toBe('—');
     });
   });
 });

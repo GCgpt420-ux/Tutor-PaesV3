@@ -47,6 +47,7 @@ const QuestionCard = ({
   category: string;
   content: string;
   readingText?: string | null;
+  imageUrl?: string | null;
 }) => (
   <div className="w-full max-w-3xl text-left pt-4">
     <div className="flex items-center gap-3 mb-6 group">
@@ -73,6 +74,16 @@ const QuestionCard = ({
         {content}
       </h1>
     </div>
+
+    {imageUrl && (
+      <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <img 
+          src={imageUrl} 
+          alt="Gráfico de la pregunta" 
+          className="h-auto w-full object-contain max-h-[400px]"
+        />
+      </div>
+    )}
   </div>
 );
 
@@ -281,6 +292,7 @@ export default function QuizPage() {
               category={topic_code} 
               readingText={quiz.question?.reading_text}
               content={quiz.question?.prompt || ''} 
+              imageUrl={quiz.question?.image_url}
             />
 
             <div className="grid grid-cols-1 gap-3 w-full pb-4 md:pb-8">

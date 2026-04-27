@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/src/components/ui/button';
 import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer';
-import { Send, Loader2, Sparkles, MessageCircle } from 'lucide-react';
+import { Send, Loader2, Sparkles, MessageCircle, Mic, MicOff, Volume2 } from 'lucide-react';
 import { useAiTutor } from '../hooks/use-ai-tutor';
+import { useVoice } from '@/src/hooks/useVoice';
 
 interface TutorMessage {
   role: 'user' | 'assistant';
@@ -28,6 +29,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording, speak } = useVoice();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -36,11 +38,24 @@ export function AiTutorChat(props: AiTutorChatProps) {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const text = input;
+  const handleSend = async (textToSend?: string) => {
+    const text = textToSend || input;
+    if (!text.trim() || loading) return;
     setInput('');
     await sendMessage(text);
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      const text = await stopRecording();
+      if (text) {
+        setInput(text);
+        // Opcional: Enviar automáticamente si el usuario lo desea
+        // handleSend(text);
+      }
+    } else {
+      await startRecording();
+    }
   };
 
   return (
@@ -91,7 +106,18 @@ export function AiTutorChat(props: AiTutorChatProps) {
                   : 'bg-zinc-800/80 text-zinc-200 mr-4 rounded-tl-sm border border-white/10 backdrop-blur-md'
               }`}
             >
-              <MarkdownMathRenderer content={m.content} />
+              <div className="flex flex-col gap-2">
+                <MarkdownMathRenderer content={m.content} />
+                {m.role === 'assistant' && (
+                  <button 
+                    onClick={() => speak(m.content)}
+                    className="self-end p-1 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-brand-primary"
+                    title="Escuchar respuesta"
+                  >
+                    <Volume2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -114,9 +140,16 @@ export function AiTutorChat(props: AiTutorChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Pregunta algo sobre matemáticas..."
-            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl pl-4 pr-12 py-3.5 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all font-medium"
+            placeholder={isRecording ? "Escuchando..." : "Pregunta algo sobre matemáticas..."}
+            className={`w-full bg-zinc-900/50 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all font-medium ${isRecording ? 'border-brand-primary ring-1 ring-brand-primary/30' : ''}`}
           />
+          <button
+            onClick={toggleRecording}
+            disabled={loading || isVoiceProcessing}
+            className={`absolute left-2 p-2 rounded-lg transition-all ${isRecording ? 'bg-brand-danger text-white animate-pulse' : 'text-zinc-500 hover:bg-white/5 hover:text-brand-primary'}`}
+          >
+            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </button>
           <Button
             onClick={handleSend}
             disabled={loading || !input.trim()}

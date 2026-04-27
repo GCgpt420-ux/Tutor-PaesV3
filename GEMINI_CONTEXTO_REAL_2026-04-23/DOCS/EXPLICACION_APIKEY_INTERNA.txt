@@ -1,0 +1,35 @@
+=======================================================
+EXPLICACIÓN: LA API KEY INTERNA (INTERNAL_API_SECRET)
+=======================================================
+
+Gabriel, para responder a tu pregunta de forma directa: 
+NO, no es la API Key de un servicio externo (NO es de OpenAI, ni de Groq, ni de Firebase).
+
+Es una "Contraseña Privada" INVENTADA POR NOSOTROS.
+
+¿PARA QUÉ SIRVE?
+----------------
+Como ahora tenemos el Motor Socrático abriendo el puerto local 8080 en Node.js, técnicamente cualquier persona en el mismo servidor local o red podría hacerle peticiones directamente a ese puerto para gastarse tus tokens de IA haciendo preguntas gratis.
+
+Para evitar eso, hemos creado una variable protegida que programé provisionalmente como:
+"secret_dev_pass_tutorpaes" 
+
+¿CÓMO FUNCIONA EL FILTRO?
+-------------------------
+1. El archivo en Node.js (api_server.ts) cuando recibe una petición, antes de mirar de qué se trata la pregunta, revisa la cabecera (Header) de la petición buscando la llave "x-api-key".
+2. Si la llave no dice "secret_dev_pass_tutorpaes" (o lo que configures en el futuro), rechaza la petición al instante.
+3. Tu plataforma web en Python (ai_chat.py) es el único que sabe esta contraseña. Cuando FastAPI le dispara la pregunta del alumno a Node.js, le envía discretamente esa llave.
+
+¿DÓNDE SE CONFIGURA FINALMENTE?
+-------------------------------
+En producción o cuando uses Docker, NO debes dejar "secret_dev_pass_tutorpaes" en el código escrito (actualmente lo puse así para que funcione al instante en desarrollo). 
+
+Debes agregarla a tus archivos invisibles ".env":
+
+En el .env de Node (proyecto_nuevo/BOT):
+INTERNAL_API_SECRET=una_contra_muy_segura_creada_por_ti_1234!!
+
+En el .env de Python (Tutor-PaesV3/tutorpaes/backend):
+INTERNAL_API_SECRET=una_contra_muy_segura_creada_por_ti_1234!!
+
+Mientras ambos .env tengan la misma palabra inventada, el puente de FastAPI y Node.js se reconocerán mutuamente como amigos e ignorarán a todos los demás curiosos de internet.
