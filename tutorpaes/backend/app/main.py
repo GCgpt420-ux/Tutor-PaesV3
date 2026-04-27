@@ -21,6 +21,7 @@ from app.api.v1.endpoints.users import router as users_router
 from app.api.v1.endpoints.questions import router as questions_router
 from app.api.v1.endpoints.payments import router as payments_router
 from app.api.v1.endpoints.admin import router as admin_router
+from app.api.v1.endpoints.voice import router as voice_router
 from app.core.config import settings
 from app.core.rate_limiter import limiter
 from app.core.request_context import get_request_id, reset_request_id, set_request_id
@@ -197,3 +198,4 @@ app.include_router(questions_router, prefix="/api/v1")
 app.include_router(payments_router, prefix="/api/v1")
 app.include_router(ai_chat_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(voice_router, prefix="/api/v1")

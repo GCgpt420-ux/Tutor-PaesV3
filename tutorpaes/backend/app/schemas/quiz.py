@@ -15,6 +15,7 @@ class QuestionOut(BaseModel):
     topic: str
     reading_text: Optional[str] = None
     choices: List[ChoiceOut]
+    image_url: Optional[str] = None
 
 
 class AnswerIn(BaseModel):
@@ -65,6 +66,7 @@ class AttemptFeedbackDetailOut(BaseModel):
     correct_choice_text: Optional[str]
     is_correct: bool
     ai_explanation: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class AttemptResultOut(BaseModel):

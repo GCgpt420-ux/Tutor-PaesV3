@@ -24,6 +24,7 @@ class QuestionCreateIn(BaseModel):
 
     choices: List[QuestionChoiceIn] = Field(min_length=4, max_length=4)
     correct_choice: ChoiceLabel
+    image_url: Optional[str] = None
 
 
 class QuestionCreatedOut(BaseModel):
@@ -37,6 +38,7 @@ class QuestionCreatedOut(BaseModel):
 
     choices: List[ChoiceOut]
     correct_choice: ChoiceLabel
+    image_url: Optional[str] = None
 
 
 class RecentQuestionOut(BaseModel):
@@ -48,6 +50,7 @@ class RecentQuestionOut(BaseModel):
     difficulty: int
     created_at: str
     choices: List[ChoiceOut]
+    image_url: Optional[str] = None
 
 
 class BulkQuestionCreateIn(BaseModel):

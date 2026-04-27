@@ -18,13 +18,15 @@ async function forwardRequest(request: NextRequest, path: string[]) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  const body = method === 'GET' || method === 'HEAD' ? undefined : await request.text();
+  const body = method === 'GET' || method === 'HEAD' ? undefined : await request.arrayBuffer();
   console.log(`[Proxy] Forwarding ${method} to ${targetUrl}`);
   
   const backendResponse = await fetch(targetUrl, {
     method,
     headers,
     body,
+    // @ts-ignore - Duplex is required for some fetch versions when streaming, but arrayBuffer is fine
+    duplex: body ? 'half' : undefined,
   });
 
   const responseBody = await backendResponse.arrayBuffer();

@@ -22,7 +22,8 @@ export interface BackendQuestionOut {
   topic: string;     // Topic code (e.g., "ALG", "GEO")
   reading_text?: string | null;
   choices: BackendQuestionChoice[];
-  correct_choice_id: number; // ADDED: For correct proactive logic
+  correct_choice_id: number;
+  image_url?: string | null;
 }
 
 export interface BackendTopicCompletedOut {

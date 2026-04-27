@@ -8,6 +8,10 @@ def test_fail_fast_missing_db_url():
     env.pop("DATABASE_URL", None)
     env["SECRET_KEY"] = "x" * 32
     env["PAYMENT_RETURN_URL"] = "http://localhost:3000/api/payments/confirm"
+    
+    # Ensure app module can be found
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    env["PYTHONPATH"] = backend_dir
 
     result = subprocess.run(
         [
