@@ -1,50 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { API_BASE_URL } from '@/src/lib/server/auth-session';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 
 async function forwardRequest(request: NextRequest, path: string[]) {
-  const accessToken = request.cookies.get('access_token')?.value;
-  const hasTrailingSlash = request.nextUrl.pathname.endsWith('/');
-  const targetUrl = `${API_BASE_URL}/api/v1/${path.join('/')}${hasTrailingSlash ? '/' : ''}${request.nextUrl.search}`;
-  const method = request.method;
-  const headers = new Headers();
+  try {
+    // Get token from cookie or Authorization header
+    const cookieToken = request.cookies.get('access_token')?.value;
+    const authHeader = request.headers.get('Authorization');
+    const accessToken = authHeader || (cookieToken ? `Bearer ${cookieToken}` : undefined);
+    
+    const hasTrailingSlash = request.nextUrl.pathname.endsWith('/');
+    const targetUrl = `${API_BASE_URL}/api/v1/${path.join('/')}${hasTrailingSlash ? '/' : ''}${request.nextUrl.search}`;
+    const method = request.method;
+    const headers = new Headers();
 
-  const contentType = request.headers.get('content-type');
-  if (contentType) {
-    headers.set('Content-Type', contentType);
+    const contentType = request.headers.get('content-type');
+    if (contentType) {
+      headers.set('Content-Type', contentType);
+    }
+
+    if (accessToken) {
+      headers.set('Authorization', accessToken);
+    }
+
+    const body = method === 'GET' || method === 'HEAD' ? undefined : await request.arrayBuffer();
+    console.log(`[Proxy] ${method} ${targetUrl}`);
+    
+    const backendResponse = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+      // Required by undici when forwarding request bodies in some runtimes.
+      // @ts-expect-error duplex is not in all TS lib versions yet.
+      duplex: body ? 'half' : undefined,
+    });
+
+    // Preserve streaming semantics (SSE/chunked) by returning the backend body directly.
+    const responseHeaders = new Headers(backendResponse.headers);
+    return new NextResponse(backendResponse.body, {
+      status: backendResponse.status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error('[Proxy Error]', error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
-
-  if (accessToken) {
-    headers.set('Authorization', `Bearer ${accessToken}`);
-  }
-
-  const body = method === 'GET' || method === 'HEAD' ? undefined : await request.arrayBuffer();
-  console.log(`[Proxy] Forwarding ${method} to ${targetUrl}`);
-  
-  const backendResponse = await fetch(targetUrl, {
-    method,
-    headers,
-    body,
-    // @ts-ignore - Duplex is required for some fetch versions when streaming, but arrayBuffer is fine
-    duplex: body ? 'half' : undefined,
-  });
-
-  const responseBody = await backendResponse.arrayBuffer();
-  const responseHeaders = new Headers();
-  const responseContentType = backendResponse.headers.get('content-type');
-  const responseCacheControl = backendResponse.headers.get('cache-control');
-
-  if (responseContentType) {
-    responseHeaders.set('Content-Type', responseContentType);
-  }
-  if (responseCacheControl) {
-    responseHeaders.set('Cache-Control', responseCacheControl);
-  }
-
-  return new NextResponse(responseBody, {
-    status: backendResponse.status,
-    headers: responseHeaders,
-  });
 }
 
 type RouteContext = {

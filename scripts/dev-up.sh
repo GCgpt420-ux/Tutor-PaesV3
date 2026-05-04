@@ -148,6 +148,25 @@ elif [[ "${DATABASE_URL}" == *"@db:"* ]]; then
 	echo "[dev-up] DATABASE_URL detectada con host 'db'; adaptada a localhost para host-run"
 fi
 
+# Defaults locales para requisitos runtime del backend.
+# En producción deben venir desde entorno seguro; aquí solo evitamos fricción de demo local.
+if [[ -z "${SECRET_KEY:-}" ]]; then
+	export SECRET_KEY="dev-only-secret-key-change-in-production"
+	echo "[dev-up] SECRET_KEY no definida; usando default local de desarrollo"
+fi
+
+if [[ -z "${PAYMENT_RETURN_URL:-}" ]]; then
+	export PAYMENT_RETURN_URL="http://${FRONTEND_HOST}:${FRONTEND_PORT}/api/payments/confirm"
+	echo "[dev-up] PAYMENT_RETURN_URL no definida; usando default local (${PAYMENT_RETURN_URL})"
+fi
+
+# Defaults para LLM providers en desarrollo (fallback si no estan configurados)
+if [[ -z "${OPENAI_API_KEY:-}" ]] && [[ -z "${GEMINI_API_KEY:-}" ]]; then
+	export OPENAI_API_KEY="sk-dev-placeholder-for-local-testing"
+	echo "[dev-up] LLM API keys no definidas; usando placeholder de desarrollo (no funcional)"
+	echo "[dev-up] Para usar IA real, configura OPENAI_API_KEY o GEMINI_API_KEY en .env"
+fi
+
 VENV_BIN="venv/bin"
 VENV_PY="${VENV_BIN}/python"
 
