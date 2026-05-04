@@ -173,6 +173,36 @@ export default function QuizPage() {
     if (subject_code && topic_code) loadNextQuestion();
   }, [subject_code, topic_code, loadNextQuestion]);
 
+  const buildQuestionContext = useCallback(() => {
+    if (!quiz.question) {
+      return {
+        subject_code,
+        topic_code,
+      };
+    }
+
+    const selectedChoice = quiz.question.choices.find((choice) => choice.id === quiz.selectedChoice);
+    const correctChoice = quiz.question.choices.find((choice) => choice.id === quiz.aiPayload?.correct_choice_id);
+
+    return {
+      subject_code,
+      topic_code,
+      question_id: quiz.question.question_id,
+      question_prompt: quiz.question.prompt,
+      reading_text: quiz.question.reading_text,
+      choices: quiz.question.choices.map((choice) => ({
+        label: choice.label,
+        text: choice.text,
+      })),
+      selected_choice_label: selectedChoice?.label,
+      selected_choice_text: selectedChoice?.text,
+      correct_choice_label: correctChoice?.label,
+      correct_choice_text: correctChoice?.text,
+      is_correct: quiz.isCorrect,
+      feedback_text: quiz.feedbackText,
+    };
+  }, [quiz.aiPayload, quiz.feedbackText, quiz.isCorrect, quiz.question, quiz.selectedChoice, subject_code, topic_code]);
+
   // ENVIAR RESPUESTA
   const handleSubmitAnswer = async () => {
     if (quiz.selectedChoice === null || !quiz.question) return;
@@ -193,18 +223,16 @@ export default function QuizPage() {
       });
 
       const isCorrect = response.is_correct;
+      const tutorFeedback = typeof response.feedback_text === 'string' && response.feedback_text.trim().length > 0
+        ? response.feedback_text.trim()
+        : isCorrect
+          ? 'Bien. ¿Qué pista del enunciado te confirmó tu respuesta?'
+          : 'Probemos otra estrategia. ¿Qué dato clave del enunciado estás usando?';
 
       // --- DISPARADOR PROACTIVO DE LA IA ---
       setTimeout(() => {
         aiTutor.setExternalLoading(false);
-        if (isCorrect) {
-          aiTutor.addAssistantMessage("¡Excelente razonamiento! Has aplicado correctamente la propiedad. Sigamos con la siguiente.");
-        } else {
-          // Extraer hint del ai_payload si existe, si no usar genérico
-          const hint = (response.ai_payload?.hint as string) || 
-                       "No te preocupes, este es un error común. Fíjate en cómo se relacionan los términos de la pregunta. ¿Qué pasaría si intentas otra estrategia?";
-          aiTutor.addAssistantMessage(hint);
-        }
+        aiTutor.addAssistantMessage(tutorFeedback);
       }, 800);
 
       setQuiz((prev) => ({
@@ -391,7 +419,7 @@ export default function QuizPage() {
                 messages={aiTutor.messages} 
                 loading={aiTutor.loading} 
                 error={aiTutor.error} 
-          sendMessage={(text) => aiTutor.sendMessage(text, quiz.attemptId ? String(quiz.attemptId) : undefined)} 
+          sendMessage={(text) => aiTutor.sendMessage(text, quiz.attemptId ? String(quiz.attemptId) : undefined, buildQuestionContext())} 
             />
         </div>
       </aside>

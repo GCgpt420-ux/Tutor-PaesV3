@@ -10,12 +10,27 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+def _build_messages(
+    system_prompt: str,
+    user_message: str,
+    conversation_messages: Optional[list[dict[str, str]]] = None,
+) -> list[dict[str, str]]:
+    if conversation_messages:
+        return conversation_messages
+
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+
+
 class LLMProvider:
     """Base class para proveedores de LLM"""
     
     def stream_completion(self, 
                          system_prompt: str, 
                          user_message: str,
+                         conversation_messages: Optional[list[dict[str, str]]] = None,
                          temperature: Optional[float] = None,
                          max_tokens: Optional[int] = None) -> Generator[str, None, None]:
         raise NotImplementedError
@@ -33,23 +48,29 @@ class OpenAIProvider(LLMProvider):
     def stream_completion(self,
                          system_prompt: str,
                          user_message: str,
+                         conversation_messages: Optional[list[dict[str, str]]] = None,
                          temperature: Optional[float] = None,
                          max_tokens: Optional[int] = None) -> Generator[str, None, None]:
         """Stream completion desde OpenAI"""
         try:
             temperature = temperature or settings.LLM_TEMPERATURE
             max_tokens = max_tokens or settings.LLM_MAX_TOKENS
-            
-            with self.client.messages.stream(
+
+            messages = _build_messages(system_prompt, user_message, conversation_messages)
+
+            stream = self.client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
+                messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
+                stream=True,
                 timeout=settings.LLM_TIMEOUT_SECONDS
-            ) as stream:
-                for text in stream.text_stream:
-                    yield text
+            )
+
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
         except Exception as e:
             logger.error(f"OpenAI streaming error: {e}")
             raise
@@ -71,19 +92,20 @@ class GroqProvider(LLMProvider):
     def stream_completion(self,
                          system_prompt: str,
                          user_message: str,
+                         conversation_messages: Optional[list[dict[str, str]]] = None,
                          temperature: Optional[float] = None,
                          max_tokens: Optional[int] = None) -> Generator[str, None, None]:
         """Stream completion desde Groq"""
         try:
             temperature = temperature or settings.LLM_TEMPERATURE
             max_tokens = max_tokens or settings.LLM_MAX_TOKENS
+            messages = _build_messages(system_prompt, user_message, conversation_messages)
             
             stream = self.client.chat.completions.create(
                 model=settings.GROQ_MODEL,
+                messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
                 stream=True,
                 timeout=settings.LLM_TIMEOUT_SECONDS
             )
@@ -112,19 +134,20 @@ class CerebrasProvider(LLMProvider):
     def stream_completion(self,
                          system_prompt: str,
                          user_message: str,
+                         conversation_messages: Optional[list[dict[str, str]]] = None,
                          temperature: Optional[float] = None,
                          max_tokens: Optional[int] = None) -> Generator[str, None, None]:
         """Stream completion desde Cerebras"""
         try:
             temperature = temperature or settings.LLM_TEMPERATURE
             max_tokens = max_tokens or settings.LLM_MAX_TOKENS
+            messages = _build_messages(system_prompt, user_message, conversation_messages)
             
             stream = self.client.chat.completions.create(
                 model=settings.CEREBRAS_MODEL,
+                messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
                 stream=True,
                 timeout=settings.LLM_TIMEOUT_SECONDS
             )
@@ -153,6 +176,7 @@ def get_llm_provider() -> LLMProvider:
 
 def stream_llm_response(system_prompt: str,
                        user_message: str,
+                       conversation_messages: Optional[list[dict[str, str]]] = None,
                        temperature: Optional[float] = None,
                        max_tokens: Optional[int] = None) -> Generator[str, None, None]:
     """
@@ -165,7 +189,13 @@ def stream_llm_response(system_prompt: str,
     
     try:
         provider = get_llm_provider()
-        yield from provider.stream_completion(system_prompt, user_message, temperature, max_tokens)
+        yield from provider.stream_completion(
+            system_prompt,
+            user_message,
+            conversation_messages,
+            temperature,
+            max_tokens,
+        )
     except Exception as e:
         logger.error(f"LLM streaming failed with {settings.LLM_PROVIDER}: {e}")
         # Aquí podrías implementar fallback a otro provider si quieres

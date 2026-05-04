@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/src/components/ui/button';
 import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer';
-import { Send, Loader2, Sparkles, MessageCircle, Mic, MicOff, Volume2 } from 'lucide-react';
+import { Send, Loader2, Sparkles, Mic, MicOff, Volume2 } from 'lucide-react';
 import { useAiTutor } from '../hooks/use-ai-tutor';
 import { useVoice } from '@/src/hooks/useVoice';
 
@@ -83,17 +83,20 @@ export function AiTutorChat(props: AiTutorChatProps) {
     <div className="flex flex-col h-full w-full bg-black/20 rounded-2xl border border-white/5 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/5 backdrop-blur-sm">
-        <div className="h-8 w-8 rounded-full bg-brand-primary/20 flex items-center justify-center border border-brand-primary/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-          <Sparkles className="h-4 w-4 text-brand-primary animate-pulse" />
+        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-primary/40 to-brand-accent/30 flex items-center justify-center border border-brand-primary/20 shadow-[0_0_12px_rgba(59,130,246,0.2)] flex-shrink-0">
+          <Sparkles className="h-4 w-4 text-brand-primary" />
         </div>
-        <div>
-          <h3 className="font-bold text-zinc-100 text-sm">Tutor IA PAES</h3>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-zinc-100 text-sm">Tuto</h3>
+            <span className="text-[9px] text-zinc-500 font-medium">· Profesor IA</span>
+          </div>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
             </span>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">En línea</p>
+            <p className="text-[10px] text-zinc-500">Disponible</p>
           </div>
         </div>
       </div>
@@ -104,14 +107,17 @@ export function AiTutorChat(props: AiTutorChatProps) {
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
       >
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 px-6">
-            <div className="p-4 rounded-full bg-brand-primary/10 border border-brand-primary/20">
-              <MessageCircle className="h-8 w-8 text-brand-primary" />
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-6 px-6 py-8">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-primary/30 to-brand-accent/20 flex items-center justify-center border border-brand-primary/20 shadow-[0_0_24px_rgba(59,130,246,0.15)]">
+              <Sparkles className="h-6 w-6 text-brand-primary" />
             </div>
-            <p className="text-sm text-zinc-400">
-              ¡Hola! Soy tu <strong>Profesor IA</strong>. <br /><br />
-              Estoy aquí para ayudarte a dominar los contenidos y estrategias para la prueba. ¿Qué quieres estudiar hoy?
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-zinc-200">Hola, soy Tuto.</p>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Estoy aquí para ayudarte a entender, no solo a memorizar.
+                Puedes preguntarme sobre la pregunta que acabas de ver, o sobre cualquier concepto que quieras reforzar.
+              </p>
+            </div>
           </div>
         )}
 
