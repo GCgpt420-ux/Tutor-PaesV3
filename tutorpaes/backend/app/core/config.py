@@ -221,9 +221,6 @@ class Settings(BaseSettings):
         if not self.SECRET_KEY:
             missing_fields.append("SECRET_KEY")
 
-        if not self.PAYMENT_RETURN_URL:
-            missing_fields.append("PAYMENT_RETURN_URL")
-
         if missing_fields:
             joined_fields = ", ".join(missing_fields)
             raise RuntimeError(
