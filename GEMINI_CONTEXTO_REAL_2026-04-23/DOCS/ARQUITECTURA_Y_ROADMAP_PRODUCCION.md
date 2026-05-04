@@ -512,10 +512,10 @@ results = db.execute(
 **Variables de Entorno**:
 ```python
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+psycopg://mvp:mvp@localhost:5432/mvp_db"
-    SECRET_KEY: str = "change-me-in-production-use-openssl-rand-hex-32"
+  DATABASE_URL: str = "<definir_por_variable_de_entorno>"
+  SECRET_KEY: str = "<definir_por_variable_de_entorno>"
     OPENAI_API_KEY: str = ""
-    TBK_API_KEY: str = "<TRANSBANK_INTEGRATION_API_KEY>"
+  TBK_API_KEY: str = "<definir_por_variable_de_entorno>"
 ```
 
 🔴 **CRÍTICO - Problemas de Seguridad**:
@@ -523,11 +523,11 @@ class Settings(BaseSettings):
 1. ❌ **SECRET_KEY hardcodeada** en código (valor por defecto débil).
 2. ❌ **TBK_API_KEY expuesta** en settings (aunque es integration mode).
 3. ❌ **DATABASE_URL con credenciales** en código.
-4. ❌ **No hay `.env.example`** documentado.
+4. ✅ **Existe `.env.example`** para referencia (sin secretos reales).
 
 **Solución**:
 ```bash
-# .env.example (crear este archivo)
+# .env.example (usar este archivo como plantilla)
 DATABASE_URL=postgresql+psycopg://user:pass@host:5432/db
 SECRET_KEY=<generado con openssl rand -hex 32>
 OPENAI_API_KEY=sk-...

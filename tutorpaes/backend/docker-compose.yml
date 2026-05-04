@@ -3,9 +3,9 @@ services:
     image: postgres:16
     container_name: ia_bot_db
     environment:
-      POSTGRES_DB: mvp_db
-      POSTGRES_USER: mvp
-      POSTGRES_PASSWORD: mvp
+      POSTGRES_DB: ${POSTGRES_DB:-mvp_db}
+      POSTGRES_USER: ${POSTGRES_USER:-mvp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mvp}
     ports:
       - "5432:5432"
     volumes:

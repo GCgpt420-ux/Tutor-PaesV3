@@ -127,7 +127,10 @@ fi
 # Normaliza DATABASE_URL para ejecución local en host.
 # Si no viene definida, usa credenciales canónicas del docker-compose local.
 # Si viene con host `db` (resoluble solo dentro de red Docker), la adapta a localhost.
-DEFAULT_LOCAL_DATABASE_URL="postgresql+psycopg://mvp:mvp@127.0.0.1:5432/mvp_db"
+DEFAULT_DB_USER="${POSTGRES_USER:-mvp}"
+DEFAULT_DB_PASSWORD="${POSTGRES_PASSWORD:-mvp}"
+DEFAULT_DB_NAME="${POSTGRES_DB:-mvp_db}"
+DEFAULT_LOCAL_DATABASE_URL="postgresql+psycopg://${DEFAULT_DB_USER}:${DEFAULT_DB_PASSWORD}@127.0.0.1:5432/${DEFAULT_DB_NAME}"
 ENV_FILE_PATH="${ROOT_DIR}/tutorpaes/backend/.env"
 if [[ -z "${DATABASE_URL:-}" && -f "${ENV_FILE_PATH}" ]]; then
 	ENV_DATABASE_URL="$(grep -E '^DATABASE_URL=' "${ENV_FILE_PATH}" | tail -n1 | cut -d '=' -f2- | sed -E 's/^"(.*)"$/\1/')"
@@ -163,6 +166,13 @@ if ! "${VENV_PY}" -c "import alembic, openai, transbank" >/dev/null 2>&1; then
 	echo "[dev-up] Instalando dependencias Python en venv..."
 	"${VENV_PY}" -m pip install --upgrade pip
 	"${VENV_PY}" -m pip install -r requirements.txt
+fi
+
+# passlib 1.7.x espera bcrypt.__about__.__version__ (eliminado en bcrypt>=4.1).
+# Forzamos una version compatible para evitar warning/traceback en seed/login.
+if ! "${VENV_PY}" -c "import bcrypt; import sys; sys.exit(0 if hasattr(bcrypt, '__about__') else 1)" >/dev/null 2>&1; then
+	echo "[dev-up] Ajustando bcrypt a una version compatible con passlib..."
+	"${VENV_PY}" -m pip install "bcrypt==4.0.1"
 fi
 
 if [[ "$SKIP_MIGRATE" -eq 1 ]]; then
