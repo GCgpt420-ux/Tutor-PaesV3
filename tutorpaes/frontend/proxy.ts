@@ -14,9 +14,7 @@ function buildCsp(nonce: string) {
         "http:",
       ]
     : [
-        "script-src 'self'",
-        `'nonce-${nonce}'`,
-        "'strict-dynamic'",
+        "script-src 'self' 'unsafe-inline'",
         "https:",
       ]
   
