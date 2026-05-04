@@ -15,7 +15,7 @@ export function CoursesPageView() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-4">
           <Loader className="h-10 w-10 text-brand-primary animate-spin" />
-          <p className="text-text-tertiary font-medium uppercase tracking-widest text-sm">Escaneando catálogo...</p>
+          <p className="text-text-tertiary font-medium uppercase tracking-widest text-sm">Cargando catálogo...</p>
         </div>
       </div>
     );
@@ -25,7 +25,7 @@ export function CoursesPageView() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="glass-card p-8 border-brand-danger/30 bg-brand-danger/5 text-center animate-error-shake">
-          <p className="text-brand-danger font-black uppercase tracking-widest mb-2">Error de Sincronización</p>
+          <p className="text-brand-danger font-black uppercase tracking-widest mb-2">Error al cargar cursos</p>
           <p className="text-text-secondary text-sm">
             {queryError instanceof Error ? queryError.message : 'Error al cargar cursos'}
           </p>
@@ -38,7 +38,7 @@ export function CoursesPageView() {
     <div className="w-full max-w-6xl mx-auto">
       <div className="mb-10 flex flex-col gap-2">
         <h1 className="text-3xl md:text-4xl font-black text-text-primary uppercase tracking-tight">Catálogo de Cursos</h1>
-        <p className="text-text-tertiary font-medium">Selecciona una materia base para iniciar tu fase de entrenamiento.</p>
+        <p className="text-text-tertiary font-medium">Selecciona una materia base para comenzar tu preparación.</p>
       </div>
 
       {subjects.length === 0 ? (

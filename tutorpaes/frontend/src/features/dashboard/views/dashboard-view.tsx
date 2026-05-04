@@ -182,7 +182,7 @@ export function ProtectedView() {
         setTopicStats(topicsPayload);
       } catch (err) {
         console.error('Unexpected error:', err);
-        setError('Error crítico. Datos no recuperables.');
+        setError('No pudimos cargar los datos del panel.');
       } finally {
         setLoading(false);
       }
@@ -196,7 +196,7 @@ export function ProtectedView() {
       <div className="flex min-h-[50vh] items-center justify-center animate-pulse" aria-busy="true">
         <div className="flex flex-col items-center gap-4 text-brand-primary">
           <TerminalSquare className="h-10 w-10 opacity-50" />
-          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando Sistema...</p>
+          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando panel...</p>
         </div>
       </div>
     );
@@ -213,11 +213,11 @@ export function ProtectedView() {
         const xpPercent = Math.round((xpInCurrentLevel / XP_PER_LEVEL) * 100);
         const streakDays = stats?.streakDays ?? 0;
         const heroMsg = stats && stats.totalAttempts > 0
-          ? stats.averageScore >= 600 ? 'PUNTAJE ÓPTIMO. SIGUE ESCALANDO.' : 'MÉTRICAS EN PELIGRO. INICIA SIMULACIÓN.'
-          : 'SIN DATOS. REQUIERE ENTRENAMIENTO.';
+          ? stats.averageScore >= 600 ? 'Buen progreso. Sigue avanzando.' : 'Puedes mejorar. Haz un nuevo ensayo.'
+          : 'Aún no hay datos. Comienza con tu primer ensayo.';
         return (
           <section className="relative overflow-hidden border border-white/10 bg-black/50 p-8 md:p-10 shadow-2xl backdrop-blur-md">
-            {/* GRID OVERLAY TÁCTICO */}
+            {/* GRID OVERLAY */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:12px_12px] opacity-20 pointer-events-none mix-blend-overlay" />
             
             <div className="pointer-events-none absolute inset-0">
@@ -229,10 +229,10 @@ export function ProtectedView() {
                 <div className="mb-4 flex flex-wrap items-center gap-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">
                     <Server className="h-3 w-3 text-green-500" />
-                    CONEXIÓN ENCRIPTADA {userName ? `[USR_0X${userName.toUpperCase()}]` : ''}
+                    SESIÓN ACTIVA {userName ? `• ${userName.toUpperCase()}` : ''}
                   </div>
                   <span className="inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-mono font-black text-brand-primary uppercase tracking-[0.2em]">
-                    NIVEL_TACTICO_{level}
+                    NIVEL_{level}
                   </span>
                 </div>
 
@@ -243,10 +243,10 @@ export function ProtectedView() {
                 <div className="max-w-md">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-white/50">
-                      PROGRESO DE RANGO [{level} → {level + 1}]
+                      PROGRESO DE NIVEL [{level} → {level + 1}]
                     </span>
                     <span className="text-[9px] font-mono font-bold text-brand-primary">
-                      {xpInCurrentLevel} / {XP_PER_LEVEL} DATOS
+                      {xpInCurrentLevel} / {XP_PER_LEVEL} XP
                     </span>
                   </div>
                   <div className="h-2 overflow-hidden border border-white/10 bg-black">
@@ -269,7 +269,7 @@ export function ProtectedView() {
                   href="/protected/ensayos"
                   className="flex items-center justify-center gap-2 bg-white px-8 text-black font-black uppercase tracking-[0.2em] text-[10px] transition-all hover:bg-zinc-200 hover:scale-[1.02]"
                 >
-                  ABRIR SIMULADOR
+                  INICIAR ENSAYO
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -385,7 +385,7 @@ export function ProtectedView() {
             </div>
             <div className="space-y-4">
               <div className="bg-black/60 border border-white/5 p-6 h-full">
-                <h3 className="mb-6 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 border-b border-white/10 pb-3">Registro de Misiones</h3>
+                <h3 className="mb-6 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 border-b border-white/10 pb-3">Registro de Ensayos</h3>
                 <div className="space-y-4">
                   {attempts.slice(0, 4).map((attempt) => (
                     <div key={attempt.id} className="flex items-start justify-between border-b border-dashed border-white/10 pb-4 last:border-0 last:pb-0">

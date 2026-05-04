@@ -41,8 +41,10 @@ COMMON_WEAK_PASSWORDS = {
 
 
 def validate_password_strength(password: str) -> str:
-    if len(password) < 12:
-        raise ValueError("La contraseña debe tener al menos 12 caracteres")
+    if len(password) < 8:
+        raise ValueError("La contraseña debe tener al menos 8 caracteres")
+    if len(password) > 14:
+        raise ValueError("La contraseña debe tener como máximo 14 caracteres")
     if not re.search(r"[A-Z]", password):
         raise ValueError("La contraseña debe incluir al menos una letra mayúscula")
     if not re.search(r"[a-z]", password):

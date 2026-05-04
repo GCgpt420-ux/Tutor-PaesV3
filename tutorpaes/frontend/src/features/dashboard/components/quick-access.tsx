@@ -28,7 +28,7 @@ export function QuickAccess({
               </div>
             </div>
             <h3 className="mb-2 text-3xl font-black text-text-primary uppercase tracking-tight">Alto Rendimiento</h3>
-            <p className="font-medium text-text-secondary">Historial de precisión y estadísticas de tu entrenamiento.</p>
+            <p className="font-medium text-text-secondary">Historial de precisión y estadísticas de tu preparación.</p>
           </div>
           
           <div className="mt-8 flex items-end gap-3 h-24 opacity-50 group-hover:opacity-100 transition-opacity relative z-10">
@@ -70,14 +70,14 @@ export function QuickAccess({
         </div>
       </Link>
 
-      {/* Acceso a Ensayos -> Misiones */}
+      {/* Acceso a Ensayos */}
       <Link href="/protected/ensayos" aria-label="Ir a ensayos y diagnósticos" className="interactive-focus md:col-span-2 block group rounded-xl">
         <div className="glass-card relative flex h-full flex-col justify-between overflow-hidden p-6 transition-all duration-300 group-hover:-translate-y-1 hover:border-brand-secondary hover:shadow-[0_0_30px_rgba(139,92,246,0.2)]">
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-secondary/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-brand-secondary/20 transition-colors" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-black text-text-primary uppercase tracking-wide">Misiones Oficiales</h3>
+              <h3 className="text-xl font-black text-text-primary uppercase tracking-wide">Ensayos Oficiales</h3>
               <div className="rounded-2xl border border-surface-container bg-surface-raised/70 p-3 transition-colors group-hover:border-brand-secondary/30 group-hover:bg-brand-secondary/20">
                 <FileText className="h-6 w-6 text-brand-secondary" />
               </div>
@@ -86,7 +86,7 @@ export function QuickAccess({
               Ensayos completos y test de diagnóstico cronometrados.
             </p>
             <div className="flex items-center gap-2 text-brand-secondary font-bold uppercase text-sm group-hover:translate-x-2 transition-transform">
-              Comenzar Entrenamiento <ChevronRight className="h-4 w-4" />
+              Comenzar Ensayo <ChevronRight className="h-4 w-4" />
             </div>
           </div>
         </div>

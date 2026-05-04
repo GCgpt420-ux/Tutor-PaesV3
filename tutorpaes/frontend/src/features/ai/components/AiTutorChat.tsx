@@ -29,7 +29,8 @@ export function AiTutorChat(props: AiTutorChatProps) {
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording, speak } = useVoice();
+  const lastAutoSpokenMessageRef = useRef('');
+  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording, speak, stopSpeaking, isPlaying } = useVoice();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -38,8 +39,24 @@ export function AiTutorChat(props: AiTutorChatProps) {
     }
   }, [messages]);
 
+  // Auto-play assistant voice once per completed assistant response.
+  useEffect(() => {
+    if (loading || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== 'assistant') return;
+
+    const content = typeof lastMessage.content === 'string' ? lastMessage.content.trim() : '';
+    if (!content) return;
+
+    if (content === lastAutoSpokenMessageRef.current) return;
+    lastAutoSpokenMessageRef.current = content;
+
+    void speak(content);
+  }, [messages, loading, speak]);
+
   const handleSend = async (textToSend?: string) => {
-    const text = textToSend || input;
+    const text = typeof textToSend === 'string' ? textToSend : input;
     if (!text.trim() || loading) return;
     setInput('');
     await sendMessage(text);
@@ -48,12 +65,16 @@ export function AiTutorChat(props: AiTutorChatProps) {
   const toggleRecording = async () => {
     if (isRecording) {
       const text = await stopRecording();
-      if (text) {
+      if (text && text.trim().length > 0) {
         setInput(text);
-        // Opcional: Enviar automáticamente si el usuario lo desea
-        // handleSend(text);
+        // ENVIAR AUTOMÁTICAMENTE para efecto conversacional rápido
+        await handleSend(text);
       }
     } else {
+      // Iniciar grabación (el usuario interrumpe a la IA)
+      if (isPlaying) {
+        stopSpeaking();
+      }
       await startRecording();
     }
   };
@@ -110,11 +131,19 @@ export function AiTutorChat(props: AiTutorChatProps) {
                 <MarkdownMathRenderer content={m.content} />
                 {m.role === 'assistant' && (
                   <button 
-                    onClick={() => speak(m.content)}
+                    onClick={() => {
+                      if (isPlaying && lastAutoSpokenMessageRef.current === m.content) {
+                         stopSpeaking();
+                         lastAutoSpokenMessageRef.current = '';
+                      } else {
+                         lastAutoSpokenMessageRef.current = typeof m.content === 'string' ? m.content : '';
+                         speak(m.content);
+                      }
+                    }}
                     className="self-end p-1 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-brand-primary"
-                    title="Escuchar respuesta"
+                    title={isPlaying && lastAutoSpokenMessageRef.current === m.content ? "Detener audio" : "Escuchar respuesta"}
                   >
-                    <Volume2 className="h-3.5 w-3.5" />
+                    <Volume2 className={`h-3.5 w-3.5 ${isPlaying && lastAutoSpokenMessageRef.current === m.content ? 'text-brand-primary animate-pulse' : ''}`} />
                   </button>
                 )}
               </div>
@@ -151,7 +180,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
             {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </button>
           <Button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={loading || !input.trim()}
             size="icon"
             className="absolute right-2 bg-brand-primary h-9 w-9 rounded-lg shadow-lg hover:bg-brand-primary/90 hover:scale-105 transition-all text-white disabled:opacity-50 disabled:hover:scale-100"

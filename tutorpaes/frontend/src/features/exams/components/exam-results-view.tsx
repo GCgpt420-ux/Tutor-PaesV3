@@ -59,7 +59,7 @@ export function ExamResultsView({ attemptId }: ExamResultsViewProps) {
           <div className="w-16 h-16 bg-brand-danger/10 border border-brand-danger/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="h-8 w-8 text-brand-danger" />
           </div>
-          <h3 className="font-black text-brand-danger uppercase tracking-widest text-sm mb-3">Fallo Crítico de Sincronización</h3>
+          <h3 className="font-black text-brand-danger uppercase tracking-widest text-sm mb-3">Error al cargar resultados</h3>
           <p className="text-text-secondary text-sm leading-relaxed">{error || 'No se pudieron encontrar los registros de este ensayo.'}</p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export function ExamResultsView({ attemptId }: ExamResultsViewProps) {
 
         <div className="relative z-10">
           <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em] mb-4">Registro Final de Desempeño</p>
-          <h1 className="text-4xl md:text-5xl font-black text-text-primary uppercase tracking-tight mb-8">¡Misión Completada!</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-text-primary uppercase tracking-tight mb-8">¡Ensayo Completado!</h1>
 
           <div className="flex flex-col items-center justify-center gap-2 mb-8">
             <div className="text-8xl md:text-9xl font-black text-text-primary tabular-nums tracking-tighter drop-shadow-2xl">
@@ -88,13 +88,11 @@ export function ExamResultsView({ attemptId }: ExamResultsViewProps) {
           </div>
 
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/5">
-            <span className="text-sm font-medium text-text-secondary">
-              Rendimiento cognitivo: Lograste descifrar
-            </span>
+            <span className="text-sm font-medium text-text-secondary">Respuestas correctas:</span>
             <span className="px-2.5 py-1 rounded-lg bg-success/10 border border-success/20 text-success font-black text-sm">
               {results.correct_count} / {results.total_questions}
             </span>
-            <span className="text-sm font-medium text-text-secondary">interrogantes.</span>
+            <span className="text-sm font-medium text-text-secondary">del total.</span>
           </div>
         </div>
       </div>
@@ -102,7 +100,7 @@ export function ExamResultsView({ attemptId }: ExamResultsViewProps) {
       {/* Desglose de Preguntas */}
       <div className="space-y-8">
         <div className="flex items-center justify-between border-b border-white/5 pb-6">
-          <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">Análisis Táctico Detallado</h2>
+          <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">Análisis Detallado de Respuestas</h2>
           <div className="hidden sm:flex gap-4">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-success"></div>
@@ -149,7 +147,7 @@ export function ExamResultsView({ attemptId }: ExamResultsViewProps) {
 
                     {!detail.is_correct && detail.correct_choice_text && (
                       <div className="p-5 bg-success/5 rounded-2xl border border-success/20 flex flex-col gap-2 transition-all hover:bg-success/10">
-                        <span className="text-[9px] font-black text-success uppercase tracking-[0.2em]">Solución Óptima</span>
+                        <span className="text-[9px] font-black text-success uppercase tracking-[0.2em]">Respuesta Correcta</span>
                         <span className="text-sm font-bold text-success">{detail.correct_choice_text}</span>
                       </div>
                     )}

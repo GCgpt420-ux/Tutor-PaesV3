@@ -6,13 +6,25 @@ import { Label } from "@/src/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Lock, Mail, User, ShieldAlert } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User, ShieldAlert } from "lucide-react";
+
+function validatePassword(password: string): string | null {
+  if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+  if (password.length > 14) return "La contraseña debe tener como máximo 14 caracteres.";
+  if (!/[A-Z]/.test(password)) return "La contraseña debe incluir al menos una mayúscula.";
+  if (!/[a-z]/.test(password)) return "La contraseña debe incluir al menos una minúscula.";
+  if (!/\d/.test(password)) return "La contraseña debe incluir al menos un número.";
+  if (!/[^A-Za-z0-9]/.test(password)) return "La contraseña debe incluir al menos un carácter especial.";
+  return null;
+}
 
 export function SignUpForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -23,7 +35,14 @@ export function SignUpForm() {
     setError(null);
 
     if (password !== repeatPassword) {
-      setError("Fallo de integridad: Las contraseñas no coinciden.");
+      setError("Las contraseñas no coinciden.");
+      setIsLoading(false);
+      return;
+    }
+
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setError(passwordValidationError);
       setIsLoading(false);
       return;
     }
@@ -55,12 +74,12 @@ export function SignUpForm() {
   return (
     <div className="w-full max-w-[500px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
       
-      {/* Indicador de Estado Táctico */}
+      {/* Indicador de Estado */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
           <ShieldAlert className="h-3 w-3 text-brand-accent" />
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 font-mono">
-            Protocolo de Nuevo Recluta
+            Registro Seguro
           </span>
           <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse ml-2" />
         </div>
@@ -72,10 +91,10 @@ export function SignUpForm() {
         
         <div className="mb-10 text-center relative z-10">
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white mb-2">
-            Alta en el Sistema
+            Crear Cuenta
           </h1>
           <p className="text-zinc-400 text-sm font-medium">
-            Registra tus credenciales. El entrenamiento comienza ahora.
+            Crea tu cuenta y empieza tu preparación PAES.
           </p>
         </div>
 
@@ -83,14 +102,14 @@ export function SignUpForm() {
           
           <div className="space-y-2">
             <Label htmlFor="name" className="text-[10px] uppercase font-black tracking-widest text-zinc-500">
-              Alias / Nombre
+              Nombre
             </Label>
             <div className="relative group">
               <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
               <Input
                 id="name"
                 type="text"
-                placeholder="Ej: Recluta 01"
+                placeholder="Ej: Camila Pérez"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -121,20 +140,28 @@ export function SignUpForm() {
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="password" className="text-[10px] uppercase font-black tracking-widest text-zinc-500">
-                Clave de Acceso
+                Contraseña
               </Label>
               <div className="relative group">
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="••••••••"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
@@ -146,16 +173,28 @@ export function SignUpForm() {
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
                 <Input
                   id="repeat-password"
-                  type="password"
+                  type={showRepeatPassword ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="••••••••"
                   required
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}
-                  className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowRepeatPassword((prev) => !prev)}
+                  aria-label={showRepeatPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                >
+                  {showRepeatPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-xs text-zinc-400">
+            Requisitos de contraseña: entre 8 y 14 caracteres, al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.
           </div>
 
           {error && (
@@ -170,16 +209,16 @@ export function SignUpForm() {
             className="w-full h-14 rounded-xl bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2" 
             disabled={isLoading}
           >
-            {isLoading ? "Creando Nodos..." : "Iniciar Entrenamiento PAES"}
+            {isLoading ? "Creando cuenta..." : "Crear cuenta"}
             {!isLoading && <ArrowRight className="h-4 w-4" />}
           </Button>
 
           <div className="pt-6 border-t border-white/5 text-center mt-6">
             <p className="text-xs text-zinc-500 font-medium">
-              CRITICAL: ¿Ya tienes credenciales?{" "}
+              ¿Ya tienes cuenta?{" "}
               <br className="sm:hidden" />
               <Link href="/auth/login" className="text-white hover:text-brand-accent font-bold transition-colors underline decoration-white/20 underline-offset-4 mt-1 sm:mt-0 inline-block">
-                Forzar acceso directo
+                Iniciar sesión
               </Link>
             </p>
           </div>

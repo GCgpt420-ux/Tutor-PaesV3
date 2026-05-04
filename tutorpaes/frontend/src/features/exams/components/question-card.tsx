@@ -59,13 +59,13 @@ export function QuestionCard({
       {/* Decorative Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none mix-blend-overlay" />
 
-      {/* Header Táctico */}
+      {/* Header */}
       <div className="bg-white/5 border-b border-white/10 p-6 relative z-10">
         <div className="flex items-start justify-between mb-6 gap-4">
           <div className="flex items-center gap-2 mb-2">
             <TerminalSquare className="h-4 w-4 text-brand-primary" />
             <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
-              Misión ID: #{question.question_id}
+              Pregunta ID: #{question.question_id}
             </span>
           </div>
 
@@ -76,7 +76,7 @@ export function QuestionCard({
                 difficultyColors.medio
               }`}
             >
-              Nvl: {question.difficulty}
+              Nivel: {question.difficulty}
             </span>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function QuestionCard({
       {/* Opciones Tipo Terminal */}
       <fieldset className="p-6 md:p-8 space-y-4 relative z-10">
         <legend className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-brand-primary mb-6 flex items-center gap-2">
-          <Crosshair className="h-3 w-3" /> Insertar Coordenada Optima
+          <Crosshair className="h-3 w-3" /> Selecciona una alternativa
         </legend>
 
         {optionsWithLetters.map((option) => (
@@ -139,14 +139,14 @@ export function QuestionCard({
         ))}
       </fieldset>
 
-      {/* Explicación (toggle) Táctico */}
+      {/* Explicación (toggle) */}
       <div className="border-t border-white/10 bg-black/40 relative z-10">
         <button
           onClick={() => setShowExplanation(!showExplanation)}
           className="flex items-center justify-center w-full py-4 gap-2 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-primary hover:bg-brand-primary/10 transition-colors border-b border-transparent hover:border-brand-primary/30"
         >
           <Info className="h-4 w-4" />
-          {showExplanation ? 'OCULTAR TELEMETRÍA' : 'ACTIVAR TELEMETRÍA DE ASISTENCIA'}
+          {showExplanation ? 'OCULTAR EXPLICACIÓN' : 'VER EXPLICACIÓN DEL TUTOR'}
         </button>
 
         {showExplanation && (
@@ -155,7 +155,7 @@ export function QuestionCard({
             {explanation && (
               <div className="p-6 bg-zinc-950 border border-white/10 relative">
                 <div className="absolute top-0 left-0 w-2 h-full bg-zinc-700" />
-                <p className="font-mono font-black text-zinc-500 uppercase tracking-[0.2em] text-[9px] mb-3">Descifrado Base:</p>
+                <p className="font-mono font-black text-zinc-500 uppercase tracking-[0.2em] text-[9px] mb-3">Explicación base:</p>
                 <p className="text-zinc-300 text-sm">{explanation}</p>
               </div>
             )}

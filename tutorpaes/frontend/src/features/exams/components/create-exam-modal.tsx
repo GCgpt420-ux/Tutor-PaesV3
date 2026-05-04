@@ -344,7 +344,7 @@ export function CreateExamModal({ onClose, onExamCreated }: CreateExamModalProps
               disabled={loading}
               className="flex-1 py-4 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-brand-primary/20 transition-all"
             >
-              {loading ? 'Generando...' : 'Iniciar Misión'}
+              {loading ? 'Generando...' : 'Iniciar ensayo'}
             </button>
           </div>
         </form>

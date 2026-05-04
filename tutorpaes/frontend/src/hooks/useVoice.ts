@@ -2,6 +2,31 @@
 
 import { useState, useCallback, useRef } from 'react';
 
+function extractApiErrorMessage(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const p = payload as Record<string, unknown>;
+
+  if (typeof p.detail === 'string' && p.detail.trim().length > 0) {
+    return p.detail;
+  }
+
+  if (p.detail && typeof p.detail === 'object') {
+    const detailObj = p.detail as Record<string, unknown>;
+    if (typeof detailObj.detail === 'string' && detailObj.detail.trim().length > 0) {
+      return detailObj.detail;
+    }
+    if (typeof detailObj.error === 'string' && detailObj.error.trim().length > 0) {
+      return detailObj.error;
+    }
+  }
+
+  if (typeof p.error === 'string' && p.error.trim().length > 0) {
+    return p.error;
+  }
+
+  return null;
+}
+
 export function useVoice() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -9,6 +34,45 @@ export function useVoice() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const speakWithBrowserFallback = useCallback(async (text: string): Promise<boolean> => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return false;
+    }
+
+    return await new Promise<boolean>((resolve) => {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+
+        const voices = window.speechSynthesis.getVoices();
+        const spanishVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith('es'));
+        const preferredVoice =
+          spanishVoices.find((voice) => /google|microsoft|paulina|helena/i.test(voice.name)) ||
+          spanishVoices[0];
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+          utterance.lang = preferredVoice.lang;
+        }
+
+        utterance.onend = () => {
+          setIsPlaying(false);
+          resolve(true);
+        };
+        utterance.onerror = () => {
+          setIsPlaying(false);
+          resolve(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        setIsPlaying(false);
+        resolve(false);
+      }
+    });
+  }, []);
 
   // START RECORDING
   const startRecording = useCallback(async () => {
@@ -58,7 +122,15 @@ export function useVoice() {
             // Las cookies de sesión se envían automáticamente por el navegador
           });
 
-          if (!response.ok) throw new Error('Error en transcripción');
+          if (!response.ok) {
+            const errPayload = await response.json().catch(() => null);
+            const message =
+              extractApiErrorMessage(errPayload) ||
+              `Error en transcripción (HTTP ${response.status})`;
+            console.warn('STT unavailable:', message, errPayload ?? {});
+            resolve(null);
+            return;
+          }
 
           const data = await response.json();
           resolve(data.text || '');
@@ -78,7 +150,7 @@ export function useVoice() {
 
   // TEXT TO SPEECH
   const speak = useCallback(async (text: string) => {
-    if (!text.trim()) return;
+    if (typeof text !== 'string' || !text.trim()) return;
 
     try {
       setIsPlaying(true);
@@ -88,9 +160,27 @@ export function useVoice() {
         body: JSON.stringify({ text }),
       });
 
-      if (!response.ok) throw new Error('Error en TTS');
+      if (!response.ok) {
+        const errPayload = await response.json().catch(() => null);
+        const message =
+          extractApiErrorMessage(errPayload) ||
+          `Error en TTS (HTTP ${response.status})`;
+        throw new Error(message);
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.toLowerCase().includes('audio/')) {
+        const fallbackBody = await response.text().catch(() => '');
+        throw new Error(
+          `TTS devolvio un formato no reproducible (${contentType || 'sin content-type'}). ${fallbackBody.slice(0, 120)}`
+        );
+      }
 
       const audioBlob = await response.blob();
+      if (audioBlob.size === 0) {
+        throw new Error('TTS devolvio audio vacio.');
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
 
       if (audioRef.current) {
@@ -99,6 +189,12 @@ export function useVoice() {
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
+      audio.preload = 'auto';
+
+      await new Promise<void>((resolve, reject) => {
+        audio.oncanplaythrough = () => resolve();
+        audio.onerror = () => reject(new Error('No se pudo decodificar el audio TTS en el navegador.'));
+      });
       
       audio.onended = () => {
         setIsPlaying(false);
@@ -107,9 +203,24 @@ export function useVoice() {
 
       await audio.play();
     } catch (err) {
-      console.error('TTS Error:', err);
-      setIsPlaying(false);
+      console.warn('TTS provider unavailable, using browser fallback:', err);
+      const fallbackOk = await speakWithBrowserFallback(text);
+      if (!fallbackOk) {
+        console.warn('Browser TTS fallback also failed.');
+        setIsPlaying(false);
+      }
     }
+  }, [speakWithBrowserFallback]);
+
+  const stopSpeaking = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlaying(false);
   }, []);
 
   return {
@@ -119,5 +230,6 @@ export function useVoice() {
     startRecording,
     stopRecording,
     speak,
+    stopSpeaking,
   };
 }

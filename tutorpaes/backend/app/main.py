@@ -160,8 +160,8 @@ async def request_validation_exception_handler(_request: Request, exc: RequestVa
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_request: Request, exc: HTTPException):
-    is_server_error = exc.status_code >= 500
-    if is_server_error:
+    is_internal_error = exc.status_code == 500
+    if is_internal_error:
         detail = "Error interno del servidor"
     else:
         detail = exc.detail
@@ -169,7 +169,7 @@ async def http_exception_handler(_request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "error": "server_error" if is_server_error else "request_error",
+            "error": "server_error" if is_internal_error else "request_error",
             "detail": detail,
             "request_id": get_request_id(),
         },

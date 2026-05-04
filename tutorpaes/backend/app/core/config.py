@@ -81,6 +81,23 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "mixtral-8x7b-32768"
 
+    # Voz (STT/TTS)
+    TTS_PROVIDER: str = "openai"  # "openai" o "elevenlabs"
+    
+    # Configuración ElevenLabs
+    ELEVENLABS_API_KEY: str = ""
+    ELEVENLABS_VOICE_ID: str = "Xb7hH8MSUJpSbSDYk0k2"
+    ELEVENLABS_MODEL_ID: str = "eleven_multilingual_v2"
+    ELEVENLABS_STABILITY: float = 0.5
+    ELEVENLABS_SIMILARITY_BOOST: float = 0.75
+    ELEVENLABS_STYLE: float = 0.0
+    ELEVENLABS_SPEED: float = 1.0
+    ELEVENLABS_USE_SPEAKER_BOOST: bool = True
+
+    # Configuración OpenAI TTS
+    OPENAI_TTS_VOICE: str = "nova"  # alloy, echo, fable, onyx, nova, shimmer
+    OPENAI_TTS_MODEL: str = "tts-1" # tts-1 (rápido) o tts-1-hd (alta calidad)
+
     # Configuración Cerebras (proveedor: cerebras) - Modelos gratuitos con cuotas
     CEREBRAS_API_KEY: str = ""
     CEREBRAS_MODEL: str = "llama-3.1-70b"

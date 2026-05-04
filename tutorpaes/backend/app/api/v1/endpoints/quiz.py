@@ -46,18 +46,15 @@ def next_question(
         topic_code,
     )
 
-    exam = db.scalar(select(Exam).where(Exam.code == settings.PAES_CODE))
-    if not exam:
-        raise bad_request(
-            "exam_not_seeded",
-            f"{settings.PAES_CODE} exam no inicializado. Ejecutar seed_paes.py",
-        )
-
     subject = db.scalar(
-        select(Subject).where(Subject.exam_id == exam.id, Subject.code == subject_code)
+        select(Subject)
+        .join(Exam, Exam.id == Subject.exam_id)
+        .where(Subject.code == subject_code, Exam.is_custom == False)  # noqa: E712
     )
     if not subject:
-        raise not_found("subject", f"subject_code={subject_code} en exam={exam.code}")
+        raise not_found("subject_not_found", f"subject_code={subject_code} en exam=PAES")
+
+    exam = db.get(Exam, subject.exam_id)
 
     topic = db.scalar(
         select(Topic).where(Topic.subject_id == subject.id, Topic.code == topic_code)
@@ -214,18 +211,15 @@ def submit_answer(
     if not choice or choice.question_id != payload.question_id:
         raise bad_request("invalid_choice", "Selected choice does not belong to this question")
 
-    exam = db.scalar(select(Exam).where(Exam.code == settings.PAES_CODE))
-    if not exam:
-        raise bad_request(
-            "exam_not_seeded",
-            f"{settings.PAES_CODE} exam no inicializado. Ejecutar seed_paes.py",
-        )
-
     subject = db.scalar(
-        select(Subject).where(Subject.exam_id == exam.id, Subject.code == payload.subject_code)
+        select(Subject)
+        .join(Exam, Exam.id == Subject.exam_id)
+        .where(Subject.code == payload.subject_code, Exam.is_custom == False)  # noqa: E712
     )
     if not subject:
-        raise not_found("subject", f"subject_code={payload.subject_code} en exam={exam.code}")
+        raise not_found("subject_not_found", f"subject_code={payload.subject_code} en exam=PAES")
+
+    exam = db.get(Exam, subject.exam_id)
 
     topic = db.scalar(
         select(Topic).where(Topic.subject_id == subject.id, Topic.code == payload.topic_code)

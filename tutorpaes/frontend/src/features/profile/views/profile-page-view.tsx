@@ -131,7 +131,7 @@ export function ProfilePageView() {
     return (
       <div className="flex justify-center items-center min-h-[60vh] p-6 text-center">
         <div className="glass-card p-10 border-brand-danger/30 bg-brand-danger/5 animate-error-shake">
-          <p className="text-brand-danger font-black uppercase tracking-widest text-sm mb-2">Error de Acceso</p>
+          <p className="text-brand-danger font-black uppercase tracking-widest text-sm mb-2">Error al cargar perfil</p>
           <p className="text-text-secondary text-sm">{queryError instanceof Error ? queryError.message : 'Error desconocido'}</p>
         </div>
       </div>
@@ -147,7 +147,7 @@ export function ProfilePageView() {
             <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.4em]">Panel de Control</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-text-primary uppercase tracking-tight">Mi Perfil</h1>
-          <p className="text-text-tertiary font-medium text-lg">Personaliza tu entorno de entrenamiento y objetivos académicos.</p>
+          <p className="text-text-tertiary font-medium text-lg">Personaliza tu experiencia de estudio y objetivos académicos.</p>
         </div>
 
         <div className="glass-card p-6 border-white/10 bg-surface-raised/40 shadow-2xl flex items-center gap-8 min-w-[320px]">
@@ -160,7 +160,7 @@ export function ProfilePageView() {
             href="/pricing"
             className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-primary/20 transition-all flex items-center gap-2 group"
           >
-            Subir de Nivel
+            Mejorar plan
             <Zap className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
           </Link>
         </div>
@@ -180,7 +180,7 @@ export function ProfilePageView() {
 
       {passwordSuccess && (
         <div className="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border bg-success/10 border-success/20 text-success">
-          Contraseña actualizada exitosamente en el núcleo
+          Contraseña actualizada exitosamente
         </div>
       )}
 
@@ -194,7 +194,7 @@ export function ProfilePageView() {
                     <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
                       <UserCircle className="w-5 h-5 text-brand-primary" />
                     </div>
-                    Información de Identidad
+                    Información Personal
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
@@ -208,7 +208,7 @@ export function ProfilePageView() {
                     </div>
 
                     <div className="space-y-3">
-                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Nombre Operativo</label>
+                      <label className="text-[10px] font-black text-text-tertiary uppercase tracking-[0.2em] ml-1">Nombre</label>
                       <input
                         type="text"
                         name="name"

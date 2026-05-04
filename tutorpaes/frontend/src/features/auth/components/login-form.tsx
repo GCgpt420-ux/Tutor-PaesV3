@@ -6,11 +6,12 @@ import { Label } from "@/src/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Lock, Mail, Server } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Server } from "lucide-react";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -48,12 +49,12 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-[440px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
       
-      {/* Indicador de Estado Táctico */}
+      {/* Indicador de Estado */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
           <Server className="h-3 w-3 text-brand-primary" />
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 font-mono">
-            Conexión Segura Encriptada
+            Conexión Segura
           </span>
           <span className="w-2 h-2 rounded-full bg-success animate-pulse ml-2" />
         </div>
@@ -95,7 +96,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-[10px] uppercase font-black tracking-widest text-zinc-500">
-                Clave de Acceso
+                Contraseña
               </Label>
               <Link href="/auth/forgot-password" className="text-[10px] uppercase font-bold tracking-wider text-brand-primary hover:text-white transition-colors">
                 ¿Recuperar?
@@ -105,14 +106,22 @@ export function LoginForm() {
               <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-primary transition-colors" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
+                className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
@@ -128,16 +137,16 @@ export function LoginForm() {
             className="w-full h-14 rounded-xl bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2" 
             disabled={isLoading}
           >
-            {isLoading ? "Autenticando..." : "Desplegar Dashboard"}
+            {isLoading ? "Ingresando..." : "Ir a mi panel"}
             {!isLoading && <ArrowRight className="h-4 w-4" />}
           </Button>
 
           <div className="pt-6 border-t border-white/5 text-center mt-6">
             <p className="text-xs text-zinc-500 font-medium">
-              CRITICAL: ¿Sin credenciales activas?{" "}
+              ¿Aún no tienes cuenta?{" "}
               <br className="sm:hidden" />
               <Link href="/auth/sign-up" className="text-white hover:text-brand-primary font-bold transition-colors underline decoration-white/20 underline-offset-4 mt-1 sm:mt-0 inline-block">
-                Conectarse a la red (Registro)
+                Crear cuenta
               </Link>
             </p>
           </div>

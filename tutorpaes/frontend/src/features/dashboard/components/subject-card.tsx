@@ -41,7 +41,7 @@ export function SubjectCard({
         <div className="flex items-start justify-between mb-8 w-full border-b border-white/5 pb-4">
           <div className="flex flex-col gap-2">
             <span className={`px-2.5 py-1 uppercase font-mono text-[9px] font-black tracking-[0.25em] bg-black border ${theme.borderPrimary30} ${theme.textAccent} max-w-fit rounded-sm shadow-inner`}>
-              MÓDULO IA
+              CURSO IA
             </span>
           </div>
           <div className={`p-3 border border-white/5 bg-white/5 rounded-lg transition-transform duration-500 group-hover:scale-110 group-hover:bg-white/10`}>
@@ -66,7 +66,7 @@ export function SubjectCard({
         </h3>
 
         <p className="text-xs text-zinc-500 font-mono tracking-wide leading-relaxed line-clamp-2 uppercase group-hover:text-zinc-400 transition-colors">
-          {description || 'Entrenamiento táctico. Simulaciones puras.'}
+          {description || 'Práctica guiada con simulaciones y apoyo IA.'}
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export function SubjectCard({
       <div className="relative z-10 w-full mt-10">
         <div className={`w-full h-12 bg-white/5 border border-white/5 flex items-center justify-between px-4 rounded-lg group-hover:bg-white/10 transition-colors duration-300`}>
           <span className={`font-black uppercase tracking-[0.2em] text-[10px] ${theme.textAccent}`}>
-            INICIAR ENLACE
+            VER CURSO
           </span>
           <ChevronRight className={`h-4 w-4 ${theme.textAccent} transition-transform duration-300 group-hover:translate-x-1`} />
         </div>

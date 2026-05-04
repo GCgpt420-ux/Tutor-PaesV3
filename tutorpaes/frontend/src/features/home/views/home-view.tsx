@@ -74,7 +74,7 @@ export function HomeView() {
     <div className="min-h-screen bg-[#09090b] text-text-primary overflow-x-hidden selection:bg-brand-primary selection:text-white relative">
       <div className="fixed inset-0 grain-overlay pointer-events-none z-50 opacity-20 hover:opacity-10 transition-opacity duration-1000" aria-hidden="true" />
       
-      {/* Luces Ambientales "Tácticas" */}
+      {/* Luces Ambientales */}
       <div className="fixed -top-[20%] -right-[10%] h-[800px] w-[800px] rounded-full bg-brand-accent/5 blur-[120px] drift-diagonal pointer-events-none" aria-hidden="true" />
       <div className="fixed -bottom-[20%] -left-[10%] h-[600px] w-[600px] rounded-full bg-brand-primary/10 blur-[100px] drift-diagonal pointer-events-none" aria-hidden="true" />
 
@@ -89,10 +89,10 @@ export function HomeView() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/auth/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary hover:text-white transition-colors px-4 py-2 hidden sm:block">
-              Área Cero (Login)
+              Iniciar sesión
             </Link>
             <Link href="/auth/sign-up" className="bg-white text-black hover:bg-zinc-200 px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] transition-transform hover:scale-105 active:scale-95">
-              Iniciar Entrenamiento
+              Crear cuenta
             </Link>
           </div>
         </div>
@@ -127,7 +127,7 @@ export function HomeView() {
               
               <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                 <Link href="/auth/sign-up" className="bg-brand-primary hover:bg-brand-primary/90 text-white px-8 py-4 rounded-full font-black uppercase tracking-[0.2em] text-[11px] transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)] hover:shadow-[0_0_40px_rgba(147,51,234,0.5)] flex items-center justify-center gap-3 group">
-                  Desplegar Dashboard
+                  Comenzar preparación
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link href="#arquitectura" className="px-8 py-4 rounded-full font-black uppercase tracking-[0.2em] text-[11px] text-zinc-400 font-mono hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all flex items-center justify-center">
@@ -184,7 +184,7 @@ export function HomeView() {
               </p>
             </article>
 
-            {/* Pilar 2: Táctico (Span 5) */}
+            {/* Pilar 2 (Span 5) */}
             <article className="md:col-span-5 glass-card bg-surface-raised/20 border-white/5 p-8 lg:p-12 rounded-[2rem] relative overflow-hidden group hover:border-white/10 transition-colors">
               <div className="w-12 h-12 bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center rounded-2xl mb-8">
                 <Timer className="h-6 w-6 text-brand-primary" />
@@ -229,7 +229,7 @@ export function HomeView() {
             
             <GraduationCap className="h-16 w-16 text-white mx-auto mb-8 relative z-10" />
             <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-6 relative z-10">
-              Inicia la Sincronización.
+              Empieza hoy tu preparación.
             </h2>
             <p className="text-zinc-400 text-lg md:text-xl font-medium mb-10 max-w-xl mx-auto relative z-10">
               Registra tu perfil y toma el primer cuestionario diagnóstico hoy. La inteligencia artificial mapeará tu ruta.

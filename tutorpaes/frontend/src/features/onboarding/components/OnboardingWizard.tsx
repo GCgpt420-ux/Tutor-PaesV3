@@ -132,7 +132,7 @@ export function OnboardingWizard() {
               Diagnóstico inicial
             </h1>
             <p className="text-text-secondary text-center mb-10 font-medium max-w-md">
-              Selecciona las áreas donde sientes que necesitas más refuerzo. Entrenaremos a la IA para enfocarse ahí.
+              Selecciona las áreas donde sientes que necesitas más refuerzo. Ajustaremos la IA para apoyarte mejor.
             </p>
 
             <div className="flex flex-wrap gap-3 justify-center mb-10">
@@ -165,11 +165,11 @@ export function OnboardingWizard() {
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded-full border-2 border-surface-base border-t-transparent animate-spin" />
-                    Preparando tu entorno...
+                    Preparando tu plan...
                   </div>
                 ) : (
                   <>
-                    Comenzar mi Entrenamiento
+                    Comenzar mi preparación
                     <Sparkles className="h-5 w-5" />
                   </>
                 )}

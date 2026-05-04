@@ -42,6 +42,7 @@ const QuestionCard = ({
   category,
   content,
   readingText,
+  imageUrl,
 }: {
   number: number;
   category: string;

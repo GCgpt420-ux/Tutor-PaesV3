@@ -34,7 +34,7 @@ export function PricingView() {
             Evoluciona tu <span className="text-brand-primary">Potencial</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-text-tertiary font-medium">
-            Accede a la tecnología de entrenamiento más avanzada para asegurar tu ingreso a la educación superior.
+            Accede a herramientas de estudio avanzadas para fortalecer tu preparación hacia la educación superior.
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export function PricingView() {
           {/* Plan Gratuito */}
           <div className="glass-card p-10 relative bg-surface-raised/10 border-white/5 flex flex-col group hover:border-brand-primary/20 transition-all duration-500">
             <div className="mb-8">
-              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Protocolo Básico</h2>
+              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Plan Básico</h2>
               <p className="text-text-tertiary text-xs font-medium uppercase tracking-wider">Exploración Inicial</p>
             </div>
             
@@ -62,7 +62,7 @@ export function PricingView() {
               </li>
               <li className="flex items-start gap-4 text-text-tertiary opacity-40">
                 <Check className="h-5 w-5 flex-shrink-0" />
-                <span className="text-sm font-medium line-through">Análisis táctico detallado</span>
+                <span className="text-sm font-medium line-through">Análisis detallado de respuestas</span>
               </li>
             </ul>
 
@@ -80,7 +80,7 @@ export function PricingView() {
             </div>
 
             <div className="mb-8">
-              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Protocolo Premium</h2>
+              <h2 className="text-sm font-black text-text-primary uppercase tracking-[0.3em] mb-2">Plan Premium</h2>
               <p className="text-brand-primary text-xs font-black uppercase tracking-wider">Máximo Desempeño</p>
             </div>
 
@@ -92,7 +92,7 @@ export function PricingView() {
             <ul className="space-y-6 mb-12 flex-1">
               <li className="flex items-start gap-4 text-text-secondary">
                 <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
-                <span className="text-sm font-medium">Todo el contenido del protocolo básico</span>
+                <span className="text-sm font-medium">Todo el contenido del plan básico</span>
               </li>
               <li className="flex items-start gap-4 text-text-primary">
                 <Check className="h-5 w-5 text-brand-primary flex-shrink-0" />
