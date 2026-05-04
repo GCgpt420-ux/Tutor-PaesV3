@@ -1,4 +1,7 @@
-const API_PROXY_BASE = "/api/backend";
+const API_PROXY_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.startsWith('/')
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')
+    : '/api/backend';
 
 let refreshPromise: Promise<boolean> | null = null;
 
