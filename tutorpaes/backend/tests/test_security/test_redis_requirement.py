@@ -72,8 +72,8 @@ class TestConfigValidateRuntimeRequirements:
     """Test config validator for Redis requirements."""
 
     def test_production_without_redis_fails(self):
-        """Config should fail validation in production without Redis."""
-        with pytest.raises(RuntimeError, match="REDIS_URL"):
+        """Config should warn in production without Redis instead of failing."""
+        with pytest.warns(UserWarning, match="no tiene REDIS_URL para rate limiting distribuido"):
             settings = Settings(
                 ENVIRONMENT="production",
                 DATABASE_URL="postgresql://user:pass@localhost/db",
@@ -102,8 +102,8 @@ class TestConfigValidateRuntimeRequirements:
         settings.validate_runtime_requirements()
 
     def test_staging_without_redis_fails(self):
-        """Config should fail validation in staging without Redis."""
-        with pytest.raises(RuntimeError, match="REDIS_URL"):
+        """Config should warn in staging without Redis instead of failing."""
+        with pytest.warns(UserWarning, match="no tiene REDIS_URL para rate limiting distribuido"):
             settings = Settings(
                 ENVIRONMENT="staging",
                 DATABASE_URL="postgresql://user:pass@localhost/db",
