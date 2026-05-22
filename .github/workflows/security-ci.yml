@@ -68,7 +68,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy filesystem scan
-        # Pin to the latest tag this repository has successfully resolved in GitHub Actions.
+        # Pin to v0.28.0 because GitHub Actions could not resolve v0.33.1 for this repository.
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: "fs"
