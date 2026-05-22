@@ -232,8 +232,10 @@ class Settings(BaseSettings):
         tbk_env = (self.TBK_ENVIRONMENT or "").strip().lower()
 
         if env in {"production", "staging"} and not self.REDIS_URL:
-            raise RuntimeError(
-                f"Configuración insegura: ENVIRONMENT={env} requiere REDIS_URL para rate limiting distribuido."
+            import warnings
+            warnings.warn(
+                f"Configuración insegura: ENVIRONMENT={env} no tiene REDIS_URL para rate limiting distribuido. Usando fallback en memoria.",
+                UserWarning
             )
 
         if env == "production":
