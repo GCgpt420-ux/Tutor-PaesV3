@@ -4,6 +4,9 @@ from app.core.config import Settings
 from app.core.validators import validate_redis_in_production, validate_rate_limiter_backend
 
 
+TEST_SECRET_KEY = "a" * 32
+
+
 class TestRedisValidators:
     """Test Redis validation functions."""
 
@@ -77,7 +80,7 @@ class TestConfigValidateRuntimeRequirements:
             settings = Settings(
                 ENVIRONMENT="production",
                 DATABASE_URL="postgresql://user:pass@localhost/db",
-                SECRET_KEY="test-secret-key-32-characters-long-ok",
+                SECRET_KEY=TEST_SECRET_KEY,
                 PAYMENT_RETURN_URL="https://example.com/return",
                 REDIS_URL=None,  # Missing!
                 TBK_ENVIRONMENT="production",
@@ -91,7 +94,7 @@ class TestConfigValidateRuntimeRequirements:
         settings = Settings(
             ENVIRONMENT="production",
             DATABASE_URL="postgresql://user:pass@localhost/db",
-            SECRET_KEY="test-secret-key-32-characters-long-ok",
+            SECRET_KEY=TEST_SECRET_KEY,
             PAYMENT_RETURN_URL="https://example.com/return",
             REDIS_URL="redis://localhost:6379",
             TBK_ENVIRONMENT="production",
@@ -107,7 +110,7 @@ class TestConfigValidateRuntimeRequirements:
             settings = Settings(
                 ENVIRONMENT="staging",
                 DATABASE_URL="postgresql://user:pass@localhost/db",
-                SECRET_KEY="test-secret-key-32-characters-long-ok",
+                SECRET_KEY=TEST_SECRET_KEY,
                 PAYMENT_RETURN_URL="https://example.com/return",
                 REDIS_URL=None,  # Missing!
             )
@@ -118,7 +121,7 @@ class TestConfigValidateRuntimeRequirements:
         settings = Settings(
             ENVIRONMENT="staging",
             DATABASE_URL="postgresql://user:pass@localhost/db",
-            SECRET_KEY="test-secret-key-32-characters-long-ok",
+            SECRET_KEY=TEST_SECRET_KEY,
             PAYMENT_RETURN_URL="https://example.com/return",
             REDIS_URL="redis://localhost:6379",
         )
@@ -130,7 +133,7 @@ class TestConfigValidateRuntimeRequirements:
         settings = Settings(
             ENVIRONMENT="development",
             DATABASE_URL="postgresql://user:pass@localhost/db",
-            SECRET_KEY="test-secret-key-32-characters-long-ok",
+            SECRET_KEY=TEST_SECRET_KEY,
             PAYMENT_RETURN_URL="https://example.com/return",
             REDIS_URL=None,
         )

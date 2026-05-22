@@ -77,7 +77,7 @@ export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions = {
       (typeof errBody?.error === 'string' ? errBody.error : JSON.stringify(errBody?.error)) ||
       (typeof errBody?.message === 'string' ? errBody.message : JSON.stringify(errBody?.message)) ||
       res.statusText;
-    console.error(`Error de API [${res.status}]:`, errBody, message);
+    console.error('Error de API', { status: res.status, errBody, message });
     throw new Error(message);
   }
 
