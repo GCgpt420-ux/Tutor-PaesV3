@@ -36,8 +36,8 @@ No reemplaza la documentacion canonica. La organiza y la contrasta con evidencia
 4. [DOCS/CHECKLIST_DESPLIEGUE_PREPROD_PROD.md](./CHECKLIST_DESPLIEGUE_PREPROD_PROD.md)
 
 ### 2.3 Documentos de IA e integraciones
-1. [OPENAI_INTEGRATION_COMPLETE.md](../OPENAI_INTEGRATION_COMPLETE.md)
-2. [OPENAI_VALIDATION_REPORT.md](../OPENAI_VALIDATION_REPORT.md)
+1. [OPENAI_INTEGRATION_COMPLETE.md](../docs/status/OPENAI_INTEGRATION_COMPLETE.md)
+2. [OPENAI_VALIDATION_REPORT.md](../docs/status/OPENAI_VALIDATION_REPORT.md)
 3. [DOCS/OPENAI_SETUP.md](./OPENAI_SETUP.md)
 4. [DOCS/OPENAI_QUICK_START.md](./OPENAI_QUICK_START.md)
 
@@ -87,7 +87,7 @@ Evidencia base:
 - [tutorpaes/backend/app/api/v1/endpoints/ai.py](../tutorpaes/backend/app/api/v1/endpoints/ai.py)
 - [tutorpaes/backend/app/services/openai_service.py](../tutorpaes/backend/app/services/openai_service.py)
 - [DOCS/OPENAI_SETUP.md](./OPENAI_SETUP.md)
-- [OPENAI_VALIDATION_REPORT.md](../OPENAI_VALIDATION_REPORT.md)
+- [OPENAI_VALIDATION_REPORT.md](../docs/status/OPENAI_VALIDATION_REPORT.md)
 
 Estado observado:
 - Existe endpoint `GET /api/v1/ai/health`.

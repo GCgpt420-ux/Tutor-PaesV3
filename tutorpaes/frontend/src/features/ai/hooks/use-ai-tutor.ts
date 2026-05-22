@@ -9,7 +9,7 @@ interface UseAiTutorReturn {
   messages: Message[];
   loading: boolean;
   error: string | null;
-  sendMessage: (text: string, attemptId?: string) => Promise<void>;
+  sendMessage: (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => Promise<void>;
   addAssistantMessage: (text: string) => void;
   setExternalLoading: (loading: boolean) => void;
   resetChat: () => void;
@@ -28,7 +28,7 @@ export function useAiTutor(): UseAiTutorReturn {
     setLoading(val);
   }, []);
 
-  const sendMessage = useCallback(async (text: string, attemptId?: string) => {
+  const sendMessage = useCallback(async (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => {
     if (!text.trim()) return;
 
     setLoading(true);
@@ -48,6 +48,7 @@ export function useAiTutor(): UseAiTutorReturn {
         body: JSON.stringify({
           message: text,
           attempt_id: attemptId ? Number(attemptId) : null,
+          question_context: questionContext ?? null,
         }),
       });
 

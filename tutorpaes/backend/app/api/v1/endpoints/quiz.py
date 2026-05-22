@@ -46,15 +46,17 @@ def next_question(
         topic_code,
     )
 
+    exam = db.scalar(
+        select(Exam).where(Exam.code == settings.PAES_CODE, Exam.is_custom == False)  # noqa: E712
+    )
+    if not exam:
+        raise bad_request("exam_not_seeded", f"Exam with code={settings.PAES_CODE} not found")
+
     subject = db.scalar(
-        select(Subject)
-        .join(Exam, Exam.id == Subject.exam_id)
-        .where(Subject.code == subject_code, Exam.is_custom == False)  # noqa: E712
+        select(Subject).where(Subject.code == subject_code, Subject.exam_id == exam.id)
     )
     if not subject:
         raise not_found("subject_not_found", f"subject_code={subject_code} en exam=PAES")
-
-    exam = db.get(Exam, subject.exam_id)
 
     topic = db.scalar(
         select(Topic).where(Topic.subject_id == subject.id, Topic.code == topic_code)

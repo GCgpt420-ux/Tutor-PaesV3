@@ -12,6 +12,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 class ChatIn(BaseModel):
     message: str
     attempt_id: Optional[int] = None
+    question_context: Optional[dict] = None
 
 class ChatOut(BaseModel):
     response: str
@@ -33,6 +34,7 @@ async def chat_with_tutor(
         db=db,
         user=user,
         user_message=payload.message,
-        attempt_id=payload.attempt_id
+        attempt_id=payload.attempt_id,
+        question_context=payload.question_context,
     )
     return StreamingResponse(generator, media_type="text/event-stream")

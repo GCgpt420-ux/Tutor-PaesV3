@@ -124,7 +124,7 @@ export const billingFormatters = {
         month: 'long',
         day: 'numeric',
       }).format(new Date(dateString));
-    } catch (e) {
+    } catch {
       return "—";
     }
   },

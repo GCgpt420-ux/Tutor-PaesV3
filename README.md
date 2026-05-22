@@ -2,6 +2,12 @@
 
 Este repositorio contiene el código fuente completo y estructurado para la plataforma **Tutor PAES**.
 
+## 🧭 Navegación rápida
+
+- Mapa de navegación del repo: `docs/NAVIGATION.md`
+- Reportes y estado del proyecto: `docs/status/`
+- Documentación canónica técnica: `DOCS/`
+
 ## Estado Actualizado (2026-04-23)
 
 - Estado de implementacion: nucleo funcional implementado de punta a punta (auth, catalogo, quiz, IA, pagos y facturacion).
@@ -47,4 +53,4 @@ Para inicializar este proyecto por primera vez, desde cero, debes seguir **estri
 - `backend/`: El uso de LLMs se despacha desde factory methods (`get_llm_provider()`) que manejan fallbacks y adaptan las APIs sin tener hard-dependencies en el controlador de chat (`chatbot_service.py`).
 - **Secretos:** Nunca commitear tokens de Groq, Cerebras o OpenAI en archivos de texto, solo referenciar vía `os.getenv`.
 
-*(Si deseas revisar en mayor profundidad cada fase aplicada, ver `PROGRESS_TRACKING.md`)*
+*(Si deseas revisar en mayor profundidad cada fase aplicada, ver `docs/status/PROGRESS_TRACKING.md`)*
