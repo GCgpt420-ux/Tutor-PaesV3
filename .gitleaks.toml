@@ -1,0 +1,5 @@
+title = "TutorPAES Gitleaks Config"
+
+[allowlist]
+    description = "Allowlist for known non-secret CI placeholder values introduced before secret management was in place"
+    commits = ["8ccab7097a605cd67e1cadee0acffba50ed38e24"]
