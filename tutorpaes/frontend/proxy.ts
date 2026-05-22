@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 /**
  * Construye Content Security Policy header con nonce
  */
-function buildCsp(nonce: string) {
+function buildCsp() {
   const isDev = process.env.NODE_ENV !== 'production'
 
   const scriptSrc = isDev
@@ -70,7 +70,7 @@ function isTokenExpired(token: string): boolean {
  */
 export function proxy(request: NextRequest) {
   const nonce = crypto.randomUUID().replace(/-/g, '');
-  const csp = buildCsp(nonce)
+  const csp = buildCsp()
   const token = request.cookies.get('access_token')?.value
   const refreshToken = request.cookies.get('refresh_token')?.value
   

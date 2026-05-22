@@ -38,7 +38,8 @@ test.describe('Quiz Flow', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       
       // URL should change
-      expect(page.url()).not.toBe(new URL('/', page.url().origin).href);
+      const currentUrl = page.url();
+      expect(currentUrl).not.toBe(new URL('/', new URL(currentUrl).origin).href);
     }
   });
 
@@ -54,7 +55,7 @@ test.describe('Quiz Flow', () => {
     const answers = page.locator('button:has-text(/^[A-D]$/), label:has(input[type="radio"])');
     
     const hasQuestion = await question.count() > 0;
-    const hasAnswers = await answers.count() > 0;
+    await answers.count();
     
     // Either has questions or we couldn't load the page (both acceptable for E2E)
     expect(typeof hasQuestion).toBe('boolean');
@@ -230,7 +231,8 @@ test.describe('Quiz Navigation and State', () => {
     
     // Look for unsaved changes warning handler
     const pageNeedsConfirm = await quizPage.evaluate(() => {
-      return (window as any).onbeforeunload ? true : false;
+      const maybeHandler = (window as Window & { onbeforeunload?: ((this: Window, ev: BeforeUnloadEvent) => unknown) | null }).onbeforeunload;
+      return typeof maybeHandler === 'function';
     }).catch(() => false);
     
     // Either has confirmation or doesn't - both valid

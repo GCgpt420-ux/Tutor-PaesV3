@@ -66,7 +66,7 @@ test.describe('Authentication Flow', () => {
     await expect(page).toHaveURL(/forgot|reset/i);
   });
 
-  test('should redirect authenticated user to dashboard', async ({ page, context }) => {
+  test('should redirect authenticated user to dashboard', async ({ page }) => {
     // Simulate already logged in user by setting auth token cookie
     // This would be set by actual login flow
     // For now, just test that unauthenticated redirect works
@@ -84,7 +84,7 @@ test.describe('Authentication Flow', () => {
     ).toBeTruthy();
   });
 
-  test('should persist login state across pages', async ({ page, context }) => {
+  test('should persist login state across pages', async ({ page }) => {
     // Fill login form
     await page.fill('input[type="email"]', 'demo@example.com');
     await page.fill('input[type="password"]', 'demo123');
