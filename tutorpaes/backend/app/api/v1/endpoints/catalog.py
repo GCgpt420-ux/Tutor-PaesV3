@@ -471,14 +471,25 @@ def get_subjects_with_topics(exam_id: int = Query(...), db: Session = Depends(ge
         raise not_found("exam_not_found", f"Exam {exam_id} not found")
     
     subjects = db.scalars(
-        select(Subject).where(Subject.exam_id == exam_id)
+        select(Subject)
+        .where(Subject.exam_id == exam_id)
+        .options(selectinload(Subject.topics))
     ).all()
-    
-    result = []
-    for subject in subjects:
-        topics = db.scalars(_topics_with_active_questions_query(subject.id)).all()
-        
-        result.append({
+
+    subject_ids = [s.id for s in subjects]
+    active_topic_ids: set[int] = set(
+        db.scalars(
+            select(Topic.id)
+            .join(Question, Question.topic_id == Topic.id)
+            .where(
+                Question.is_active == True,  # noqa: E712
+                Topic.subject_id.in_(subject_ids),
+            )
+        ).all()
+    ) if subject_ids else set()
+
+    return [
+        {
             "subject_id": subject.id,
             "code": subject.code,
             "name": subject.name,
@@ -486,10 +497,11 @@ def get_subjects_with_topics(exam_id: int = Query(...), db: Session = Depends(ge
                 {
                     "topic_id": t.id,
                     "code": t.code,
-                    "name": t.name
+                    "name": t.name,
                 }
-                for t in topics
-            ]
-        })
-    
-    return result
+                for t in subject.topics
+                if t.id in active_topic_ids
+            ],
+        }
+        for subject in subjects
+    ]
