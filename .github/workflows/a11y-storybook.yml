@@ -32,10 +32,10 @@ jobs:
       - name: Verify storybook script
         id: storybook_check
         run: |
-          if npm pkg get scripts.build-storybook | grep -q null; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          else
+          if node -e "const pkg=require('./package.json'); process.exit(pkg?.scripts?.['build-storybook'] ? 0 : 1)"; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build Storybook
