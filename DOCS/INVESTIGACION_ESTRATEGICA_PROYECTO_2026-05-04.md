@@ -23,11 +23,11 @@ Conclusion principal:
 Fuentes revisadas en el repositorio:
 
 - README.md
-- PROJECT_STATUS_REPORT.md
-- PROGRESS_TRACKING.md
-- BILLING_INTEGRATION.md
-- OPENAI_VALIDATION_REPORT.md
-- LLM_PROVIDERS_SETUP.md
+- docs/status/PROJECT_STATUS_REPORT.md
+- docs/status/PROGRESS_TRACKING.md
+- docs/status/BILLING_INTEGRATION.md
+- docs/status/OPENAI_VALIDATION_REPORT.md
+- docs/status/LLM_PROVIDERS_SETUP.md
 - tutorpaes/backend/railway.json
 - tutorpaes/backend/app/core/config.py
 - tutorpaes/backend/docker-compose.yml

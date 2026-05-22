@@ -7,8 +7,8 @@
 
 ## Relación con otros documentos
 - Inicio rápido: [DOCS/OPENAI_QUICK_START.md](DOCS/OPENAI_QUICK_START.md)
-- Validación histórica: [OPENAI_VALIDATION_REPORT.md](OPENAI_VALIDATION_REPORT.md)
-- Resumen de implementación: [OPENAI_INTEGRATION_COMPLETE.md](OPENAI_INTEGRATION_COMPLETE.md)
+- Validación histórica: [OPENAI_VALIDATION_REPORT.md](../docs/status/OPENAI_VALIDATION_REPORT.md)
+- Resumen de implementación: [OPENAI_INTEGRATION_COMPLETE.md](../docs/status/OPENAI_INTEGRATION_COMPLETE.md)
 
 ## Objetivo
 Configurar OpenAI en backend de forma segura y verificable, con fallback a reglas cuando el proveedor no esté disponible.
