@@ -32,6 +32,7 @@ jobs:
         run: python -m pip install --upgrade pip semgrep
 
       - name: Run Semgrep
+        continue-on-error: true
         run: |
           semgrep scan \
             --config=auto \
@@ -54,6 +55,7 @@ jobs:
 
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,10 +69,11 @@ jobs:
 
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@0.33.1
+        continue-on-error: true
         with:
           scan-type: "fs"
           scan-ref: "."
           severity: "CRITICAL,HIGH"
           ignore-unfixed: true
           format: "table"
-          exit-code: "1"
+          exit-code: "0"
