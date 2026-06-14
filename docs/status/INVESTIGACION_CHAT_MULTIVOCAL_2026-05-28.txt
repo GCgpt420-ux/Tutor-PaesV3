@@ -1,0 +1,181 @@
+INVESTIGACION TECNICA - CHAT MULTIVOCAL TUTORPAES
+Fecha: 2026-05-28
+Objetivo: determinar que funciona realmente hoy en chat multivocal y definir estrategia de iteracion para refinar experiencia (sin foco en fixes de API key para la demo de manana).
+
+==================================================
+1) RESUMEN EJECUTIVO
+==================================================
+Estado general: FUNCIONA, pero con degradacion frecuente de experiencia conversacional.
+
+Conclusiones clave:
+1. El pipeline multivocal completo esta implementado: voz (STT) -> chat SSE -> voz (TTS).
+2. La arquitectura soporta contexto pedagogico de pregunta (prompt, alternativas, seleccion del estudiante, correcta y feedback).
+3. El comportamiento "robotico" se explica principalmente por caidas a fallback y por mezcla de modos de tutoria (proactivo + chat libre) que no siempre comparten el mismo contexto conversacional.
+4. El mensaje recurrente de problemas de motor/API key es consistente con la configuracion default y los caminos de fallback actuales.
+5. Para la demo de manana, no es necesario corregir infraestructura: conviene controlar guion de uso y reducir rutas que disparan fallback visible.
+
+
+==================================================
+2) QUE SI ESTA FUNCIONANDO (EVIDENCIA)
+==================================================
+2.1 Endpoint de chat conversacional en streaming
+- Backend expone POST /api/v1/ai/chat con StreamingResponse SSE.
+- Evidencia: tutorpaes/backend/app/api/v1/endpoints/ai_chat.py
+
+2.2 Motor conversacional con contexto pedagogico
+- El servicio construye mensajes con:
+  - prompt pedagogico de "Tuto"
+  - historial de chat
+  - contexto de ejercicio/alternativas/respuesta del estudiante
+- Evidencia: tutorpaes/backend/app/services/chatbot_service.py
+
+2.3 Integracion frontend real en quiz
+- En la vista quiz se envia question_context junto con attempt_id al chat.
+- Evidencia: tutorpaes/frontend/app/protected/quiz/[subject_code]/[topic_code]/page.tsx
+
+2.4 Voz de entrada (STT)
+- Frontend graba audio con MediaRecorder, lo envia a /api/backend/voice/transcribe y recibe texto.
+- Evidencia: tutorpaes/frontend/src/hooks/useVoice.ts
+- Backend de transcripcion operativo via proveedor (Groq Whisper), con errores controlados.
+- Evidencia: tutorpaes/backend/app/api/v1/endpoints/voice.py
+
+2.5 Voz de salida (TTS)
+- Frontend solicita /api/backend/voice/tts y si falla, cae a speechSynthesis del navegador.
+- Evidencia: tutorpaes/frontend/src/hooks/useVoice.ts
+- Backend soporta TTS por OpenAI o ElevenLabs segun configuracion.
+- Evidencia: tutorpaes/backend/app/api/v1/endpoints/voice.py
+
+2.6 Proxy frontend-backend estable para este flujo
+- Forward de metodos y auth via /api/backend/[...path].
+- Evidencia: tutorpaes/frontend/app/api/backend/[...path]/route.ts
+
+2.7 Tests existentes para chat/voz (cobertura de adaptador/fallback/contexto)
+- test_ai_chat_adapter.py valida SSE y fallback.
+- test_chatbot_service.py valida que se pase historial + contexto de pregunta.
+- test_voice.py valida degradacion cuando no hay key de STT.
+- Evidencia: tutorpaes/backend/tests/test_ai_chat_adapter.py
+- Evidencia: tutorpaes/backend/tests/test_chatbot_service.py
+- Evidencia: tutorpaes/backend/tests/test_voice/test_voice.py
+
+
+==================================================
+3) QUE NO ESTA FUNCIONANDO BIEN (EXPERIENCIA)
+==================================================
+3.1 Tono "robotico" por fallback visible
+- Cuando el provider falla, el bot responde con una plantilla fija de contingencia.
+- Ese texto suena generico y rompe la ilusion de tutor personal.
+- Evidencia: _fallback_tutor_reply en chatbot_service.py
+
+3.2 Riesgo de fallback frecuente por configuracion default
+- LLM_PROVIDER por defecto es "openai".
+- Si OPENAI_API_KEY no esta configurada/valida, falla la inicializacion de proveedor y se activa fallback.
+- Evidencia: tutorpaes/backend/app/core/config.py (LLM_PROVIDER)
+- Evidencia: tutorpaes/backend/app/services/llm_provider_service.py (OPENAI_API_KEY not configured)
+
+3.3 Mensajes tecnicos visibles en otros flujos IA
+- En servicios OpenAI hay respuestas fallback con textos tipo "No LLM Key Configured" o errores de interconexion.
+- Esto contamina UX cuando se exponen al usuario final.
+- Evidencia: tutorpaes/backend/app/services/openai_service.py
+
+3.4 Persistencia de memoria conversacional parcial
+- El chat guarda mensajes solo cuando hay attempt_id.
+- En vistas sin attempt (ej. dashboard con AiTutorChat standalone), no se persiste historial en DB.
+- Resultado: conversaciones sin continuidad real y mayor sensacion de robot.
+- Evidencia: condiciones attempt_id en chatbot_service.py
+- Evidencia: uso de AiTutorChat en dashboard-view.tsx sin contexto explicito
+
+3.5 Doble fuente de respuesta en quiz
+- Hay "mensaje proactivo" agregado desde respuesta del quiz + chat conversacional SSE.
+- Esto puede generar cambios bruscos de tono/estilo entre mensajes sucesivos.
+- Evidencia: tutorpaes/frontend/app/protected/quiz/[subject_code]/[topic_code]/page.tsx
+
+
+==================================================
+4) DIAGNOSTICO ESPECIFICO DEL PROBLEMA QUE REPORTAS
+==================================================
+"Puedo mandar audio y se traduce a texto":
+- Confirmado: STT del frontend al backend esta implementado.
+
+"El motor de conversacion es demasiado robotico":
+- Causa principal: activacion de fallback textual y/o falta de continuidad de memoria cuando no hay attempt_id.
+- Causa secundaria: mezcla de mensajes proactivos y socraticos sin orquestacion unica de estilo.
+
+"Siempre dice que tuvo problemas con la apikey":
+- Causa probable: proveedor LLM seleccionado sin credencial valida o no disponible en entorno.
+- Dado tu objetivo (presentacion), no es bloqueante tecnico si controlas el guion de demo.
+
+
+==================================================
+5) VALIDACION OPERATIVA REALIZADA EN ESTA INVESTIGACION
+==================================================
+Se intento ejecutar tests focalizados de chat/voz, pero el entorno local de esta sesion no tiene dependencias Python instaladas (ModuleNotFoundError fastapi), por lo tanto:
+- No hay evidencia de ejecucion runtime en esta corrida.
+- Si hay evidencia estatica fuerte por codigo + tests existentes + docs de estado.
+
+Comando intentado:
+- pytest -q tests/test_ai_chat_adapter.py tests/test_chatbot_service.py tests/test_voice/test_voice.py
+
+Resultado:
+- Error de entorno: ModuleNotFoundError: No module named 'fastapi'
+
+
+==================================================
+6) RECOMENDACION PARA DEMO DE MANANA (SIN HACER FIXES)
+==================================================
+Objetivo: maximizar percepcion de calidad sin tocar infraestructura.
+
+6.1 Guion recomendado
+1. Ejecutar demo dentro del flujo quiz (no desde dashboard chat libre).
+2. Responder una pregunta y abrir chat IA con contexto de la misma pregunta.
+3. Usar entrada de voz para una pregunta puntual sobre la alternativa elegida.
+4. Mostrar respuesta con voz (TTS) como cierre.
+
+6.2 Evitar durante demo
+1. Evitar preguntas totalmente abiertas fuera de contexto de intento.
+2. Evitar sesiones largas sin attempt_id.
+3. Evitar depender de explicaciones de endpoints que usan openai_service si no hay key estable.
+
+6.3 Mensaje narrativo sugerido para tribunal
+- "El sistema es resiliente: ante indisponibilidad de proveedor, mantiene continuidad pedagogica con fallback."
+- "La siguiente iteracion prioriza naturalidad y memoria conversacional persistente."
+
+
+==================================================
+7) PLAN DE ITERACION POST-DEMO (PRIORIZADO)
+==================================================
+FASE A (1-2 dias): Refinamiento UX sin cambiar arquitectura
+1. Unificar tono de fallback para que no suene a error tecnico.
+2. Ocultar detalles de proveedor/API key al usuario final.
+3. Diferenciar visualmente "modo tutor pleno" vs "modo continuidad".
+
+FASE B (3-5 dias): Naturalidad conversacional
+1. Persistir chat tambien fuera de attempt_id (sesion contextual por usuario).
+2. Introducir resumen de contexto de los ultimos N turnos para evitar repeticion robotica.
+3. Eliminar o modular mensajes proactivos duplicados desde quiz.
+
+FASE C (1 semana): Robustez multivocal
+1. Estrategia real de fallback entre proveedores (no solo comentario en codigo).
+2. Telemetria de calidad conversacional (latencia, fallback_rate, longitud media, repeticion).
+3. Test E2E de flujo voz->chat->voz con contratos de respuesta.
+
+
+==================================================
+8) METRICAS A USAR PARA MEDIR SI MEJORA
+==================================================
+KPIs propuestos:
+1. fallback_rate_chat: porcentaje de turnos que caen a fallback.
+2. contextual_relevance_score: evaluacion manual de pertinencia por turno (rubrica 1-5).
+3. repetition_rate: porcentaje de respuestas con frases repetidas del bot.
+4. voice_roundtrip_time: ms desde fin de grabacion hasta audio reproducido.
+5. session_retention_proxy: promedio de turnos por sesion de chat en quiz.
+
+
+==================================================
+9) CIERRE
+==================================================
+Tu chat multivocal no esta "roto"; esta en estado funcional con degradacion de calidad conversacional.
+Para la presentacion de manana, la mejor estrategia no es arreglar API keys, sino mostrar el flujo contextual donde el sistema luce mas fuerte (quiz + voz + tutor con contexto).
+
+Luego de la demo, la iteracion correcta es UX conversacional y memoria persistente antes que nuevas features.
+
+FIN

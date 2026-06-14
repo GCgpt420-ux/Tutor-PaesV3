@@ -1,6 +1,8 @@
 import logging
+import json
 from typing import List, Optional, Dict, Any, Generator
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import aliased
 from app.core.config import settings
 from app.db.models import User, ChatMessage, AIUsageLog, Attempt, AttemptFeedback, Question, QuestionChoice
 from app.services.llm_provider_service import stream_llm_response
@@ -101,6 +103,99 @@ def _load_chat_history(db: Session, user_id: int, attempt_id: Optional[int], lim
     return history
 
 
+def _extract_feedback_text(ai_payload: Any, fallback_text: Optional[str]) -> Optional[str]:
+    """
+    Extrae texto util desde ai_payload de forma segura.
+
+    ai_payload puede venir como dict, str(JSON), o valores corruptos heredados.
+    Nunca debe lanzar excepcion para no romper el stream SSE.
+    """
+    payload_obj: Dict[str, Any] = {}
+
+    try:
+        if isinstance(ai_payload, dict):
+            payload_obj = ai_payload
+        elif isinstance(ai_payload, str) and ai_payload.strip():
+            parsed = json.loads(ai_payload)
+            if isinstance(parsed, dict):
+                payload_obj = parsed
+    except Exception:
+        payload_obj = {}
+
+    explanation = payload_obj.get("explanation")
+    hint = payload_obj.get("hint")
+    if isinstance(explanation, str) and explanation.strip():
+        return explanation.strip()
+    if isinstance(hint, str) and hint.strip():
+        return hint.strip()
+    if isinstance(fallback_text, str) and fallback_text.strip():
+        return fallback_text.strip()
+    return None
+
+
+def _load_recent_topic_errors(
+    db: Session,
+    user_id: int,
+    topic_id: Optional[int],
+    limit: int = 3,
+) -> list[dict[str, str]]:
+    """
+    Recupera los ultimos errores (incorrectos) del alumno en un tema.
+    Resultado acotado para inyectar memoria historica en el prompt.
+    """
+    if not topic_id:
+        return []
+
+    selected_choice_alias = aliased(QuestionChoice)
+    correct_choice_alias = aliased(QuestionChoice)
+
+    rows = (
+        db.query(
+            AttemptFeedback.created_at,
+            Question.prompt,
+            selected_choice_alias.label,
+            selected_choice_alias.text,
+            correct_choice_alias.label,
+            correct_choice_alias.text,
+        )
+        .join(Attempt, Attempt.id == AttemptFeedback.attempt_id)
+        .join(Question, Question.id == AttemptFeedback.question_id)
+        .outerjoin(
+            selected_choice_alias,
+            selected_choice_alias.id == AttemptFeedback.selected_choice_id,
+        )
+        .outerjoin(
+            correct_choice_alias,
+            and_(
+                correct_choice_alias.question_id == AttemptFeedback.question_id,
+                correct_choice_alias.is_correct == True,  # noqa: E712
+            ),
+        )
+        .filter(
+            Attempt.user_id == user_id,
+            Attempt.topic_id == topic_id,
+            AttemptFeedback.is_correct == False,  # noqa: E712
+        )
+        .order_by(AttemptFeedback.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    errors: list[dict[str, str]] = []
+    for row in rows:
+        errors.append(
+            {
+                "question_prompt": (row[1] or "").strip(),
+                "selected_label": (row[2] or "?").strip(),
+                "selected_text": (row[3] or "").strip(),
+                "correct_label": (row[4] or "?").strip(),
+                "correct_text": (row[5] or "").strip(),
+            }
+        )
+
+    return errors
+
+
 def _format_attempt_context(context: Optional[Dict[str, Any]]) -> Optional[str]:
     if not context:
         return None
@@ -152,6 +247,17 @@ def _format_attempt_context(context: Optional[Dict[str, Any]]) -> Optional[str]:
     feedback_text = context.get("feedback_text")
     if feedback_text:
         lines.append(f"Feedback previo: {feedback_text}")
+
+    recent_topic_errors = context.get("recent_topic_errors") or []
+    if recent_topic_errors:
+        lines.append("MEMORIA HISTORICA DE ERRORES EN ESTE TEMA (ultimos 3):")
+        for idx, item in enumerate(recent_topic_errors, start=1):
+            q = (item.get("question_prompt") or "[sin enunciado]").strip()
+            selected = f"{item.get('selected_label', '?')} - {item.get('selected_text', '')}".strip()
+            correct = f"{item.get('correct_label', '?')} - {item.get('correct_text', '')}".strip()
+            lines.append(
+                f"{idx}) Pregunta: {q} | Eligio: {selected} | Correcta: {correct}"
+            )
 
     return "\n".join(lines) if len(lines) > 1 else None
 
@@ -228,9 +334,16 @@ def _load_attempt_context(
     context.setdefault("is_correct", latest_feedback.is_correct)
 
     ai_payload = latest_feedback.ai_payload or {}
-    feedback_text = ai_payload.get("explanation") or ai_payload.get("hint") or latest_feedback.feedback_text
+    feedback_text = _extract_feedback_text(ai_payload, latest_feedback.feedback_text)
     if feedback_text:
         context.setdefault("feedback_text", feedback_text)
+
+    try:
+        recent_errors = _load_recent_topic_errors(db, attempt.user_id, attempt.topic_id, limit=3)
+        if recent_errors:
+            context.setdefault("recent_topic_errors", recent_errors)
+    except Exception as exc:
+        logger.warning("No se pudo cargar memoria historica de errores: %s", str(exc))
 
     return context or None
 
@@ -259,7 +372,11 @@ async def run_pedagogical_loop(
             content=user_message
         )
         db.add(new_msg)
-        db.commit()
+        try:
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            logger.warning("No se pudo persistir mensaje de usuario en chat stream: %s", str(exc))
     
     # 3. Recuperar historial reciente (últimos 10 mensajes)
     history = db.query(ChatMessage).filter(
@@ -341,13 +458,27 @@ def run_pedagogical_loop_stream(
     Versión con streaming (SSE) del loop pedagógico.
     Soporta múltiples proveedores de LLM (OpenAI, Groq, Cerebras).
     """
-    user_level, _ = _get_user_overall_level(user, db)
-    weak_topics = _get_user_weak_topics(user, db)
+    try:
+        user_level, _ = _get_user_overall_level(user, db)
+    except Exception as exc:
+        logger.warning("No se pudo calcular user_level, usando default: %s", str(exc))
+        user_level = "principiante"
+
+    try:
+        weak_topics = _get_user_weak_topics(user, db)
+    except Exception as exc:
+        logger.warning("No se pudo calcular weak_topics, usando vacio: %s", str(exc))
+        weak_topics = []
+
     target_score = user.target_score or "No definido"
     
     # 1. Recuperar historial reciente (últimos 10 mensajes) ANTES de añadir el nuevo
     # para que el mensaje del usuario sea el último.
-    history = _load_chat_history(db, user.id, attempt_id)
+    try:
+        history = _load_chat_history(db, user.id, attempt_id)
+    except Exception as exc:
+        logger.warning("No se pudo cargar historial de chat, continuando sin historial: %s", str(exc))
+        history = []
 
     # 2. Guardar mensaje del usuario (solo si existe contexto de attempt)
     if attempt_id is not None:
@@ -365,7 +496,11 @@ def run_pedagogical_loop_stream(
         weak_topics=", ".join(weak_topics) if weak_topics else "Ninguno detectado",
         target_score=target_score
     )
-    exercise_context = _load_attempt_context(db, attempt_id, question_context)
+    try:
+        exercise_context = _load_attempt_context(db, attempt_id, question_context)
+    except Exception as exc:
+        logger.warning("No se pudo cargar contexto de intento, continuando sin contexto: %s", str(exc))
+        exercise_context = question_context or None
     conversation_messages = _build_conversation_messages(
         formatted_system_prompt,
         history,
@@ -404,7 +539,11 @@ def run_pedagogical_loop_stream(
                 content=full_content
             )
             db.add(assistant_msg)
-            db.commit()
+            try:
+                db.commit()
+            except Exception as exc:
+                db.rollback()
+                logger.warning("No se pudo persistir mensaje del asistente en chat stream: %s", str(exc))
         
         yield "data: [DONE]\n\n"
         
