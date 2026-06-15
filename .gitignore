@@ -91,3 +91,9 @@ BOT - copia/
 
 # Git worktrees for isolated development
 .worktrees/
+
+# Local test environments and reports
+tutorpaes/backend/venv_test/
+tutorpaes/backend/venv_verify/
+tutorpaes/frontend/playwright-report/
+tutorpaes/frontend/test-results/
