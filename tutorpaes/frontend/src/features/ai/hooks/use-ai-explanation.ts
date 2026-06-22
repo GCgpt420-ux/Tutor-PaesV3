@@ -59,15 +59,17 @@ export function useAiExplanation() {
       // Ensure explanation starts clean
       setExplanation('');
 
+      let sseBuffer = '';
       while (!done) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
 
         if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          
-          // Dividir los chunks de eventos SSE ("data: <texto>\n\n")
-          const events = chunk.split('\n\n');
+          // Acumular el chunk en el buffer antes de dividir por eventos SSE.
+          // Evita que un evento partido entre dos chunks de red se pierda.
+          sseBuffer += decoder.decode(value, { stream: true });
+          const events = sseBuffer.split('\n\n');
+          sseBuffer = events.pop() ?? '';
           for (const event of events) {
             if (event.startsWith('data: ')) {
               const dataStr = event.slice(6);

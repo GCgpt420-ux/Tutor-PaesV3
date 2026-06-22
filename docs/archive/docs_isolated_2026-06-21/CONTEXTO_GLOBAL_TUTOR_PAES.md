@@ -9,7 +9,7 @@ Este documento concentra el 100% de la comprensión técnica, académica y de ne
 *(Nota: Completa aquí con la información formal de tu tesis)*
 
 - **Problema de Investigación:** 
-  > [Escribe aquí el problema formal]
+  > []
 - **Objetivo General:** 
   > [Escribe aquí el objetivo general]
 - **Objetivos Específicos:** 

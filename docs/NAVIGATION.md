@@ -16,22 +16,26 @@
 - Estado global y tracking:
   - `docs/status/PROJECT_STATUS_REPORT.md`
   - `docs/status/PROGRESS_TRACKING.md`
+  - `docs/status/GIT_AUDITORIA_2026-06-14.md`
 
 - Integración OpenAI:
   - `DOCS/OPENAI_SETUP.md`
-  - `docs/status/OPENAI_INTEGRATION_COMPLETE.md`
-  - `docs/status/OPENAI_VALIDATION_REPORT.md`
+  - `docs/archive/status_cleanup_2026-06-21/OPENAI_INTEGRATION_COMPLETE.md`
+  - `docs/archive/status_cleanup_2026-06-21/OPENAI_VALIDATION_REPORT.md`
 
 - Facturación y proveedores:
-  - `docs/status/BILLING_INTEGRATION.md`
-  - `docs/status/LLM_PROVIDERS_SETUP.md`
+  - `docs/archive/status_cleanup_2026-06-21/BILLING_INTEGRATION.md`
+  - `docs/archive/status_cleanup_2026-06-21/LLM_PROVIDERS_SETUP.md`
 
 - Frontend y UX:
-  - `docs/status/FRONTEND_CODEBASE_REPORT.md`
-  - `docs/status/INSTRUCCIONES_FRONTEND_VOZ.md`
+  - `docs/archive/status_cleanup_2026-06-21/FRONTEND_CODEBASE_REPORT.md`
+  - `docs/archive/status_cleanup_2026-06-21/INSTRUCCIONES_FRONTEND_VOZ.md`
 
 - Históricos y respaldo documental:
   - `docs/archive/GEMINI_CONTEXTO_REAL_2026-04-23`
+  - `docs/archive/status_cleanup_2026-06-21`
+  - `docs/archive/doc_cleanup_2026-06-21`
+  - `docs/archive/docs_isolated_2026-06-21`
 
 ## Regla para mantener orden
 

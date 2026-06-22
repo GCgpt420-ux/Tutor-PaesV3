@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
+  AlertCircle,
   ArrowLeft, 
   CheckCircle, 
   XCircle, 
@@ -99,6 +100,8 @@ export default function QuizPage() {
   // IA Hook para control proactivo
   const aiTutor = useAiTutor();
 
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [totalQuestions, setTotalQuestions] = useState(15);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [quiz, setQuiz] = useState<QuizState>({
@@ -173,6 +176,12 @@ export default function QuizPage() {
     if (subject_code && topic_code) loadNextQuestion();
   }, [subject_code, topic_code, loadNextQuestion]);
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const buildQuestionContext = useCallback(() => {
     if (!quiz.question) {
       return {
@@ -230,7 +239,7 @@ export default function QuizPage() {
           : 'Probemos otra estrategia. ¿Qué dato clave del enunciado estás usando?';
 
       // --- DISPARADOR PROACTIVO DE LA IA ---
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         aiTutor.setExternalLoading(false);
         aiTutor.addAssistantMessage(tutorFeedback);
       }, 800);
@@ -254,6 +263,26 @@ export default function QuizPage() {
   };
 
   // PANTALLAS DE ESTADO
+  if (quiz.error && !quiz.loading) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-surface p-6 text-center">
+        <div className="p-5 rounded-full bg-red-500/10">
+          <AlertCircle className="h-12 w-12 text-red-400" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-black text-zinc-100">Algo salió mal</h2>
+          <p className="text-sm text-zinc-400 max-w-sm">{quiz.error}</p>
+        </div>
+        <button
+          onClick={loadNextQuestion}
+          className="px-8 py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
   if (quiz.loading && !quiz.question && quiz.questionsAnswered === 0) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-surface">

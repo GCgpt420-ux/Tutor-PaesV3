@@ -107,10 +107,23 @@ export async function saveUserAnswer(data: {
   question_id: number;
   selected_choice_id: number;
 }) {
-  return apiFetch('/quiz/answer', {
-    method: 'POST',
-    body: data,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    return await apiFetch('/quiz/answer', {
+      method: 'POST',
+      body: data,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('El servidor tardó demasiado en responder. Por favor, intenta nuevamente.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
