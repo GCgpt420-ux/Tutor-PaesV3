@@ -30,10 +30,17 @@ async def chat_with_tutor(
     Endpoint principal del Profesor IA Conversacional.
     Soporta streaming via SSE.
     """
+    clean_message = payload.message.strip()
+    if not clean_message:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El mensaje no puede estar vacio.",
+        )
+
     generator = run_pedagogical_loop_stream(
         db=db,
         user=user,
-        user_message=payload.message,
+        user_message=clean_message,
         attempt_id=payload.attempt_id,
         question_context=payload.question_context,
     )

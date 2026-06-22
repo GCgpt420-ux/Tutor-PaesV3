@@ -3,6 +3,7 @@ Payments Endpoints - Transbank Integration
 Handles payment creation and confirmation for premium plan subscriptions.
 """
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from pydantic import BaseModel
@@ -18,6 +19,7 @@ from app.services.transbank_service import create_payment_order, confirm_payment
 from app.services.invoice_service import get_user_billing_history, get_invoice_by_id
 
 router = APIRouter(prefix="/payments", tags=["payments"])
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------------
@@ -134,7 +136,13 @@ def create_payment_endpoint(
             "token_ws": result["token"],
         }
         
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "payments.create.failed user_id=%s plan=%s amount=%s",
+            user.id,
+            plan,
+            amount,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating payment"
@@ -245,7 +253,13 @@ def confirm_payment_endpoint(
                 "authorized_at": None,
             }
         
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "payments.confirm.failed current_user_id=%s payment_id=%s token_prefix=%s",
+            current_user.id,
+            payment.id if payment else None,
+            token_ws[:8],
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error confirming payment"
@@ -309,7 +323,12 @@ def get_billing_history(
             count=history["count"],
         )
         
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "payments.history.failed user_id=%s limit=%s",
+            user.id,
+            limit,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching billing history"
@@ -356,7 +375,12 @@ def get_invoice(
         
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "payments.invoice.fetch.failed user_id=%s invoice_id=%s",
+            user.id,
+            invoice_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching invoice"
@@ -405,7 +429,12 @@ def download_invoice_pdf(
         
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "payments.invoice.download.failed user_id=%s invoice_id=%s",
+            user.id,
+            invoice_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error downloading invoice"

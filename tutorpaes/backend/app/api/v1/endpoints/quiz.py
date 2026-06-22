@@ -1,3 +1,19 @@
+"""Endpoints del motor de quiz y gestión de intentos de ensayo.
+
+Este módulo implementa la capa HTTP del dominio de quiz para FastAPI. Expone
+endpoints para obtener la siguiente pregunta, registrar respuestas, crear y
+finalizar intentos de ensayo, y consultar resultados detallados.
+
+Flujo principal de datos:
+1. El endpoint recibe parámetros/payload y valida identidad del usuario.
+2. Se consulta y actualiza estado en base de datos mediante SQLAlchemy (Attempt,
+    AttemptFeedback, Question, Subject, Topic, Exam).
+3. Se delega generación de feedback rápido a la capa de servicios
+    (app.services.ai_service.generate_feedback).
+4. Se devuelve un response model tipado (schemas de app.schemas.quiz) para
+    mantener contrato estable con frontend.
+"""
+
 import random
 
 from datetime import timezone
@@ -38,6 +54,29 @@ def next_question(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Obtiene la siguiente pregunta disponible de un tema para el usuario autenticado.
+
+    El endpoint intenta reutilizar un intento en progreso cuando existe,
+    calcula preguntas ya respondidas y retorna una pregunta aleatoria activa no
+    contestada. Si no hay más preguntas o se alcanzó el máximo por tema,
+    finaliza el intento y retorna un payload de tema completado.
+
+    Args:
+        attempt_id: ID opcional del intento en progreso que se quiere continuar.
+        topic_code: Código del tema (por ejemplo, "ALG").
+        subject_code: Código de la materia (por ejemplo, "M1").
+        db: Sesión de base de datos inyectada por dependencia.
+        current_user: Usuario autenticado obtenido desde el token.
+
+    Returns:
+        Union[QuestionOut, TopicCompletedOut]:
+        - QuestionOut cuando existe una pregunta disponible.
+        - TopicCompletedOut cuando se completó el tema.
+
+    Raises:
+        HTTPException: Si attempt_id no coincide con subject/topic solicitados.
+        HTTPException: Si faltan recursos de catálogo (exam, subject o topic).
+    """
     user_id = current_user.id
     logger.info(
         "Usuario %s solicita siguiente pregunta | Materia: %s | Tema: %s",
@@ -103,6 +142,16 @@ def next_question(
         )
 
     def _build_topic_completed_payload(current_attempt: Attempt) -> dict:
+        """Construye el payload de respuesta cuando un tema está finalizado.
+
+        Args:
+            current_attempt: Intento del usuario ya cerrado o a cerrar.
+
+        Returns:
+            dict: Estructura serializable con métricas finales del intento.
+        """
+        # Se normaliza puntaje en dos escalas para compatibilidad:
+        # porcentaje para UI y escala PAES (0-1000) para negocio/reportes.
         total = current_attempt.total_questions or 0
         correct = current_attempt.correct_count or 0
         score_percentage = int((correct / total) * 100) if total > 0 else 0
@@ -121,6 +170,14 @@ def next_question(
         }
 
     def _finalize_attempt(current_attempt: Attempt) -> dict:
+        """Finaliza un intento en progreso y devuelve su payload consolidado.
+
+        Args:
+            current_attempt: Intento a cerrar.
+
+        Returns:
+            dict: Payload de tema completado listo para response.
+        """
         if current_attempt.status != "completed":
             current_attempt.status = "completed"
             current_attempt.completed_at = datetime.now(timezone.utc)
@@ -139,6 +196,8 @@ def next_question(
         )
         return _finalize_attempt(attempt)
 
+    # Se busca una pregunta aleatoria no respondida para evitar repetición y
+    # distribuir la práctica entre el banco de ítems del tema.
     question = db.scalar(
         select(Question)
         .where(
@@ -188,6 +247,26 @@ def submit_answer(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Registra la respuesta del usuario para una pregunta del quiz.
+
+    Este endpoint valida pertenencia de la alternativa elegida, crea o reutiliza
+    un intento en progreso, evita duplicados por pregunta e intenta generar
+    feedback rápido sin LLM para controlar costo y latencia.
+
+    Args:
+        payload: Cuerpo de solicitud con subject/topic/question y choice elegida.
+        db: Sesión de base de datos inyectada por dependencia.
+        current_user: Usuario autenticado obtenido desde el token.
+
+    Returns:
+        AnswerOut: Resultado de corrección, feedback y estado de finalización.
+
+    Raises:
+        HTTPException: Si el usuario intenta responder con user_id ajeno.
+        HTTPException: Si la pregunta o alternativa no son válidas.
+        HTTPException: Si no se puede crear/recuperar intento activo tras
+            condición de carrera.
+    """
     if payload.user_id is not None and payload.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -231,8 +310,8 @@ def submit_answer(
 
     is_correct = bool(choice.is_correct)
 
-    # SELECT FOR UPDATE: bloquea la fila existente mientras procesamos para evitar
-    # la race condition de dos requests concurrentes creando dos attempts en_progreso.
+    # Se usa SELECT ... FOR UPDATE para serializar concurrencia por usuario/tema:
+    # evita que dos requests simultáneos creen intentos en progreso duplicados.
     attempt = db.scalar(
         select(Attempt)
         .where(
@@ -260,8 +339,8 @@ def submit_answer(
             db.add(attempt)
             db.flush()
         except IntegrityError:
-            # Race condition: otro request creó el attempt justo antes que nosotros.
-            # Hacemos rollback del flush y recuperamos el que ganó la carrera.
+            # Si otro request ganó la carrera de creación, se revierte el flush y
+            # se recupera el intento recién creado para mantener idempotencia.
             db.rollback()
             attempt = db.scalar(
                 select(Attempt)
@@ -289,8 +368,22 @@ def submit_answer(
     
 
     def _attempt_has_remaining_questions(attempt_id: int) -> bool:
+        """Determina si el intento todavía puede recibir una nueva pregunta.
+
+        Args:
+            attempt_id: Identificador del intento a evaluar.
+
+        Returns:
+            bool: True si quedan preguntas activas sin responder y no se superó
+            el límite máximo por tema.
+        """
+        # Primero se valida el límite configurado para cortar temprano y evitar
+        # queries innecesarias cuando el intento ya llegó al tope.
         if (attempt.total_questions or 0) >= settings.QUIZ_TOPIC_MAX_QUESTIONS:
             return False
+
+        # Se calcula el set de preguntas ya respondidas para filtrar únicamente
+        # las pendientes del mismo tema.
         answered_ids = db.scalars(
             select(AttemptFeedback.question_id).where(AttemptFeedback.attempt_id == attempt_id)
         ).all()
@@ -307,6 +400,14 @@ def submit_answer(
         return remaining is not None
 
     def _finalize_attempt(attempt: Attempt) -> None:
+        """Marca un intento como completado y recalcula su score PAES.
+
+        Args:
+            attempt: Entidad Attempt a finalizar.
+
+        Returns:
+            None
+        """
         if attempt.status == "completed":
             return
         attempt.status = "completed"
@@ -317,7 +418,8 @@ def submit_answer(
             score_paes = int((correct / total) * 1000)
             attempt.score = score_paes
 
-    # SNIPPET 2: Deduplicacion (evitar respuestas duplicadas)
+    # Deduplicación defensiva: si la misma pregunta ya fue respondida dentro del
+    # intento, se retorna el feedback persistido para mantener idempotencia.
     existing_feedback = db.scalar(
         select(AttemptFeedback).where(
             AttemptFeedback.attempt_id == attempt.id,
@@ -362,7 +464,8 @@ def submit_answer(
 
     db.flush()
 
-    # Generar feedback rápido una vez que feedback tiene ID persistido
+    # Se genera feedback rápido cuando feedback ya tiene ID persistido, porque la
+    # capa de servicios puede depender de relaciones guardadas en base de datos.
     quick_feedback = generate_feedback(fb, db, user=current_user, allow_llm=False)
     if quick_feedback and quick_feedback.get("explanation"):
         feedback_text = quick_feedback["explanation"]
@@ -401,16 +504,31 @@ def submit_answer(
 # -----------------------------------------------------------------------
 
 from pydantic import BaseModel
-from typing import Optional
 
 
 class ExamAttemptCreateIn(BaseModel):
+    """Payload para crear un intento de examen.
+
+    Attributes:
+        exam_id: ID del examen objetivo.
+        subject_id: ID de la materia del intento.
+        topic_id: ID opcional del tema, para intentos acotados.
+    """
     exam_id: int
     subject_id: int
     topic_id: Optional[int] = None
 
 
 class ExamAttemptCreateOut(BaseModel):
+    """Respuesta al crear un intento de examen.
+
+    Attributes:
+        attempt_id: ID generado del intento.
+        exam_id: ID del examen asociado.
+        subject_id: ID de la materia asociada.
+        topic_id: ID del tema asociado (si aplica).
+        total_questions: Cantidad de preguntas previstas para el intento.
+    """
     attempt_id: int
     exam_id: int
     subject_id: int
@@ -419,6 +537,14 @@ class ExamAttemptCreateOut(BaseModel):
 
 
 class ExamAttemptSubmitIn(BaseModel):
+    """Payload para finalizar manualmente un intento de examen.
+
+    Attributes:
+        attempt_id: ID del intento a cerrar.
+        correct_count: Número de respuestas correctas.
+        total_questions: Total de preguntas del intento.
+        score: Puntaje opcional calculado por cliente.
+    """
     attempt_id: int
     correct_count: int
     total_questions: int
@@ -426,6 +552,14 @@ class ExamAttemptSubmitIn(BaseModel):
 
 
 class ExamAttemptSubmitOut(BaseModel):
+    """Respuesta al finalizar un intento de examen.
+
+    Attributes:
+        attempt_id: ID del intento cerrado.
+        status: Estado final del intento (por ejemplo, completed).
+        score: Puntaje final persistido.
+        accuracy: Precisión porcentual calculada.
+    """
     attempt_id: int
     status: str
     score: Optional[int]
@@ -438,28 +572,22 @@ def create_exam_attempt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    POST /api/v1/exam-attempts
-    
-    Crea un nuevo intento de examen para el usuario.
-    
-    Body:
-    {
-        "exam_id": 1,
-        "subject_id": 1,
-        "topic_id": 5  # opcional
-    }
-    
+    """Crea un nuevo intento de examen para el usuario autenticado.
+
+    Args:
+        request: Payload con exam_id, subject_id y topic_id opcional.
+        db: Sesión de base de datos inyectada por dependencia.
+        current_user: Usuario autenticado que crea el intento.
+
     Returns:
-    {
-        "attempt_id": 42,
-        "exam_id": 1,
-        "subject_id": 1,
-        "topic_id": 5,
-        "total_questions": 10
-    }
+        ExamAttemptCreateOut: Metadatos del intento creado y total estimado de
+        preguntas.
+
+    Raises:
+        HTTPException: Si el exam, subject o topic no existen.
     """
-    # Verificar que exam y subject existen
+    # Se valida catálogo antes de crear el intento para evitar referencias
+    # huérfanas y errores tardíos en endpoints siguientes.
     exam = db.scalar(select(Exam).where(Exam.id == request.exam_id))
     if not exam:
         raise bad_request("exam_not_found", f"Exam {request.exam_id} not found")
@@ -473,7 +601,8 @@ def create_exam_attempt(
         if not topic:
             raise bad_request("topic_not_found", f"Topic {request.topic_id} not found")
     
-    # Crear el intento
+    # Se crea el intento primero y luego se estima total de preguntas para
+    # devolver información útil al frontend en un único response.
     attempt = Attempt(
         user_id=current_user.id,
         exam_id=request.exam_id,
@@ -488,7 +617,8 @@ def create_exam_attempt(
     db.commit()
     db.refresh(attempt)
     
-    # Obtener preguntas para contar
+    # Se acota a 10 para mantener consistencia con el comportamiento actual del
+    # producto y evitar payloads grandes al inicializar el intento.
     questions = db.scalars(
         select(Question)
         .where(
@@ -517,26 +647,18 @@ def submit_exam_attempt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    POST /api/v1/exam-attempts/submit
-    
-    Finaliza un intento de examen marcándolo como completado.
-    
-    Body:
-    {
-        "attempt_id": 42,
-        "correct_count": 8,
-        "total_questions": 10,
-        "score": 80
-    }
-    
+    """Finaliza un intento de examen y persiste sus métricas finales.
+
+    Args:
+        request: Payload con IDs y métricas finales del intento.
+        db: Sesión de base de datos inyectada por dependencia.
+        current_user: Usuario autenticado dueño del intento.
+
     Returns:
-    {
-        "attempt_id": 42,
-        "status": "completed",
-        "score": 80,
-        "accuracy": 80.0
-    }
+        ExamAttemptSubmitOut: Estado final, score y accuracy calculada.
+
+    Raises:
+        HTTPException: Si el intento no existe o no pertenece al usuario.
     """
     attempt = db.scalar(
         select(Attempt).where(
@@ -548,7 +670,8 @@ def submit_exam_attempt(
     if not attempt:
         raise not_found("attempt_not_found", f"Attempt {request.attempt_id} not found")
     
-    # Actualizar intento
+    # Se persisten las métricas recibidas para cerrar el intento de forma
+    # explícita desde frontend cuando corresponde al flujo de ensayo completo.
     attempt.status = "completed"
     attempt.completed_at = datetime.now(timezone.utc)
     attempt.correct_count = request.correct_count
@@ -578,11 +701,21 @@ def get_attempt_results(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    GET /api/v1/quiz/attempts/{attempt_id}/results
-    
-    Obtiene el detalle completo de un intento de examen, incluyendo las
-    preguntas, respuestas elegidas, correctas y la explicación de la IA.
+    """Obtiene el detalle completo de un intento de examen.
+
+    Incluye preguntas, alternativa seleccionada, alternativa correcta y
+    explicación final disponible (desde ai_payload o feedback_text).
+
+    Args:
+        attempt_id: ID del intento a consultar.
+        db: Sesión de base de datos inyectada por dependencia.
+        current_user: Usuario autenticado dueño del intento.
+
+    Returns:
+        AttemptResultOut: Resultado integral del intento con detalle por pregunta.
+
+    Raises:
+        HTTPException: Si el intento no existe o no pertenece al usuario.
     """
     attempt = db.scalar(
         select(Attempt).where(
@@ -608,7 +741,8 @@ def get_attempt_results(
 
         selected_choice = db.get(QuestionChoice, fb.selected_choice_id) if fb.selected_choice_id else None
         
-        # Encontrar la respuesta correcta
+        # Se consulta explícitamente la alternativa correcta para construir un
+        # payload de revisión que permita comparar elección vs respuesta válida.
         correct_choice = db.scalar(
             select(QuestionChoice).where(
                 (QuestionChoice.question_id == question.id) &

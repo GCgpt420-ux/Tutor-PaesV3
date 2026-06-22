@@ -489,7 +489,11 @@ def run_pedagogical_loop_stream(
             content=user_message
         )
         db.add(new_msg)
-        db.commit()
+        try:
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            logger.warning("No se pudo persistir mensaje de usuario en chat stream: %s", str(exc))
     
     formatted_system_prompt = SYSTEM_PROMPT_PEDAGOGICAL.format(
         user_level=user_level,
