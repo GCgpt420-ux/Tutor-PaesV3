@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -10,6 +10,7 @@ interface UseAiTutorReturn {
   loading: boolean;
   error: string | null;
   sendMessage: (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => Promise<void>;
+  cancelMessage: () => void;
   addAssistantMessage: (text: string) => void;
   setExternalLoading: (loading: boolean) => void;
   resetChat: () => void;
@@ -19,6 +20,9 @@ export function useAiTutor(): UseAiTutorReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Guardar referencia al AbortController activo
+  const activeControllerRef = useRef<AbortController | null>(null);
 
   const addAssistantMessage = useCallback((text: string) => {
     setMessages((prev) => [...prev, { role: 'assistant', content: text }]);
@@ -28,8 +32,22 @@ export function useAiTutor(): UseAiTutorReturn {
     setLoading(val);
   }, []);
 
+  // Función para cancelar explícitamente el stream activo
+  const cancelMessage = useCallback(() => {
+    if (activeControllerRef.current) {
+      activeControllerRef.current.abort();
+      activeControllerRef.current = null;
+      setLoading(false);
+    }
+  }, []);
+
   const sendMessage = useCallback(async (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => {
     if (!text.trim()) return;
+
+    // Abortar cualquier petición en curso antes de enviar una nueva
+    if (activeControllerRef.current) {
+      activeControllerRef.current.abort();
+    }
 
     setLoading(true);
     setError(null);
@@ -38,18 +56,21 @@ export function useAiTutor(): UseAiTutorReturn {
     const userMsg: Message = { role: 'user', content: text };
     setMessages((prev) => [...prev, userMsg]);
 
+    const controller = new AbortController();
+    activeControllerRef.current = controller;
+
     try {
       const response = await fetch('/api/backend/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // El proxy se encarga de inyectar las cookies/headers de Auth.
         },
         body: JSON.stringify({
           message: text,
           attempt_id: attemptId ? Number(attemptId) : null,
           question_context: questionContext ?? null,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -79,9 +100,10 @@ export function useAiTutor(): UseAiTutorReturn {
             
             assistantResponse += dataStr;
 
-            // Evita condición de carrera: si el primer chunk llega antes de que React
-            // pinte el placeholder, crea/actualiza el mensaje del asistente en una sola operación.
             setMessages((prev) => {
+              if (activeControllerRef.current !== controller) {
+                return prev;
+              }
               const next = [...prev];
               const last = next[next.length - 1];
 
@@ -98,9 +120,22 @@ export function useAiTutor(): UseAiTutorReturn {
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const isSuperseded = activeControllerRef.current !== controller && activeControllerRef.current !== null;
+      if (!isSuperseded) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          setError('Generación cancelada.');
+        } else {
+          setError(err instanceof Error ? err.message : 'Error desconocido');
+        }
+      }
     } finally {
-      setLoading(false);
+      const isSuperseded = activeControllerRef.current !== controller && activeControllerRef.current !== null;
+      if (!isSuperseded) {
+        if (activeControllerRef.current === controller) {
+          activeControllerRef.current = null;
+        }
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -109,11 +144,21 @@ export function useAiTutor(): UseAiTutorReturn {
     setError(null);
   }, []);
 
+  // Cancelar la petición pendiente si el componente del chat se desmonta
+  useEffect(() => {
+    return () => {
+      if (activeControllerRef.current) {
+        activeControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   return {
     messages,
     loading,
     error,
     sendMessage,
+    cancelMessage,
     addAssistantMessage,
     setExternalLoading,
     resetChat,
