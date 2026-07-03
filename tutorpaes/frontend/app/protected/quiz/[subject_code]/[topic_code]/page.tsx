@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react';
 import { apiFetch } from '@/src/lib/api/client';
+import { saveUserAnswer } from '@/src/features/exams/api/exams';
 import { AiTutorChat } from '@/src/features/ai/components/AiTutorChat';
 import { useAiTutor } from '@/src/features/ai/hooks/use-ai-tutor';
 import type {
@@ -220,16 +221,12 @@ export default function QuizPage() {
       setQuiz((prev) => ({ ...prev, loading: true }));
       aiTutor.setExternalLoading(true); // Mostrar estado "Analizando" en IA
 
-      const response = await apiFetch<BackendAnswerOut>('/quiz/answer', {
-        method: 'POST',
-        body: JSON.stringify({
-          subject_code,
-          topic_code,
-          question_id: quiz.question.question_id,
-          selected_choice_id: quiz.selectedChoice,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await saveUserAnswer({
+        subject_code,
+        topic_code,
+        question_id: quiz.question.question_id,
+        selected_choice_id: quiz.selectedChoice,
+      }) as BackendAnswerOut;
 
       const isCorrect = response.is_correct;
       const tutorFeedback = typeof response.feedback_text === 'string' && response.feedback_text.trim().length > 0
