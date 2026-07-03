@@ -1,13 +1,40 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, Zap, Loader } from 'lucide-react';
 import { TopicCard } from '@/src/features/dashboard/components/topic-card';
 import { useSubjectDetails } from '@/src/features/courses/hooks/use-courses';
+import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '@/src/lib/api/client';
+import { getCurrentUser } from '@/src/lib/auth/current-user';
 
 function CursoDetailContent({ subject_id }: { subject_id: string }) {
   const router = useRouter();
   const { data: subject, isLoading: loading, isError, error: queryError } = useSubjectDetails(subject_id);
+
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((u) => setUserId(u.user_id))
+      .catch(() => {});
+  }, []);
+
+  const { data: stats } = useQuery({
+    queryKey: ['user', userId, 'stats'],
+    queryFn: () => apiFetch<{
+      subjects: Array<{
+        subject_code: string;
+        topics: Array<{
+          topic_code: string;
+          questions: number;
+          completed_at: string | null;
+        }>;
+      }>;
+    }>(`/users/${userId}/stats`),
+    enabled: !!userId,
+  });
 
   if (loading) {
     return (
@@ -38,6 +65,25 @@ function CursoDetailContent({ subject_id }: { subject_id: string }) {
   }
 
   const topics = subject.topics || [];
+
+  const subjectStats = stats?.subjects.find((s) => s.subject_code === subject.subject_code);
+
+  const topicsWithProgress = topics.map((topic) => {
+    const topicStats = subjectStats?.topics.find((t) => t.topic_code === topic.topic_code);
+    let progress = 0;
+    if (topicStats) {
+      if (topicStats.completed_at) {
+        progress = 100;
+      } else {
+        progress = Math.min(100, Math.round((topicStats.questions / 15) * 100));
+      }
+    }
+    return { ...topic, progress };
+  });
+
+  const overallProgress = topicsWithProgress.length > 0
+    ? Math.round(topicsWithProgress.reduce((acc, t) => acc + t.progress, 0) / topicsWithProgress.length)
+    : 0;
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -87,7 +133,7 @@ function CursoDetailContent({ subject_id }: { subject_id: string }) {
             <p className="text-xs font-black uppercase tracking-[0.15em] text-text-tertiary">Tu Progreso</p>
           </div>
           <div className="flex items-end gap-2">
-            <p className="text-4xl font-black text-text-primary">0</p>
+            <p className="text-4xl font-black text-text-primary">{overallProgress}</p>
             <p className="text-xl font-bold text-success mb-1">%</p>
           </div>
         </div>
@@ -112,14 +158,14 @@ function CursoDetailContent({ subject_id }: { subject_id: string }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {topics.map((topic, index) => (
+            {topicsWithProgress.map((topic, index) => (
               <TopicCard
                 key={topic.topic_id}
                 id={topic.topic_id.toString()}
                 name={topic.name}
                 description={`Código: ${topic.topic_code}`}
                 topicNumber={index + 1}
-                progress={0}
+                progress={topic.progress}
                 onClick={() => router.push(`/protected/quiz/${subject.subject_code}/${topic.topic_code}`)}
               />
             ))}
