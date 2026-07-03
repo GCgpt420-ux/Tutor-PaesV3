@@ -344,6 +344,10 @@ def submit_answer(
             # Si otro request ganó la carrera de creación, se revierte el flush y
             # se recupera el intento recién creado para mantener idempotencia.
             db.rollback()
+            logger.info(
+                f"Conflicto de intento detectado para user_id={user_id}. "
+                "Haciendo rollback y recuperando intento existente."
+            )
             attempt = db.scalar(
                 select(Attempt)
                 .where(

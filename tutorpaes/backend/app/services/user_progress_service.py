@@ -25,7 +25,7 @@ def update_user_progress(
             )
             .with_for_update()
         )
-        
+
         now = datetime.now(timezone.utc)
         if not progress:
             try:
@@ -73,7 +73,7 @@ def update_user_progress(
             progress.total_answered += 1
             if is_correct:
                 progress.total_correct += 1
-            
+
             # Recalcular precisión
             progress.accuracy = int(
                 (progress.total_correct / progress.total_answered) * 100
@@ -85,7 +85,7 @@ def update_user_progress(
                 f"topic_id={topic_id} | Total: {progress.total_answered}, "
                 f"Precisión: {progress.accuracy}%"
             )
-            
+
         db.flush()
     except Exception:
         logger.exception(
