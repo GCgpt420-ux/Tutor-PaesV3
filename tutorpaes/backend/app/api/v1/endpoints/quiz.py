@@ -22,6 +22,7 @@ from typing import Optional, Union
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -504,8 +505,6 @@ def submit_answer(
 # -----------------------------------------------------------------------
 # ENDPOINTS DE INTENTOS DE ENSAYO
 # -----------------------------------------------------------------------
-
-from pydantic import BaseModel
 
 
 class ExamAttemptCreateIn(BaseModel):
