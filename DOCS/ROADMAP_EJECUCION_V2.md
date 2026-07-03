@@ -17,7 +17,7 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 ## Resumen ejecutivo
 1. Fase 0 y Fase 1 estan completadas.
 2. Fase 2, Fase 3 y Fase 6 avanzaron significativamente con optimizaciones relacionales, resiliencia en streams y saneamiento de UI.
-3. Fase 4 tiene planes técnicos definidos para Circuit Breaker y fallback de LLMs. Fases 5 y 6 avanzan de manera incremental.
+3. Fase 3 y Fase 4 se completaron casi en su totalidad (80%) con Circuit Breaker, retries y Prometheus expuesto en /metrics. Fases 5 y 6 avanzan de manera incremental.
 
 ## Comparativa de avance
 
@@ -26,10 +26,10 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 | Fase 0 - Base critica | 100% | 100% | Sin cambios |
 | Fase 1 - Proteccion de cambios | 100% | 100% | Sin cambios |
 | Fase 2 - Seguridad en pipeline | 85% | 85% | Sin cambios |
-| Fase 3 - Observabilidad | 35% | 45% | Logging, correlation IDs y Sentry listos; plan de Prometheus diseñado |
-| Fase 4 - Resiliencia | 0% | 15% | Diseñados Circuit Breakers, reintentos y fallback dinámico de proveedores de LLM |
+| Fase 3 - Observabilidad | 45% | 80% | Sentry, correlation IDs, logging y métricas Prometheus listas |
+| Fase 4 - Resiliencia | 15% | 80% | Implementado Circuit Breaker, tenacity retries y fallback dinámico de LLM |
 | Fase 5 - Calidad operativa | 0% | 0% | Pendiente |
-| Fase 6 - Deuda tecnica | 0% | 40% | Sincronización O(1) de progreso, control de streaming leaks y accesibilidad ARIA |
+| Fase 6 - Deuda tecnica | 40% | 40% | Sincronización O(1) de progreso, control de streaming leaks y accesibilidad ARIA |
 
 ## Progreso por fase
 
@@ -56,25 +56,26 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 ### Fase 3: Observabilidad
 - Estado: en progreso.
-- Progreso: 45%.
+- Progreso: 80%.
 - Hecho:
   - Logging estructurado JSON.
   - Correlation IDs con cabecera `X-Request-ID`.
   - Integracion base de Sentry.
   - Plan de diseño técnico para instrumentación de Prometheus en backend.
+  - Endpoint `/metrics` expuesto vía ASGI e instrumentado con Prometheus para llamadas de LLM.
 - Pendiente:
-  - Endpoint `/metrics` con Prometheus (en implementación).
   - Dashboards Grafana.
   - Alertas por SLO (latencia, 5xx, disponibilidad).
 
 ### Fase 4: Resiliencia
 - Estado: en progreso.
-- Progreso: 15%.
+- Progreso: 80%.
 - Hecho:
   - Diseño y plan técnico de Circuit Breakers (con tenacity) y política de fallback automático hacia Groq/Cerebras para LLMs.
+  - Implementación física de Circuit Breaker aislado y reintentos exponenciales por proveedor en `llm_provider_service.py`.
+  - Fallback en cascada dinámico para resolver caídas de red o timeouts sin interrumpir la experiencia de usuario.
 - Pendiente:
   - Cache con Redis.
-  - Implementación física del Circuit Breaker y fallback en `llm_provider_service.py`.
   - Retry con backoff y timeout por endpoint.
 
 ### Fase 5: Calidad operativa
@@ -108,7 +109,7 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 ### Semana 2
 1. Avanzar Fase 3:
-   - Instrumentar backend con Prometheus.
+   - Instrumentar backend con Prometheus (Completado).
    - Levantar stack Prometheus/Grafana para staging.
    - Definir dashboard inicial de salud y error rate.
 2. Definir alertas minimas:
@@ -125,7 +126,7 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 | Fecha | Modificacion | Impacto |
 |---|---|---|
-| 2026-07-03 | Ajuste de Fase 3 (45%), Fase 4 (15%) y Fase 6 (40%) por mejoras relacionales, control de streaming leaks y planes técnicos de resiliencia. | Alto |
+| 2026-07-03 | Implementación de resiliencia (Fase 4 - 80%) y observabilidad (Fase 3 - 80%) con Circuit Breaker, retries y métricas. | Alto |
 | 2026-03-15 | Creacion del roadmap v2 y consolidacion de comparativa de avance por fases. | Alto |
 | 2026-03-15 | Ajuste de Fase 2 a 85% por pipeline de seguridad y backup/rollback operativo. | Alto |
 | 2026-03-15 | Ajuste de Fase 3 a 35% por logging estructurado, correlation IDs y Sentry base. | Medio |
