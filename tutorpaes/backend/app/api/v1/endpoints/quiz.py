@@ -40,6 +40,7 @@ from app.schemas.quiz import (
     AttemptFeedbackDetailOut
 )
 from app.services.ai_service import generate_feedback
+from app.services.user_progress_service import update_user_progress
 
 logger = logging.getLogger(__name__)
 
@@ -481,6 +482,7 @@ def submit_answer(
         _finalize_attempt(attempt)
         is_finished = True
 
+    update_user_progress(db=db, user_id=user_id, topic_id=topic.id, is_correct=is_correct)
     db.commit()
 
     logger.info(
