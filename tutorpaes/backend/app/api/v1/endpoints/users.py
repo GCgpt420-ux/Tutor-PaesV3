@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.db.models import (
-    User, Attempt, Subject, Topic, Exam
+    User, Attempt, Subject, Topic, Exam, UserProgress
 )
 from app.core.exceptions import not_found, bad_request
 from app.core.auth import get_current_user
@@ -109,43 +109,17 @@ def user_stats(
         .order_by(Topic.id.asc())
     ).all()
 
-    attempt_rows = db.execute(
-        select(
-            Attempt.subject_id,
-            Attempt.topic_id,
-            Attempt.status,
-            Attempt.total_questions,
-            Attempt.correct_count,
-            Attempt.completed_at,
-        )
-        .where(Attempt.user_id == user_id)
+    progress_rows = db.scalars(
+        select(UserProgress)
+        .where(UserProgress.user_id == user_id)
     ).all()
 
-    topic_stats = {}
-    total_questions = 0
-    total_correct = 0
+    progress_by_topic = {p.topic_id: p for p in progress_rows}
 
-    for row in attempt_rows:
-        total_questions += int(row.total_questions or 0)
-        total_correct += int(row.correct_count or 0)
-
-        if not row.topic_id:
-            continue
-
-        stats = topic_stats.setdefault(
-            row.topic_id,
-            {"questions": 0, "correct": 0, "completed_at": None},
-        )
-
-        stats["questions"] += int(row.total_questions or 0)
-        stats["correct"] += int(row.correct_count or 0)
-
-        if row.status == "completed" and row.completed_at:
-            if not stats["completed_at"] or row.completed_at > stats["completed_at"]:
-                stats["completed_at"] = row.completed_at
-
+    total_questions = sum(p.total_answered for p in progress_rows)
+    total_correct = sum(p.total_correct for p in progress_rows)
     overall_accuracy = (
-        round((total_correct / total_questions) * 100, 2) if total_questions else 0
+        round((total_correct / total_questions) * 100, 2) if total_questions else 0.0
     )
 
     topics_by_subject = {}
@@ -161,11 +135,18 @@ def user_stats(
         subject_completed = True if subject_topics else False
 
         for topic in subject_topics:
-            stats = topic_stats.get(topic.id, {"questions": 0, "correct": 0, "completed_at": None})
-            questions = stats["questions"]
-            correct = stats["correct"]
-            accuracy = round((correct / questions) * 100, 2) if questions else 0
-            completed_at = stats["completed_at"]
+            progress = progress_by_topic.get(topic.id)
+            
+            if progress:
+                questions = progress.total_answered
+                correct = progress.total_correct
+                accuracy = float(progress.accuracy)
+                completed_at = progress.last_activity_at
+            else:
+                questions = 0
+                correct = 0
+                accuracy = 0.0
+                completed_at = None
 
             if not completed_at:
                 subject_completed = False

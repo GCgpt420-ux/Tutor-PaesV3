@@ -619,8 +619,7 @@ def create_exam_attempt(
     )
     
     db.add(attempt)
-    db.commit()
-    db.refresh(attempt)
+    db.flush()
     
     # Se acota a 10 para mantener consistencia con el comportamiento actual del
     # producto y evitar payloads grandes al inicializar el intento.
@@ -628,7 +627,7 @@ def create_exam_attempt(
         select(Question)
         .where(
             (Question.topic_id == request.topic_id) if request.topic_id
-            else (Question.is_active == True)
+            else (Question.is_active == True)  # noqa: E712
         )
         .limit(10)
     ).all()
@@ -751,7 +750,7 @@ def get_attempt_results(
         correct_choice = db.scalar(
             select(QuestionChoice).where(
                 (QuestionChoice.question_id == question.id) &
-                (QuestionChoice.is_correct == True)
+                (QuestionChoice.is_correct == True)  # noqa: E712
             )
         )
 
