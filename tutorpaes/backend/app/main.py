@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
+from prometheus_client import make_asgi_app
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -189,6 +190,8 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
     )
 
 app.include_router(health_router, prefix="/api/v1")
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 app.include_router(catalog_router, prefix="/api/v1")
