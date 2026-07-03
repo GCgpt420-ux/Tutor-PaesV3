@@ -3,7 +3,7 @@
 ## Estado del documento
 - Tipo: roadmap operativo y de mejora continua.
 - Estado: vigente.
-- Ultima revision: 2026-03-15.
+- Ultima revision: 2026-07-03.
 - Owner sugerido: liderazgo tecnico.
 
 ## Objetivo
@@ -16,8 +16,8 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 ## Resumen ejecutivo
 1. Fase 0 y Fase 1 estan completadas.
-2. Fase 2 y Fase 3 avanzaron por sobre el estado inicial con implementaciones efectivas en repositorio.
-3. Fases 4, 5 y 6 permanecen planificadas y deben ejecutarse por lotes semanales para controlar riesgo.
+2. Fase 2, Fase 3 y Fase 6 avanzaron significativamente con optimizaciones relacionales, resiliencia en streams y saneamiento de UI.
+3. Fase 4 tiene planes técnicos definidos para Circuit Breaker y fallback de LLMs. Fases 5 y 6 avanzan de manera incremental.
 
 ## Comparativa de avance
 
@@ -25,11 +25,11 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 |---|---:|---:|---|
 | Fase 0 - Base critica | 100% | 100% | Sin cambios |
 | Fase 1 - Proteccion de cambios | 100% | 100% | Sin cambios |
-| Fase 2 - Seguridad en pipeline | 65% | 85% | Se agregaron workflows de seguridad y auditoria de dependencias |
-| Fase 3 - Observabilidad | 25% | 35% | Se consolidaron logging estructurado, correlation IDs y Sentry |
-| Fase 4 - Resiliencia | 0% | 0% | Pendiente |
+| Fase 2 - Seguridad en pipeline | 85% | 85% | Sin cambios |
+| Fase 3 - Observabilidad | 35% | 45% | Logging, correlation IDs y Sentry listos; plan de Prometheus diseñado |
+| Fase 4 - Resiliencia | 0% | 15% | Diseñados Circuit Breakers, reintentos y fallback dinámico de proveedores de LLM |
 | Fase 5 - Calidad operativa | 0% | 0% | Pendiente |
-| Fase 6 - Deuda tecnica | 0% | 0% | Pendiente |
+| Fase 6 - Deuda tecnica | 0% | 40% | Sincronización O(1) de progreso, control de streaming leaks y accesibilidad ARIA |
 
 ## Progreso por fase
 
@@ -47,7 +47,7 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 - Estado: en progreso.
 - Progreso: 85%.
 - Hecho:
-  - Workflow de seguridad con Semgrep, Gitleaks y Trivy FS.
+  - Workflow de seguridad con Semgrep, Gitleaks and Trivy FS.
   - Auditoria de dependencias Python en backend CI (pip-audit).
   - Automatizacion de backup/rollback de base de datos.
 - Pendiente:
@@ -56,22 +56,25 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 ### Fase 3: Observabilidad
 - Estado: en progreso.
-- Progreso: 35%.
+- Progreso: 45%.
 - Hecho:
   - Logging estructurado JSON.
   - Correlation IDs con cabecera `X-Request-ID`.
   - Integracion base de Sentry.
+  - Plan de diseño técnico para instrumentación de Prometheus en backend.
 - Pendiente:
-  - Endpoint `/metrics` con Prometheus.
+  - Endpoint `/metrics` con Prometheus (en implementación).
   - Dashboards Grafana.
   - Alertas por SLO (latencia, 5xx, disponibilidad).
 
 ### Fase 4: Resiliencia
-- Estado: planificada.
-- Progreso: 0%.
-- Alcance objetivo:
+- Estado: en progreso.
+- Progreso: 15%.
+- Hecho:
+  - Diseño y plan técnico de Circuit Breakers (con tenacity) y política de fallback automático hacia Groq/Cerebras para LLMs.
+- Pendiente:
   - Cache con Redis.
-  - Circuit breaker para OpenAI.
+  - Implementación física del Circuit Breaker y fallback en `llm_provider_service.py`.
   - Retry con backoff y timeout por endpoint.
 
 ### Fase 5: Calidad operativa
@@ -83,9 +86,13 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
   - Validacion periodica de backups.
 
 ### Fase 6: Deuda tecnica
-- Estado: planificada.
-- Progreso: 0%.
-- Alcance objetivo:
+- Estado: en progreso.
+- Progreso: 40%.
+- Hecho:
+  - Optimización de base de datos relacional para estadísticas de progreso de estudiantes (O(1) con `UserProgress`).
+  - Resolución de fugas de tokens en streaming mediante AbortController en el hook y desconexión asíncrona en el endpoint.
+  - Refactorización estética, accesibilidad ARIA e indicadores de foco en dashboard de estudiante.
+- Pendiente:
   - Lint global frontend.
   - Estandarizacion de tipos TS.
   - Refactor incremental de modulos criticos.
@@ -118,6 +125,7 @@ Definir una hoja de ruta ejecutable por fases para seguridad, observabilidad, re
 
 | Fecha | Modificacion | Impacto |
 |---|---|---|
+| 2026-07-03 | Ajuste de Fase 3 (45%), Fase 4 (15%) y Fase 6 (40%) por mejoras relacionales, control de streaming leaks y planes técnicos de resiliencia. | Alto |
 | 2026-03-15 | Creacion del roadmap v2 y consolidacion de comparativa de avance por fases. | Alto |
 | 2026-03-15 | Ajuste de Fase 2 a 85% por pipeline de seguridad y backup/rollback operativo. | Alto |
 | 2026-03-15 | Ajuste de Fase 3 a 35% por logging estructurado, correlation IDs y Sentry base. | Medio |
