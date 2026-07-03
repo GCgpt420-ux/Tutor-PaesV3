@@ -195,8 +195,8 @@ export function ProtectedView() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center animate-pulse" aria-busy="true">
         <div className="flex flex-col items-center gap-4 text-brand-primary">
-          <TerminalSquare className="h-10 w-10 opacity-50" />
-          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando panel...</p>
+          <TerminalSquare className="h-10 w-10 opacity-50" aria-hidden="true" />
+          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando panel…</p>
         </div>
       </div>
     );
@@ -223,12 +223,12 @@ export function ProtectedView() {
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-primary/10 blur-[100px]" />
             </div>
-
+ 
             <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="mb-4 flex flex-wrap items-center gap-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">
-                    <Server className="h-3 w-3 text-green-500" />
+                    <Server className="h-3 w-3 text-green-500" aria-hidden="true" />
                     SESIÓN ACTIVA {userName ? `• ${userName.toUpperCase()}` : ''}
                   </div>
                   <span className="inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-mono font-black text-brand-primary uppercase tracking-[0.2em]">
@@ -260,17 +260,17 @@ export function ProtectedView() {
 
               <div className="flex flex-shrink-0 items-stretch gap-4">
                 <div className="flex flex-col items-center justify-center border border-white/10 bg-black/80 w-24 p-4 shadow-inner">
-                  <Flame className={`mb-1 h-6 w-6 ${streakDays > 0 ? 'text-orange-500 fill-orange-500/20 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'text-zinc-700'}`} />
-                  <span className="text-2xl font-black tracking-tighter text-white">{streakDays}</span>
+                  <Flame className={`mb-1 h-6 w-6 ${streakDays > 0 ? 'text-orange-500 fill-orange-500/20 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'text-zinc-700'}`} aria-hidden="true" />
+                  <span className="text-2xl font-black tracking-tighter text-white tabular-nums">{streakDays}</span>
                   <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-zinc-500 mt-1">DÍAS</span>
                 </div>
                 
                 <Link
                   href="/protected/ensayos"
-                  className="flex items-center justify-center gap-2 bg-white px-8 text-black font-black uppercase tracking-[0.2em] text-[10px] transition-all hover:bg-zinc-200 hover:scale-[1.02]"
+                  className="flex items-center justify-center gap-2 bg-white px-8 text-black font-black uppercase tracking-[0.2em] text-[10px] transition-all hover:bg-zinc-200 hover:scale-[1.02] interactive-focus rounded-sm"
                 >
                   INICIAR ENSAYO
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>
@@ -310,21 +310,21 @@ export function ProtectedView() {
                 <Link
                   key={name}
                   href="/protected/cursos"
-                  className="group relative flex flex-col justify-between overflow-hidden border border-white/5 bg-black/40 p-5 transition-all duration-300 hover:border-white/20 hover:bg-white/5"
+                  className="group relative flex flex-col justify-between overflow-hidden border border-white/5 bg-black/40 p-5 transition-all duration-300 hover:border-white/20 hover:bg-white/5 interactive-focus rounded-sm"
                 >
                   <div className="absolute left-0 top-0 h-full w-1" style={{ background: color, opacity: 0.8 }} />
                   <div className="absolute right-0 top-0 p-2 opacity-10">
-                    <Target style={{ color }} className="h-10 w-10" />
+                    <Target style={{ color }} className="h-10 w-10" aria-hidden="true" />
                   </div>
                   
                   <div className="mt-1 relative z-10">
                     <p className="mb-2 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">{name}</p>
-                    <p className="text-4xl font-black tracking-tighter text-white">{avg}<span className="text-lg text-zinc-600">%</span></p>
+                    <p className="text-4xl font-black tracking-tighter text-white tabular-nums">{avg}<span className="text-lg text-zinc-600">%</span></p>
                   </div>
                   
                   <div className="mt-8 relative z-10 w-full flex items-center justify-between border-t border-white/5 pt-3">
                     <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-zinc-500">ACERTIVIDAD</span>
-                    <ArrowRight className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" style={{ color }} />
+                    <ArrowRight className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" style={{ color }} aria-hidden="true" />
                   </div>
                 </Link>
               ))}
@@ -349,33 +349,33 @@ export function ProtectedView() {
             <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-primary/50 transition-colors">
               <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
                 <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Pts Reales</p>
-                <Award className="h-4 w-4 text-brand-primary" />
+                <Award className="h-4 w-4 text-brand-primary" aria-hidden="true" />
               </div>
-              <p className="text-5xl font-black tracking-tighter text-white">{stats.averageScore}</p>
+              <p className="text-5xl font-black tracking-tighter text-white tabular-nums">{stats.averageScore}</p>
             </div>
             {/* KPI 2 */}
             <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-accent/50 transition-colors">
               <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
                 <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Previsión</p>
-                <Target className="h-4 w-4 text-brand-accent" />
+                <Target className="h-4 w-4 text-brand-accent" aria-hidden="true" />
               </div>
-              <p className="text-5xl font-black tracking-tighter text-white">{stats.accuracyPercentage}<span className="text-2xl text-zinc-600">%</span></p>
+              <p className="text-5xl font-black tracking-tighter text-white tabular-nums">{stats.accuracyPercentage}<span className="text-2xl text-zinc-600">%</span></p>
             </div>
             {/* KPI 3 */}
             <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-brand-secondary/50 transition-colors">
               <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
                 <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Operaciones</p>
-                <BarChart3 className="h-4 w-4 text-brand-secondary" />
+                <BarChart3 className="h-4 w-4 text-brand-secondary" aria-hidden="true" />
               </div>
-              <p className="text-5xl font-black tracking-tighter text-white">{stats.totalAttempts}</p>
+              <p className="text-5xl font-black tracking-tighter text-white tabular-nums">{stats.totalAttempts}</p>
             </div>
             {/* KPI 4 */}
             <div className="group relative overflow-hidden bg-black/60 border border-white/5 p-6 hover:border-orange-500/50 transition-colors">
               <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
                 <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">Cadena</p>
-                <Zap className="h-4 w-4 text-orange-500" />
+                <Zap className="h-4 w-4 text-orange-500" aria-hidden="true" />
               </div>
-              <p className="text-5xl font-black tracking-tighter text-white">{stats.streakDays}</p>
+              <p className="text-5xl font-black tracking-tighter text-white tabular-nums">{stats.streakDays}</p>
             </div>
           </div>
 
@@ -394,7 +394,7 @@ export function ProtectedView() {
                         <p className="text-[9px] font-mono text-zinc-600 mt-1">{new Date(attempt.finished_at).toLocaleDateString('es-CL')}</p>
                       </div>
                       <div className="flex-shrink-0 text-right bg-white/5 px-2 py-1 border border-white/10">
-                        <p className="text-xs font-black font-mono text-brand-primary">{attempt.score_total}</p>
+                        <p className="text-xs font-black font-mono text-brand-primary tabular-nums">{attempt.score_total}</p>
                       </div>
                     </div>
                   ))}
@@ -408,14 +408,14 @@ export function ProtectedView() {
         </>
       ) : (
         <div className="border border-dashed border-white/20 bg-black/30 p-16 text-center">
-          <TerminalSquare className="mx-auto mb-6 h-12 w-12 text-zinc-700" />
+          <TerminalSquare className="mx-auto mb-6 h-12 w-12 text-zinc-700" aria-hidden="true" />
           <p className="mb-2 text-xl font-black uppercase tracking-tighter text-white">REPOSOTORIO VACÍO</p>
           <p className="mb-8 text-sm text-zinc-500 font-mono">Ejecute su primer simulador para poblar la base de datos.</p>
           <Link
             href="/protected/ensayos"
-            className="inline-flex items-center gap-2 bg-white px-8 py-3 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-colors"
+            className="inline-flex items-center gap-2 bg-white px-8 py-3 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-colors interactive-focus rounded-sm"
           >
-            MÓDULO SIMULACIONES <ArrowRight className="h-4 w-4" />
+            MÓDULO SIMULACIONES <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       )}
