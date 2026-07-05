@@ -6,7 +6,7 @@ import { Label } from "@/src/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Server } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Server, Sparkles } from "lucide-react";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -40,6 +40,49 @@ export function LoginForm() {
       router.push("/protected");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al iniciar sesión";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    setError(null);
+    
+    const demoEmail = "demo@example.com";
+    const demoPassword = "demo123";
+    
+    // Simular tipeo animado
+    for (let i = 0; i <= demoEmail.length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      setEmail(demoEmail.slice(0, i));
+    }
+    for (let i = 0; i <= demoPassword.length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      setPassword(demoPassword.slice(0, i));
+    }
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email: demoEmail, password: demoPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.detail || "Error al iniciar sesión demo");
+      }
+
+      router.push("/protected");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al iniciar sesión demo";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -139,6 +182,25 @@ export function LoginForm() {
           >
             {isLoading ? "Ingresando..." : "Ir a mi panel"}
             {!isLoading && <ArrowRight className="h-4 w-4" />}
+          </Button>
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/5" />
+            </div>
+            <span className="relative px-3 bg-zinc-950 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+              o
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={isLoading}
+            className="w-full h-14 rounded-xl bg-gradient-to-r from-brand-primary/20 via-brand-accent/20 to-brand-primary/20 border border-brand-primary/30 text-white hover:border-brand-primary hover:from-brand-primary/30 hover:to-brand-accent/30 font-black uppercase tracking-[0.2em] text-[11px] transition-all hover:scale-[1.02] active:scale-[0.98] flex gap-2 justify-center items-center shadow-[0_0_15px_rgba(59,130,246,0.15)] animate-pulse"
+          >
+            <Sparkles className="h-4 w-4 text-brand-primary" />
+            {isLoading ? "Ingresando..." : "Probar Demostración"}
           </Button>
 
           <div className="pt-6 border-t border-white/5 text-center mt-6">
