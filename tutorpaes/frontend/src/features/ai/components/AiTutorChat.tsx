@@ -32,10 +32,19 @@ export function AiTutorChat(props: AiTutorChatProps) {
   const lastAutoSpokenMessageRef = useRef('');
   const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording, speak, stopSpeaking, isPlaying } = useVoice();
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom inteligente y suave
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const el = scrollRef.current;
+    if (el) {
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+      const isLastMessageUser = messages[messages.length - 1]?.role === 'user';
+      
+      if (isNearBottom || isLastMessageUser) {
+        el.scrollTo({
+          top: el.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
   }, [messages]);
 
