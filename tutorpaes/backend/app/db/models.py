@@ -121,7 +121,7 @@ class Subject(Base):
     __tablename__ = "subjects"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    exam_id: Mapped[int] = mapped_column(ForeignKey("exams.id", ondelete="CASCADE"), index=True)
+    exam_id: Mapped[int] = mapped_column(ForeignKey("exams.id", ondelete="CASCADE"))
     code: Mapped[str] = mapped_column(String(32), index=True)  # ej: "M1", "LENG"
     name: Mapped[str] = mapped_column(String(120))
 
@@ -148,7 +148,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="CASCADE"), index=True)
+    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="CASCADE"))
     code: Mapped[str] = mapped_column(String(32), index=True)  # ej: "ALG", "GEO"
     name: Mapped[str] = mapped_column(String(120))
 
@@ -238,7 +238,7 @@ class UserEntitlement(Base):
     __tablename__ = "user_entitlements"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
     plan: Mapped[str] = mapped_column(EntitlementPlan, default="free", index=True)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -263,7 +263,7 @@ class Question(Base):
     __tablename__ = "questions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), index=True)
+    topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"))
 
     prompt: Mapped[str] = mapped_column(Text)  # Enunciado de la pregunta
     explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Explicación pedagógica
@@ -302,7 +302,7 @@ class QuestionChoice(Base):
     __tablename__ = "question_choices"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    question_id: Mapped[int] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"))
 
     label: Mapped[str] = mapped_column(String(1))  # "A", "B", "C", "D"
     text: Mapped[str] = mapped_column(Text)
@@ -325,7 +325,7 @@ class Attempt(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     exam_id: Mapped[int] = mapped_column(ForeignKey("exams.id", ondelete="RESTRICT"), index=True)
     subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="RESTRICT"), index=True)
     topic_id: Mapped[Optional[int]] = mapped_column(ForeignKey("topics.id", ondelete="SET NULL"), nullable=True)
@@ -357,6 +357,7 @@ class Attempt(Base):
     __table_args__ = (
         Index("ix_attempts_user_status", "user_id", "status"),
         Index("ix_attempts_user_completed", "user_id", "completed_at"),
+        Index("ix_attempts_topic_id", "topic_id"),
         # Partial unique index: solo un intento in_progress por usuario/exam/subject/topic.
         # Previene la race condition de crear dos attempts simultáneos.
         # NOTA: Requiere migración de Alembic para aplicarse en la DB.
@@ -375,7 +376,7 @@ class AttemptFeedback(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id", ondelete="CASCADE"), index=True)
+    attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id", ondelete="CASCADE"))
     question_id: Mapped[int] = mapped_column(ForeignKey("questions.id", ondelete="RESTRICT"), index=True)
 
     # Alternativa elegida (si fue MCQ)
@@ -415,7 +416,7 @@ class ChatMessage(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id", ondelete="CASCADE"), index=True)
+    attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id", ondelete="CASCADE"))
 
     role: Mapped[str] = mapped_column(ChatRole)  # "user" o "assistant"
     content: Mapped[str] = mapped_column(Text)
@@ -439,9 +440,9 @@ class AIUsageLog(Base):
     __tablename__ = "ai_usage_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
-    action_type: Mapped[str] = mapped_column(AIActionType, index=True)  # explanation, hint, chat, feedback
+    action_type: Mapped[str] = mapped_column(AIActionType)  # explanation, hint, chat, feedback
     model: Mapped[str] = mapped_column(String(64))  # ej: "gpt-4o-mini", "gpt-4"
     
     # Métricas de OpenAI
@@ -471,16 +472,14 @@ class QuestionExplanation(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     question_id: Mapped[int] = mapped_column(
         ForeignKey("questions.id", ondelete="CASCADE"),
-        index=True,
     )
-    wrong_option: Mapped[str] = mapped_column(String(1), index=True)
+    wrong_option: Mapped[str] = mapped_column(String(1))
     explanation_text: Mapped[str] = mapped_column(Text)
     times_used: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         UniqueConstraint("question_id", "wrong_option", name="uq_explanation_question_option"),
-        Index("ix_explanations_question_option", "question_id", "wrong_option"),
     )
 
 
@@ -493,7 +492,7 @@ class StudySession(Base):
     __tablename__ = "study_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
     source: Mapped[str] = mapped_column(SessionSource, default="pwa", index=True)
 
@@ -518,7 +517,7 @@ class UserProgress(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), index=True)
 
     # Métricas acumuladas
@@ -554,7 +553,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
     # Transbank identifiers
     buy_order: Mapped[str] = mapped_column(String(255), unique=True, index=True)  # ID único de orden
