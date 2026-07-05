@@ -200,8 +200,8 @@ class User(Base):
     target_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Puntaje PAES objetivo
     
     # Roles y estado
-    role: Mapped[str] = mapped_column(String(32), default="student", index=True)  # student, teacher, admin
-    is_premium: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    role: Mapped[str] = mapped_column(String(32), default="student")  # student, teacher, admin
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
@@ -271,7 +271,7 @@ class Question(Base):
     image_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)  # URL a gráfico/imagen
     
     # 1=fácil, 2=medio, 3=difícil
-    difficulty: Mapped[int] = mapped_column(SmallInteger, default=1, index=True)
+    difficulty: Mapped[int] = mapped_column(SmallInteger, default=1)
     
     # "mcq" (multiple choice), "open_text", etc.
     question_type: Mapped[str] = mapped_column(String(32), default="mcq", index=True)
