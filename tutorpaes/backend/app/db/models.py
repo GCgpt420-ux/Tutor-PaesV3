@@ -225,6 +225,8 @@ class User(Base):
     invoices: Mapped[List["Invoice"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     chat_messages: Mapped[List["ChatMessage"]] = relationship(back_populates="user")
     ai_usage_logs: Mapped[List["AIUsageLog"]] = relationship(back_populates="user")
+    courses_taught: Mapped[List["Course"]] = relationship(back_populates="teacher")
+    enrollments: Mapped[List["CourseEnrollment"]] = relationship(back_populates="student")
 
     __table_args__ = (
         Index("ix_users_email_active", "email", "is_active"),
@@ -417,6 +419,7 @@ class ChatMessage(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id", ondelete="CASCADE"))
+    question_id: Mapped[Optional[int]] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"), nullable=True, index=True)
 
     role: Mapped[str] = mapped_column(ChatRole)  # "user" o "assistant"
     content: Mapped[str] = mapped_column(Text)
@@ -426,6 +429,7 @@ class ChatMessage(Base):
     # Relaciones
     user: Mapped["User"] = relationship(back_populates="chat_messages")
     attempt: Mapped["Attempt"] = relationship(back_populates="chat_messages")
+    question: Mapped[Optional["Question"]] = relationship()
 
     __table_args__ = (
         Index("ix_chat_attempt_created", "attempt_id", "created_at"),
@@ -659,4 +663,35 @@ class RevokedToken(Base):
 
     __table_args__ = (
         Index("ix_revoked_tokens_expires", "expires_at"),
+    )
+
+
+class Course(Base):
+    __tablename__ = "courses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    teacher_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    teacher: Mapped["User"] = relationship(back_populates="courses_taught")
+    enrollments: Mapped[List["CourseEnrollment"]] = relationship(back_populates="course", cascade="all, delete-orphan")
+
+
+class CourseEnrollment(Base):
+    __tablename__ = "course_enrollments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    course_id: Mapped[int] = mapped_column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    student_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    enrolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    course: Mapped["Course"] = relationship(back_populates="enrollments")
+    student: Mapped["User"] = relationship(back_populates="enrollments")
+
+    __table_args__ = (
+        Index("ix_course_enrollments_student", "student_id"),
+        Index("ix_course_enrollments_course_student", "course_id", "student_id", unique=True),
     )
