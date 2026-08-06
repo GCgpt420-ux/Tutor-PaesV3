@@ -10,7 +10,8 @@ import {
   Loader, 
   Sparkles, 
   MessageCircle,
-  X
+  X,
+  Database,
 } from 'lucide-react';
 import { apiFetch } from '@/src/lib/api/client';
 import { saveUserAnswer } from '@/src/features/exams/api/exams';
@@ -102,9 +103,14 @@ export default function QuizPage() {
   const aiTutor = useAiTutor();
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastHintQuestionIdRef = useRef<number | null>(null);
 
   const [totalQuestions, setTotalQuestions] = useState(15);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  // Pilar 3: toast de persistencia
+  const [showPersistenceToast, setShowPersistenceToast] = useState(false);
+  const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quiz, setQuiz] = useState<QuizState>({
     question: null,
     selectedChoice: null,
@@ -132,6 +138,7 @@ export default function QuizPage() {
         ...prev,
         loading: true,
         error: null,
+        question: null,
         selectedChoice: null,
         submitted: false,
         isCorrect: null,
@@ -177,9 +184,32 @@ export default function QuizPage() {
     if (subject_code && topic_code) loadNextQuestion();
   }, [subject_code, topic_code, loadNextQuestion]);
 
+  // Cargar pista inicial de forma proactiva y segura al cambiar de pregunta
+  useEffect(() => {
+    if (!quiz.question || quiz.submitted) return;
+    
+    const qId = quiz.question.question_id;
+    if (lastHintQuestionIdRef.current === qId) return;
+    
+    lastHintQuestionIdRef.current = qId;
+    
+    apiFetch<{ hint: string }>('/ai/hint', {
+      method: 'POST',
+      body: JSON.stringify({ question_id: qId }),
+    }).then((hintRes) => {
+      if (hintRes && hintRes.hint) {
+        const friendlyHint = `**Pista inicial de Tuto:**\n${hintRes.hint}`;
+        aiTutor.addAssistantMessage(friendlyHint);
+      }
+    }).catch((err) => {
+      console.error('Error fetching proactive hint:', err);
+    });
+  }, [quiz.question, quiz.submitted, aiTutor]);
+
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -218,7 +248,7 @@ export default function QuizPage() {
     if (quiz.selectedChoice === null || !quiz.question) return;
 
     try {
-      setQuiz((prev) => ({ ...prev, loading: true }));
+      setQuiz((prev) => ({ ...prev, loading: true, error: null }));
       aiTutor.setExternalLoading(true); // Mostrar estado "Analizando" en IA
 
       const response = await saveUserAnswer({
@@ -232,14 +262,22 @@ export default function QuizPage() {
       const tutorFeedback = typeof response.feedback_text === 'string' && response.feedback_text.trim().length > 0
         ? response.feedback_text.trim()
         : isCorrect
-          ? 'Bien. ¿Qué pista del enunciado te confirmó tu respuesta?'
-          : 'Probemos otra estrategia. ¿Qué dato clave del enunciado estás usando?';
+          ? '¿Qué dato clave del enunciado te confirmó tu respuesta?'
+          : 'Interesante elección. ¿Puedes explicarme en una oración cómo llegaste a esa respuesta?';
 
       // --- DISPARADOR PROACTIVO DE LA IA ---
       timeoutRef.current = setTimeout(() => {
         aiTutor.setExternalLoading(false);
         aiTutor.addAssistantMessage(tutorFeedback);
       }, 800);
+
+      // Pilar 3: mostrar toast de persistencia
+      if (response.attempt_id) {
+        setLastAttemptId(response.attempt_id);
+        setShowPersistenceToast(true);
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => setShowPersistenceToast(false), 4000);
+      }
 
       setQuiz((prev) => ({
         ...prev,
@@ -259,8 +297,28 @@ export default function QuizPage() {
     }
   };
 
+  // Pilar 3: Componente Toast inline de persistencia
+  const PersistenceToast = () => (
+    showPersistenceToast ? (
+      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-zinc-900 border border-green-500/40 rounded-2xl px-4 py-3 shadow-2xl shadow-green-500/10 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="h-8 w-8 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
+          <Database className="h-4 w-4 text-green-400" />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-zinc-50 flex items-center gap-1.5">
+            <CheckCircle className="h-3 w-3 text-green-400" />
+            Guardado en PostgreSQL
+          </p>
+          <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+            attempt_id: {lastAttemptId} · user_progress ✓
+          </p>
+        </div>
+      </div>
+    ) : null
+  );
+
   // PANTALLAS DE ESTADO
-  if (quiz.error && !quiz.loading) {
+  if (quiz.error && !quiz.loading && !quiz.question) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-surface p-6 text-center">
         <div className="p-5 rounded-full bg-red-500/10">
@@ -280,7 +338,7 @@ export default function QuizPage() {
     );
   }
 
-  if (quiz.loading && !quiz.question && quiz.questionsAnswered === 0) {
+  if (quiz.loading && !quiz.question) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-surface">
         <Loader className="h-8 w-8 text-brand-primary animate-spin" />
@@ -359,7 +417,7 @@ export default function QuizPage() {
                 return (
                   <button
                     key={choice.id}
-                    onClick={() => !quiz.submitted && setQuiz(p => ({ ...p, selectedChoice: choice.id }))}
+                    onClick={() => !quiz.submitted && setQuiz(p => ({ ...p, selectedChoice: choice.id, error: null }))}
                     disabled={quiz.submitted}
                     className={`
                       group relative flex items-center p-4 md:p-5 rounded-2xl border transition-all duration-200 text-left outline-none
@@ -390,6 +448,18 @@ export default function QuizPage() {
         {/* Action Bar Floating (Absoluto respecto al contenedor central) */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-full md:max-w-xl z-30 pointer-events-none">
             <div className="pointer-events-auto shadow-[0_-30px_50px_rgba(4,9,20,0.8)] backdrop-blur-md rounded-2xl p-2 bg-[#0B1220]/50">
+              {quiz.error && (
+                <div className="mb-2 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="flex-1">{quiz.error}</span>
+                  <button 
+                    onClick={() => setQuiz(p => ({ ...p, error: null }))}
+                    className="p-1 hover:bg-white/5 rounded-md"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
               {!quiz.submitted ? (
                   <button 
                     onClick={handleSubmitAnswer}
@@ -449,6 +519,7 @@ export default function QuizPage() {
             />
         </div>
       </aside>
+      <PersistenceToast />
     </div>
   );
 }

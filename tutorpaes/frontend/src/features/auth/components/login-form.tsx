@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Eye, EyeOff, Lock, Mail, Server, Sparkles } from "lucide-react";
+import { clearCurrentUserCache } from "@/src/lib/auth/current-user";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ export function LoginForm() {
     setError(null);
 
     try {
+      clearCurrentUserCache();
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -65,6 +67,7 @@ export function LoginForm() {
     }
 
     try {
+      clearCurrentUserCache();
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {

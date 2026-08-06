@@ -17,8 +17,10 @@ import {
   TerminalSquare
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/src/lib/api/client';
 import { getCurrentUser } from '@/src/lib/auth/current-user';
+import { StartDiagnosticButton } from '@/src/features/exams/components/start-diagnostic-button';
 
 interface AttemptData {
   id: string;
@@ -88,6 +90,7 @@ interface ExamAttemptResponse {
 }
 
 export default function MiProgresoPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [attempts, setAttempts] = useState<AttemptData[]>([]);
   const [topicStats, setTopicStats] = useState<TopicData[]>([]);
@@ -101,6 +104,12 @@ export default function MiProgresoPage() {
         const user = await getCurrentUser();
         if (!user?.user_id) {
           setError('Conexión rehusada: Usuario no encontrado.');
+          return;
+        }
+
+        const userRole = user.role || 'student';
+        if (userRole === 'teacher' || userRole === 'admin') {
+          router.replace('/protected/cursos');
           return;
         }
 
@@ -202,7 +211,7 @@ export default function MiProgresoPage() {
       }
     };
     loadData();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -232,19 +241,17 @@ export default function MiProgresoPage() {
           <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-2">
             Métricas de <br className="md:hidden" /> Operación
           </h1>
-          <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">Base de datos sin registros. Requiere inicialización.</p>
+          <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">Cuenta nueva registrada. Se requiere calibración.</p>
         </header>
 
         <div className="border border-dashed border-white/20 bg-black/30 p-16 text-center">
-          <TerminalSquare className="mx-auto mb-6 h-12 w-12 text-zinc-700" />
-          <p className="mb-2 text-xl font-black uppercase tracking-tighter text-white">DATOS INSUFICIENTES</p>
-          <p className="mb-8 text-sm text-zinc-500 font-mono">Ejecute su primer simulador para poblar la telemetría.</p>
-          <Link
-            href="/protected/ensayos"
-            className="inline-flex items-center gap-2 bg-white px-8 py-3 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-colors"
-          >
-            IR AL SIMULADOR <ChevronRight className="h-4 w-4" />
-          </Link>
+          <TerminalSquare className="mx-auto mb-6 h-12 w-12 text-brand-primary animate-pulse" />
+          <p className="mb-2 text-xl font-black uppercase tracking-tighter text-white">DIAGNÓSTICO INICIAL REQUERIDO</p>
+          <p className="mb-8 text-sm text-zinc-500 font-mono max-w-lg mx-auto">
+            Para que nuestro motor de IA pueda guiarte efectivamente, necesitamos realizar una calibración rápida. Tomará menos de 10 minutos.
+          </p>
+          
+          <StartDiagnosticButton />
         </div>
       </div>
     );

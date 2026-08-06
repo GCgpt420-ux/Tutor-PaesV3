@@ -61,7 +61,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
     if (content === lastAutoSpokenMessageRef.current) return;
     lastAutoSpokenMessageRef.current = content;
 
-    void speak(content);
+    void speak(content, true);
   }, [messages, loading, speak]);
 
   const handleSend = async (textToSend?: string) => {
@@ -152,7 +152,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
                          lastAutoSpokenMessageRef.current = '';
                       } else {
                          lastAutoSpokenMessageRef.current = typeof m.content === 'string' ? m.content : '';
-                         speak(m.content);
+                         speak(m.content, true);
                       }
                     }}
                     className="self-end p-1 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-brand-primary"
@@ -184,8 +184,9 @@ export function AiTutorChat(props: AiTutorChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={isRecording ? "Escuchando..." : "Pregunta algo sobre matemáticas..."}
-            className={`w-full bg-zinc-900/50 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all font-medium ${isRecording ? 'border-brand-primary ring-1 ring-brand-primary/30' : ''}`}
+            placeholder={isVoiceProcessing ? "Procesando voz..." : isRecording ? "Escuchando..." : "Pregunta algo sobre matemáticas..."}
+            disabled={isVoiceProcessing}
+            className={`w-full bg-zinc-900/50 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all font-medium ${isRecording ? 'border-brand-primary ring-1 ring-brand-primary/30' : ''} ${isVoiceProcessing ? 'opacity-70 cursor-wait border-brand-primary/30' : ''}`}
           />
           <button
             onClick={toggleRecording}

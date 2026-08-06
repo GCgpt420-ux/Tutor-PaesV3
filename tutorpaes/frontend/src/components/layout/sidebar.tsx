@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ClipboardList, BookOpen, User, Shield, TrendingUp, Sparkles, LogOut, HelpCircle } from "lucide-react";
-import { getCurrentUser } from '@/src/lib/auth/current-user';
+import { getCurrentUser, clearCurrentUserCache } from '@/src/lib/auth/current-user';
 
 type UserMe = {
   user_id: number;
@@ -119,6 +119,7 @@ export function DashboardSidebar() {
             type="button"
             onClick={async () => {
               try {
+                clearCurrentUserCache();
                 await fetch('/api/auth/logout', { method: 'POST' });
                 window.location.href = '/auth/login';
               } catch (error) {

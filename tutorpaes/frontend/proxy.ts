@@ -25,6 +25,7 @@ function buildCsp() {
     "base-uri 'self'",
     "frame-ancestors 'none'",
     "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
     scriptSrcString,

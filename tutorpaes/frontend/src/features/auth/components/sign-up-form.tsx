@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Eye, EyeOff, Lock, Mail, User, ShieldAlert } from "lucide-react";
+import { clearCurrentUserCache } from "@/src/lib/auth/current-user";
 
 function validatePassword(password: string): string | null {
   if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
@@ -48,6 +49,7 @@ export function SignUpForm() {
     }
 
     try {
+      clearCurrentUserCache();
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
