@@ -66,6 +66,7 @@ export function useVoice() {
           setIsPlaying(false);
           resolve(false);
         };
+        setIsPlaying(true);
         window.speechSynthesis.speak(utterance);
       } catch {
         setIsPlaying(false);
@@ -78,7 +79,20 @@ export function useVoice() {
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      
+      // Determinar el mejor mimeType soportado por el navegador
+      let options = {};
+      if (typeof MediaRecorder !== 'undefined') {
+        const mimeTypes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/aac'];
+        for (const type of mimeTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            options = { mimeType: type };
+            break;
+          }
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -105,21 +119,26 @@ export function useVoice() {
       }
 
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         setIsRecording(false);
         setIsProcessing(true);
 
         try {
-          // Nota: El backend espera un archivo multipart/form-data.
-          // Como apiFetch está optimizado para JSON, usamos fetch directo para multipart
-          // o creamos un helper si es necesario.
+          // Mapear el mimeType a la extensión correspondiente para el backend
+          let extension = 'webm';
+          if (mimeType.includes('mp4')) extension = 'mp4';
+          else if (mimeType.includes('ogg')) extension = 'ogg';
+          else if (mimeType.includes('wav')) extension = 'wav';
+          else if (mimeType.includes('aac')) extension = 'aac';
+          else if (mimeType.includes('mpeg')) extension = 'mp3';
+
           const formData = new FormData();
-          formData.append('file', audioBlob, 'recording.webm');
+          formData.append('file', audioBlob, `recording.${extension}`);
 
           const response = await fetch('/api/backend/voice/transcribe', {
             method: 'POST',
             body: formData,
-            // Las cookies de sesión se envían automáticamente por el navegador
           });
 
           if (!response.ok) {
@@ -128,6 +147,7 @@ export function useVoice() {
               extractApiErrorMessage(errPayload) ||
               `Error en transcripción (HTTP ${response.status})`;
             console.warn('STT unavailable:', message, errPayload ?? {});
+            alert(`No se pudo procesar tu voz: ${message}`);
             resolve(null);
             return;
           }
@@ -136,6 +156,7 @@ export function useVoice() {
           resolve(data.text || '');
         } catch (err) {
           console.error('STT Error:', err);
+          alert('Hubo un problema de conexión al procesar el audio de tu micrófono.');
           resolve(null);
         } finally {
           setIsProcessing(false);
@@ -148,44 +169,57 @@ export function useVoice() {
     });
   }, []);
 
-  // TEXT TO SPEECH
-  const speak = useCallback(async (text: string) => {
+  // Helper: limpia markdown para que la voz suene natural
+  const cleanTextForSpeech = useCallback((raw: string): string => {
+    return raw
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\n{2,}/g, '. ')
+      .replace(/\n/g, ' ')
+      .trim();
+  }, []);
+
+  // TEXT TO SPEECH — Web Speech API primero (0ms latencia), backend como fallback de calidad
+  const speak = useCallback(async (text: string, forceBackend: boolean = false) => {
     if (typeof text !== 'string' || !text.trim()) return;
 
+    const cleanText = cleanTextForSpeech(text);
+
+    // ── Intento 1: Web Speech API nativa (instantánea) ──────────────
+    if (!forceBackend && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const nativeOk = await speakWithBrowserFallback(cleanText);
+      if (nativeOk) return;
+    }
+
+    // ── Intento 2: Backend TTS (ElevenLabs / OpenAI) ────────────────
     try {
       setIsPlaying(true);
       const response = await fetch('/api/backend/voice/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: cleanText }),
       });
 
       if (!response.ok) {
         const errPayload = await response.json().catch(() => null);
-        const message =
+        throw new Error(
           extractApiErrorMessage(errPayload) ||
-          `Error en TTS (HTTP ${response.status})`;
-        throw new Error(message);
+          `Error en TTS (HTTP ${response.status})`
+        );
       }
 
       const contentType = response.headers.get('content-type') || '';
       if (!contentType.toLowerCase().includes('audio/')) {
-        const fallbackBody = await response.text().catch(() => '');
-        throw new Error(
-          `TTS devolvio un formato no reproducible (${contentType || 'sin content-type'}). ${fallbackBody.slice(0, 120)}`
-        );
+        throw new Error(`TTS devolvio formato no reproducible (${contentType})`);
       }
 
       const audioBlob = await response.blob();
-      if (audioBlob.size === 0) {
-        throw new Error('TTS devolvio audio vacio.');
-      }
+      if (audioBlob.size === 0) throw new Error('TTS devolvio audio vacio.');
 
       const audioUrl = URL.createObjectURL(audioBlob);
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
@@ -193,24 +227,16 @@ export function useVoice() {
 
       await new Promise<void>((resolve, reject) => {
         audio.oncanplaythrough = () => resolve();
-        audio.onerror = () => reject(new Error('No se pudo decodificar el audio TTS en el navegador.'));
+        audio.onerror = () => reject(new Error('Error decodificando audio TTS.'));
       });
-      
-      audio.onended = () => {
-        setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
-      };
 
+      audio.onended = () => { setIsPlaying(false); URL.revokeObjectURL(audioUrl); };
       await audio.play();
     } catch (err) {
-      console.warn('TTS provider unavailable, using browser fallback:', err);
-      const fallbackOk = await speakWithBrowserFallback(text);
-      if (!fallbackOk) {
-        console.warn('Browser TTS fallback also failed.');
-        setIsPlaying(false);
-      }
+      console.warn('Backend TTS también falló:', err);
+      setIsPlaying(false);
     }
-  }, [speakWithBrowserFallback]);
+  }, [speakWithBrowserFallback, cleanTextForSpeech]);
 
   const stopSpeaking = useCallback(() => {
     if (audioRef.current) {
