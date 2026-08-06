@@ -16,6 +16,7 @@ def test_login_success(client):
         name="Student",
         is_admin=False,
         is_active=True,
+        role="student",
         hashed_password=hashed_password,
     )
 

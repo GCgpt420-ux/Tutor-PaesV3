@@ -28,9 +28,9 @@ def clear_dependency_overrides():
 
 @pytest.fixture
 def test_user():
-    return SimpleNamespace(id=1, email="test@example.com", name="Test User", is_admin=False, is_active=True)
+    return SimpleNamespace(id=1, email="test@example.com", name="Test User", is_admin=False, is_active=True, role="student")
 
 
 @pytest.fixture
 def other_user():
-    return SimpleNamespace(id=2, email="other@example.com", name="Other User", is_admin=False, is_active=True)
+    return SimpleNamespace(id=2, email="other@example.com", name="Other User", is_admin=False, is_active=True, role="student")

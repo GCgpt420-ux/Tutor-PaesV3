@@ -61,6 +61,7 @@ class AuthTokenOut(BaseModel):
     email: str
     name: str
     is_admin: bool
+    role: str = "student"
 
 
 class UserMeOut(BaseModel):
@@ -68,6 +69,7 @@ class UserMeOut(BaseModel):
     email: str
     name: str
     is_admin: bool
+    role: str = "student"
     age: Optional[int] = None
     academic_level: Optional[str] = None
     target_university: Optional[str] = None

@@ -19,6 +19,7 @@ def test_protected_route_with_valid_token(client):
         name="Student",
         is_admin=False,
         is_active=True,
+        role="student",
         age=None,
         academic_level=None,
         target_university=None,

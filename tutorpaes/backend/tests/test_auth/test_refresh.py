@@ -12,7 +12,7 @@ from app.db.models import RevokedToken
 def test_refresh_token_valid(client):
     from app.main import app
 
-    user = SimpleNamespace(id=10, email="student@example.com", name="Student", is_admin=False, is_active=True)
+    user = SimpleNamespace(id=10, email="student@example.com", name="Student", is_admin=False, is_active=True, role="student")
 
     class FakeDB:
         def scalar(self, query):

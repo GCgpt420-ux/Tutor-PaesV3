@@ -84,7 +84,8 @@ def register(request: Request, payload: UserRegisterIn, db: Session = Depends(ge
         "user_id": new_user.id,
         "email": new_user.email,
         "name": new_user.name,
-        "is_admin": new_user.is_admin
+        "is_admin": new_user.is_admin,
+        "role": new_user.role,
     }
 
 
@@ -126,7 +127,8 @@ def login(request: Request, payload: UserLoginIn, db: Session = Depends(get_db))
         "user_id": user.id,
         "email": user.email,
         "name": user.name,
-        "is_admin": user.is_admin
+        "is_admin": user.is_admin,
+        "role": user.role,
     }
 
 
@@ -177,6 +179,7 @@ def refresh_session(
         "email": user.email,
         "name": user.name,
         "is_admin": user.is_admin,
+        "role": user.role,
     }
 
 
@@ -224,6 +227,7 @@ def me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "name": current_user.name,
         "is_admin": current_user.is_admin,
+        "role": current_user.role,
         "age": current_user.age,
         "academic_level": current_user.academic_level,
         "target_university": current_user.target_university,
@@ -270,6 +274,7 @@ def update_me(
         "email": current_user.email,
         "name": current_user.name,
         "is_admin": current_user.is_admin,
+        "role": current_user.role,
         "age": current_user.age,
         "academic_level": current_user.academic_level,
         "target_university": current_user.target_university,

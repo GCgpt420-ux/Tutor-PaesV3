@@ -27,6 +27,8 @@ def test_register_accepts_strong_password_with_8_chars(client):
             _obj.id = 123
             if getattr(_obj, "is_admin", None) is None:
                 _obj.is_admin = False
+            if getattr(_obj, "role", None) is None:
+                _obj.role = "student"
             return None
 
         def commit(self):
