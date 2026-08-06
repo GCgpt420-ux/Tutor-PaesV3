@@ -39,7 +39,7 @@ def test_run_pedagogical_loop_stream_passes_history_and_question_context(monkeyp
 
     monkeypatch.setattr(chatbot_service, "_get_user_overall_level", lambda _user, _db: ("intermedio", None))
     monkeypatch.setattr(chatbot_service, "_get_user_weak_topics", lambda _user, _db: ["BIO"])
-    monkeypatch.setattr(chatbot_service, "_load_chat_history", lambda _db, _user_id, _attempt_id: history)
+    monkeypatch.setattr(chatbot_service, "_load_chat_history", lambda _db, _user_id, _attempt_id, question_id=None: history)
     monkeypatch.setattr(chatbot_service, "_load_attempt_context", lambda _db, _attempt_id, _explicit_context=None: exercise_context)
 
     def fake_stream_llm_response(**kwargs):

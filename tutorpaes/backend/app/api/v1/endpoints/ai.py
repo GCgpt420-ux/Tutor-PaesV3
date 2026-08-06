@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
@@ -8,27 +7,13 @@ from app.db.session import get_db
 from app.db.models import AttemptFeedback, Attempt, Question, QuestionChoice, User
 from app.services.ai_service import generate_feedback
 from app.schemas.quiz import AIFeedbackOut
+from app.schemas.ai import AIExplainIn, AIExplainOut
 from app.core.auth import get_current_user
 from app.services.openai_service import generate_llm_explanation, generate_llm_hint, generate_llm_explanation_stream
 from app.services.ai_service import _get_user_overall_level
 from app.core.rate_limiter import limiter
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-
-
-# -----------------------------------------------------------------------
-# PYDANTIC MODELS
-# -----------------------------------------------------------------------
-
-class AIExplainIn(BaseModel):
-    question_id: int
-
-
-class AIExplainOut(BaseModel):
-    explanation: str
-    question_content: str
-    correct_answer: str
-    metadata: dict
 
 
 # -----------------------------------------------------------------------
@@ -124,6 +109,33 @@ def explain_question(
             "hint": hint_result.get("hint", ""),
         }
     }
+
+
+@router.post("/hint")
+@limiter.limit("30/minute")
+def get_question_hint(
+    request: Request,
+    payload: AIExplainIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Genera un hint de IA específico para la pregunta antes de responder.
+    """
+    question = db.scalar(
+        select(Question).where(Question.id == payload.question_id)
+    )
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+        
+    user_level = "intermedio"
+    try:
+        user_level, _ = _get_user_overall_level(user, db)
+    except Exception:
+        user_level = "intermedio"
+        
+    hint_result = generate_llm_hint(question, user_level=user_level)
+    return {"hint": hint_result.get("hint", "")}
 
 
 @router.post("/explain/stream")

@@ -31,15 +31,17 @@ def _get_openai_client():
     if _client is None:
         try:
             from openai import OpenAI
+            timeout = getattr(settings, "OPENAI_TIMEOUT_SECONDS", getattr(settings, "LLM_TIMEOUT_SECONDS", 25.0))
+            max_retries = getattr(settings, "OPENAI_MAX_RETRIES", getattr(settings, "LLM_MAX_RETRIES", 1))
             _client = OpenAI(
                 api_key=settings.OPENAI_API_KEY,
-                timeout=settings.OPENAI_TIMEOUT_SECONDS,
-                max_retries=settings.OPENAI_MAX_RETRIES,
+                timeout=timeout,
+                max_retries=max_retries,
             )
             logger.info(
                 " Cliente OpenAI inicializado correctamente (timeout=%ss, retries=%s)",
-                settings.OPENAI_TIMEOUT_SECONDS,
-                settings.OPENAI_MAX_RETRIES,
+                timeout,
+                max_retries,
             )
         except ImportError:
             logger.error(" openai library no está instalada. Instala con: pip install openai")

@@ -225,47 +225,47 @@ def generate_feedback_phase1(feedback: AttemptFeedback, db: Session, user: Optio
         return {"explanation": "No se pudo generar feedback.", "source": "rule_based_phase1"}
     
     if feedback.is_correct:
-        # Feedback positivo variado + personalización
-        responses = {
-            'principiante': [
-                " ¡Excelente! Respuesta correcta. Vas mejorando.",
-                " ¡Correcto! Así se aprende paso a paso.",
-                " ¡Perfecto! Sigue practicando, vas bien.",
-            ],
-            'intermedio': [
-                " ¡Muy bien! Demostraste dominar este concepto.",
-                " ¡Excelente! Tu comprensión va en aumento.",
-                " ¡Correcto! Mantén este ritmo de aprendizaje.",
-            ],
-            'avanzado': [
-                " ¡Perfecto! Excelente precisión.",
-                " ¡Súper! Dominas este contenido completamente.",
-                " ¡Exacto! Un acierto más en tu camino.",
-            ]
-        }
-        
+        # Feedback positivo CON pregunta socrática de seguimiento
         user_level = 'principiante'
         if user:
             try:
                 user_level, _ = _get_user_overall_level(user, db)
             except:
                 user_level = 'principiante'
-        
-        level_responses = responses.get(user_level, responses['principiante'])
+
+        socratic_followups = {
+            'principiante': [
+                "Exacto. Ahora dime: ¿por qué descartaste las otras alternativas?",
+                "Correcto. ¿Puedes explicar con tus palabras por qué esta respuesta es la que es?",
+                "Bien. ¿Qué dato clave del enunciado te confirmó tu respuesta?",
+            ],
+            'intermedio': [
+                "Exacto. ¿Qué otro enfoque podría haber funcionado para llegar a la misma respuesta?",
+                "Eso. ¿Puedes conectar este concepto con algún otro tema que hayas visto?",
+                "Bien pensado. ¿Qué pasaría si cambias uno de los datos del enunciado?",
+            ],
+            'avanzado': [
+                "Justo. ¿Cuál es el caso borde donde este método podría fallar?",
+                "Eso. ¿Puedes generalizar esta solución para cualquier valor del parámetro?",
+                "Exacto. ¿Cómo demostrarías que no existe otra respuesta posible?",
+            ]
+        }
+
+        level_responses = socratic_followups.get(user_level, socratic_followups['principiante'])
         msg = level_responses[feedback.id % len(level_responses)]
-        
+
         return {
             "explanation": msg,
             "is_correct": True,
             "source": "rule_based_phase1",
             "user_level": user_level
         }
-    
+
     else:
-        # Feedback negativo con hint PERSONALIZADO
+        # Feedback incorrecto CON pregunta socrática (NO revelar la respuesta aún)
         weak_topics = []
         user_level = 'principiante'
-        
+
         if user:
             try:
                 weak_topics = _get_user_weak_topics(user, db, threshold=0.6)
@@ -273,11 +273,23 @@ def generate_feedback_phase1(feedback: AttemptFeedback, db: Session, user: Optio
             except:
                 weak_topics = []
                 user_level = 'principiante'
-        
-        hint = _build_personalized_hint(question, user, user_level, weak_topics, db)
-        
+
+        topic_code = question.topic.code if question.topic else 'default'
+
+        # Pregunta diagnóstica por materia — no revela la respuesta
+        socratic_diagnostics = {
+            'ALG':    "Antes de explicarte, cuéntame: ¿qué operación algebraica aplicaste primero?",
+            'GEO':    "¿Qué figura o propiedad geométrica intentaste usar para resolver esto?",
+            'LECT':   "¿Cuál fue la idea del texto en la que te basaste para elegir esa opción?",
+            'CIEN':   "¿Qué proceso o principio científico consideraste al responder?",
+            'HIST':   "¿Qué contexto histórico tomaste en cuenta al elegir esa alternativa?",
+            'default': "Interesante elección. ¿Puedes explicarme en una oración cómo llegaste a esa respuesta?",
+        }
+
+        diagnostic_q = socratic_diagnostics.get(topic_code, socratic_diagnostics['default'])
+
         return {
-            "explanation": f"Respuesta incorrecta. {hint}\n\nRespuesta correcta: {correct_choice.label}. {correct_choice.text}",
+            "explanation": f"Esa no es la respuesta correcta. {diagnostic_q}",
             "is_correct": False,
             "correct_choice_id": correct_choice.id,
             "correct_choice_label": correct_choice.label,
@@ -306,6 +318,10 @@ def generate_feedback(
     """
     # Si la respuesta es correcta, usar feedback positivo personalizado (sempre rápido)
     if feedback.is_correct:
+        return generate_feedback_phase1(feedback, db, user=user)
+
+    # Si no se permite LLM, retornar la pregunta socrática rápida sin revelar la respuesta
+    if not allow_llm:
         return generate_feedback_phase1(feedback, db, user=user)
 
     # Para respuestas incorrectas, intentar LLM primero

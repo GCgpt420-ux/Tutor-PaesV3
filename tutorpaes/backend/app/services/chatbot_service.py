@@ -1,6 +1,7 @@
 import logging
 import json
 from typing import List, Optional, Dict, Any, Generator
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import aliased
 from app.core.config import settings
@@ -93,10 +94,22 @@ HISTORIA Y CIENCIAS SOCIALES:
 """
 
 
-def _load_chat_history(db: Session, user_id: int, attempt_id: Optional[int], limit: int = 10) -> list[ChatMessage]:
-    query = db.query(ChatMessage).filter(ChatMessage.user_id == user_id)
-    if attempt_id is not None:
-        query = query.filter(ChatMessage.attempt_id == attempt_id)
+def _load_chat_history(
+    db: Session,
+    user_id: int,
+    attempt_id: Optional[int],
+    question_id: Optional[int] = None,
+    limit: int = 10,
+) -> list[ChatMessage]:
+    if attempt_id is None:
+        return []
+
+    query = db.query(ChatMessage).filter(
+        ChatMessage.user_id == user_id,
+        ChatMessage.attempt_id == attempt_id
+    )
+    if question_id is not None:
+        query = query.filter(ChatMessage.question_id == question_id)
 
     history = query.order_by(ChatMessage.created_at.desc()).limit(limit).all()
     history.reverse()
@@ -472,10 +485,13 @@ def run_pedagogical_loop_stream(
 
     target_score = user.target_score or "No definido"
     
-    # 1. Recuperar historial reciente (últimos 10 mensajes) ANTES de añadir el nuevo
-    # para que el mensaje del usuario sea el último.
+    q_id = None
+    if question_context:
+        q_id = question_context.get("question_id")
+
+    # 1. Recuperar historial reciente (últimos 10 mensajes) del intento Y PREGUNTA ACTUAL
     try:
-        history = _load_chat_history(db, user.id, attempt_id)
+        history = _load_chat_history(db, user.id, attempt_id, question_id=q_id)
     except Exception as exc:
         logger.warning("No se pudo cargar historial de chat, continuando sin historial: %s", str(exc))
         history = []
@@ -485,6 +501,7 @@ def run_pedagogical_loop_stream(
         new_msg = ChatMessage(
             user_id=user.id,
             attempt_id=attempt_id,
+            question_id=q_id,
             role="user",
             content=user_message
         )
@@ -539,6 +556,7 @@ def run_pedagogical_loop_stream(
             assistant_msg = ChatMessage(
                 user_id=user.id,
                 attempt_id=attempt_id,
+                question_id=q_id,
                 role="assistant",
                 content=full_content
             )
