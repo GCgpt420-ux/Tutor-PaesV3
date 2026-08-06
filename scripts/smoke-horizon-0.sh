@@ -9,7 +9,7 @@ set -euo pipefail
 # 4) Conversacion con IA (SSE)
 # 5) Inicio de Pago
 
-BACKEND_BASE="${BACKEND_BASE:-http://127.0.0.1:8000}"
+BACKEND_BASE="${BACKEND_BASE:-http://127.0.0.1:8001}"
 FRONTEND_BASE="${FRONTEND_BASE:-http://127.0.0.1:3000}"
 DEMO_EMAIL="${DEMO_EMAIL:-demo@example.com}"
 DEMO_PASSWORD="${DEMO_PASSWORD:-demo123}"

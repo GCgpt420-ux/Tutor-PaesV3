@@ -12,7 +12,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="${ROOT_DIR}/.runtime"
 
 BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
-BACKEND_PORT="${BACKEND_PORT:-8000}"
+BACKEND_PORT="${BACKEND_PORT:-8001}"
 FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
@@ -179,6 +179,33 @@ if [[ "$SKIP_MIGRATE" -eq 1 ]]; then
 	echo "[dev-up] 2) Migraciones: skip (--skip-migrate)"
 else
 	echo "[dev-up] 2) Migraciones (alembic upgrade head)..."
+
+	# Guard: si las tablas ya existen pero alembic_version no existe,
+	# Alembic falla con DuplicateTable. En ese caso, hacemos 'stamp head'
+	# para registrar el estado actual sin re-crear tablas.
+	ALEMBIC_MISSING_VERSION="$("${VENV_PY}" -c "
+import os, sys
+url = os.environ.get('DATABASE_URL','').replace('postgresql+psycopg://','postgresql://').replace('postgresql+psycopg2://','postgresql://')
+try:
+    import psycopg
+    with psycopg.connect(url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='alembic_version'\")
+            has_alembic = cur.fetchone()[0] > 0
+            cur.execute(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'\")
+            total_tables = cur.fetchone()[0]
+            if not has_alembic and total_tables > 0:
+                print('STAMP_NEEDED')
+except Exception as e:
+    print(f'DB_CHECK_ERROR:{e}', file=sys.stderr)
+" 2>/dev/null)"
+
+	if [[ "${ALEMBIC_MISSING_VERSION}" == "STAMP_NEEDED" ]]; then
+		echo "[dev-up] ⚠️  Tablas ya existen pero alembic_version no existe — haciendo stamp head (sin re-crear tablas)..."
+		"${VENV_PY}" -m alembic stamp head
+		echo "[dev-up] ✔  Stamp completado. Alembic ahora conoce el estado actual de la BD."
+	fi
+
 	"${VENV_PY}" -m alembic upgrade head
 fi
 
@@ -213,8 +240,8 @@ echo "[dev-up] 5) Frontend (next dev) en background: ${FRONTEND_HOST}:${FRONTEND
 cd "${ROOT_DIR}/tutorpaes/frontend"
 rm -f .next-dev.pid .next-dev.log
 rm -f "${RUNTIME_DIR}/frontend.next-dev.pid" "${RUNTIME_DIR}/frontend.next-dev.log"
-API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://${BACKEND_HOST}:${BACKEND_PORT}}"
-nohup env NEXT_PUBLIC_API_BASE_URL="${API_BASE_URL}" npm run dev -- --hostname 0.0.0.0 --port "${FRONTEND_PORT}" > "${RUNTIME_DIR}/frontend.next-dev.log" 2>&1 &
+API_BASE_URL="http://${BACKEND_HOST}:${BACKEND_PORT}"
+nohup env NEXT_PUBLIC_API_URL="${API_BASE_URL}" NEXT_PUBLIC_API_BASE_URL="${API_BASE_URL}" npm run dev -- --hostname 0.0.0.0 --port "${FRONTEND_PORT}" > "${RUNTIME_DIR}/frontend.next-dev.log" 2>&1 &
 echo $! > "${RUNTIME_DIR}/frontend.next-dev.pid"
 
 if ! wait_for_url "http://${FRONTEND_HOST}:${FRONTEND_PORT}" "Frontend" 80 0.25; then

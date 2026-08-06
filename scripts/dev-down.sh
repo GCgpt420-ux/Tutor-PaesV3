@@ -115,7 +115,7 @@ if [[ -f .uvicorn.pid ]]; then
 fi
 
 # Fallback: si no hay pid file (o quedó stale), intentamos por puerto.
-kill_by_port_if_matches 8000 "uvicorn"
+kill_by_port_if_matches 8001 "uvicorn"
 
 if [[ "$KEEP_DB" -eq 1 ]]; then
   echo "[dev-down] 3) Manteniendo Postgres arriba (--keep-db)"
