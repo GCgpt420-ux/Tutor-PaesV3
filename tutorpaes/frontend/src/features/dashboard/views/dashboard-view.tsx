@@ -9,7 +9,10 @@ import {
   BarChart3,
   Flame,
   Server,
-  TerminalSquare
+  TerminalSquare,
+  Loader2,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 import { ProgressChart } from '@/src/features/dashboard/components/progress-chart';
 import { AttemptHistory } from '@/src/features/dashboard/components/attempt-history';
@@ -18,6 +21,11 @@ import { QuickAccess } from '@/src/features/dashboard/components/quick-access';
 import { apiFetch } from '@/src/lib/api/client';
 import { getCurrentUser } from '@/src/lib/auth/current-user';
 import { AiTutorChat } from '@/src/features/ai/components/AiTutorChat';
+import { 
+  useTeacherCourses, 
+  useTeacherCourseDetails, 
+  useTeacherTopicPerformance 
+} from '@/src/features/courses/hooks/use-courses';
 
 // ─── Gamification ─────────────────────────────────────────────────────────────
 const XP_PER_LEVEL = 500;
@@ -101,6 +109,7 @@ export function ProtectedView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -113,6 +122,13 @@ export function ProtectedView() {
           return;
         }
         setUserName((user as unknown as { name?: string })?.name?.split(' ')[0] || '');
+        const userRole = user?.role || 'student';
+        setRole(userRole);
+
+        if (userRole === 'teacher' || userRole === 'admin') {
+          setLoading(false);
+          return;
+        }
 
         const [statsResponse, attemptsResponse] = await Promise.all([
           apiFetch<UserStatsResponse>(`/users/${user.user_id}/stats`),
@@ -200,6 +216,10 @@ export function ProtectedView() {
         </div>
       </div>
     );
+  }
+
+  if (role === 'teacher' || role === 'admin') {
+    return <TeacherDashboardView userName={userName} isSystemAdmin={role === 'admin'} />;
   }
 
   return (
@@ -431,6 +451,211 @@ export function ProtectedView() {
         </div>
       </section>
 
+    </div>
+  );
+}
+
+interface TeacherDashboardViewProps {
+  userName: string;
+  isSystemAdmin: boolean;
+}
+
+function TeacherDashboardView({ userName, isSystemAdmin }: TeacherDashboardViewProps) {
+  const { data: courses = [], isLoading: loadingCourses } = useTeacherCourses();
+  
+  // Usar el primer curso asignado si existe para las métricas rápidas del home
+  const firstCourseId = courses[0]?.course_id?.toString() || '';
+  
+  const { data: courseDetails, isLoading: loadingDetails } = useTeacherCourseDetails(firstCourseId);
+  const { data: performance = [], isLoading: loadingPerformance } = useTeacherTopicPerformance(firstCourseId);
+
+  const students = courseDetails?.students || [];
+  
+  // Alumnos con peor precisión (bajo 60% y ordenados de menor a mayor)
+  const studentsAtRisk = [...students]
+    .filter(s => s.average_accuracy < 60 && s.total_attempts > 0)
+    .sort((a, b) => a.average_accuracy - b.average_accuracy)
+    .slice(0, 4);
+
+  // Tópicos más críticos
+  const criticalTopics = [...performance]
+    .filter(p => p.average_accuracy < 50)
+    .slice(0, 4);
+
+  const totalStudents = students.length;
+  const avgAccuracy = totalStudents > 0
+    ? Math.round(students.reduce((acc, s) => acc + s.average_accuracy, 0) / totalStudents)
+    : 0;
+
+  const loading = loadingCourses || loadingDetails || loadingPerformance;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center gap-4 text-brand-primary">
+          <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
+          <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em]">Cargando Panel Pedagógico...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-white">
+      
+      {/* Welcome Banner */}
+      <section className="relative overflow-hidden border border-white/10 bg-black/50 p-8 md:p-10 shadow-2xl backdrop-blur-md">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:12px_12px] opacity-20 pointer-events-none mix-blend-overlay" />
+        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-primary/10 blur-[100px]" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <div className="mb-4 flex flex-wrap items-center gap-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-400">
+                <Server className="h-3 w-3 text-brand-primary" />
+                SESIÓN DE DOCENCIA ACTIVA • {userName.toUpperCase()}
+              </span>
+              {isSystemAdmin && (
+                <span className="inline-flex items-center gap-1.5 border border-brand-accent/30 bg-brand-accent/10 px-3 py-1 text-[9px] font-mono font-black text-brand-accent uppercase tracking-[0.2em]">
+                  ADMINISTRADOR
+                </span>
+              )}
+            </div>
+            <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-white md:text-5xl">
+              Panel de Control Pedagógico
+            </h2>
+            <p className="text-text-secondary text-sm mt-3 max-w-xl">
+              Monitorea el avance de tus cursos, identifica alumnos con dificultades de nivelación y supervisa la telemetría académica.
+            </p>
+          </div>
+          <Link
+            href="/protected/cursos"
+            className="flex items-center justify-center gap-2 bg-white px-8 py-4 text-black font-black uppercase tracking-[0.2em] text-[10px] transition-all hover:bg-zinc-200 hover:scale-[1.02] rounded-sm shrink-0"
+          >
+            Ver Mis Cursos
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* KPI Panel */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-black/60 border border-white/5 p-6 relative group hover:border-brand-primary/50 transition-all">
+          <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 mb-6">Aulas Asignadas</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl lg:text-5xl font-black tracking-tighter text-white">{courses.length}</span>
+            <span className="text-[10px] font-mono font-black text-zinc-500 uppercase tracking-widest">Activas</span>
+          </div>
+        </div>
+
+        <div className="bg-black/60 border border-white/5 p-6 relative group hover:border-brand-accent/50 transition-all">
+          <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 mb-6">Alumnos Matriculados</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl lg:text-5xl font-black tracking-tighter text-brand-accent">{totalStudents}</span>
+            <span className="text-[10px] font-mono font-black text-brand-accent/70 uppercase tracking-widest">Estudiantes</span>
+          </div>
+        </div>
+
+        <div className="bg-black/60 border border-white/5 p-6 relative group hover:border-purple-500/50 transition-all">
+          <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 mb-6">Precisión Promedio del Grupo</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl lg:text-5xl font-black tracking-tighter text-purple-400">{avgAccuracy}%</span>
+            <span className="text-[10px] font-mono font-black text-purple-400/70 uppercase tracking-widest">Respuestas OK</span>
+          </div>
+        </div>
+
+        <div className="bg-black/60 border border-white/5 p-6 relative group hover:border-brand-danger/50 transition-all flex flex-col justify-between">
+          <p className="text-[9px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Punto Crítico de Aula</p>
+          {criticalTopics.length > 0 ? (
+            <div>
+              <p className="text-[10px] font-mono font-black uppercase tracking-tight text-brand-danger truncate">
+                {criticalTopics[0].topic_name}
+              </p>
+              <div className="flex justify-between items-baseline mt-1">
+                <span className="text-2xl font-black tracking-tighter text-white">{Math.round(criticalTopics[0].average_accuracy)}%</span>
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest">{criticalTopics[0].subject_name}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs font-mono text-zinc-500 uppercase">Sin fallas críticas registradas</p>
+          )}
+        </div>
+      </section>
+
+      {/* Main Grid */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Side: Students at Risk */}
+        <div className="bg-black/40 border border-white/5 p-8 relative">
+          <div className="absolute top-0 left-0 w-1 h-full bg-brand-danger/50" />
+          
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <div className="p-2 bg-brand-danger/10 border border-brand-danger/20">
+              <ShieldAlert className="h-5 w-5 text-brand-danger" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tighter text-white">Alertas de Rendimiento</h2>
+              <p className="text-[9px] font-mono text-brand-danger/70 uppercase tracking-[0.2em]">Alumnos con precisión menor a 60%</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {studentsAtRisk.length === 0 ? (
+              <p className="text-zinc-500 font-mono text-sm uppercase py-6 text-center">No hay alertas activas de alumnos en este curso</p>
+            ) : (
+              studentsAtRisk.map((student) => (
+                <div key={student.student_id} className="flex items-center justify-between bg-black/20 border border-white/5 p-4 rounded-xl hover:border-brand-danger/30 transition-all">
+                  <div>
+                    <p className="font-bold text-text-primary uppercase tracking-tight">{student.name}</p>
+                    <p className="text-[9px] font-mono text-zinc-500 mt-1">{student.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-block rounded px-2.5 py-1 text-xs font-mono font-black text-brand-danger bg-brand-danger/10 border border-brand-danger/20">
+                      {Math.round(student.average_accuracy)}%
+                    </span>
+                    <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mt-1">{student.total_attempts} Simulaciones</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Critical Topics */}
+        <div className="bg-black/40 border border-white/5 p-8 relative">
+          <div className="absolute top-0 left-0 w-1 h-full bg-brand-primary/50" />
+          
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <div className="p-2 bg-brand-primary/10 border border-brand-primary/20">
+              <AlertTriangle className="h-5 w-5 text-brand-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tighter text-white">Tópicos Críticos del Grupo</h2>
+              <p className="text-[9px] font-mono text-brand-primary/70 uppercase tracking-[0.2em]">Asignaturas con promedio menor al 50%</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {criticalTopics.length === 0 ? (
+              <p className="text-zinc-500 font-mono text-sm uppercase py-6 text-center">No hay tópicos críticos bajo el 50% de precisión</p>
+            ) : (
+              criticalTopics.map((topic) => (
+                <div key={topic.topic_id} className="space-y-2">
+                  <div className="flex justify-between items-end text-xs">
+                    <div>
+                      <span className="font-bold uppercase tracking-tight text-white">{topic.topic_name}</span>
+                      <span className="text-[9px] font-mono text-zinc-500 uppercase block mt-0.5">{topic.subject_name}</span>
+                    </div>
+                    <span className="font-mono font-black text-brand-danger">{Math.round(topic.average_accuracy)}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-black border border-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-danger" style={{ width: `${topic.average_accuracy}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -5,6 +5,7 @@ export type CurrentUser = {
   email: string;
   name: string;
   is_admin: boolean;
+  role?: string;
 };
 
 let cachedUser: CurrentUser | null = null;

@@ -50,3 +50,62 @@ export function useSubjectDetails(subjectId: string) {
     enabled: !!subjectId, // Sólo ejecuta si el ID existe
   });
 }
+
+// Interfaces de Profesor
+export interface TeacherCourse {
+  course_id: number;
+  name: string;
+  student_count: number;
+  created_at: string;
+}
+
+export interface TeacherStudent {
+  student_id: number;
+  name: string;
+  email: string;
+  total_attempts: number;
+  average_score: number;
+  average_accuracy: number;
+}
+
+export interface TeacherCourseDetail {
+  course_id: number;
+  name: string;
+  students: TeacherStudent[];
+}
+
+export interface TopicPerformance {
+  topic_id: number;
+  topic_code: string;
+  topic_name: string;
+  subject_name: string;
+  average_accuracy: number;
+  students_attempted: number;
+}
+
+// Hooks de Profesor
+export function useTeacherCourses() {
+  return useQuery({
+    queryKey: ['teacher', 'courses'],
+    queryFn: () => apiFetch<TeacherCourse[]>('/teacher/courses'),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useTeacherCourseDetails(courseId: string) {
+  return useQuery({
+    queryKey: ['teacher', 'courses', courseId],
+    queryFn: () => apiFetch<TeacherCourseDetail>(`/teacher/courses/${courseId}`),
+    enabled: !!courseId,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useTeacherTopicPerformance(courseId: string) {
+  return useQuery({
+    queryKey: ['teacher', 'courses', courseId, 'performance'],
+    queryFn: () => apiFetch<TopicPerformance[]>(`/teacher/courses/${courseId}/performance`),
+    enabled: !!courseId,
+    staleTime: 30 * 1000,
+  });
+}
