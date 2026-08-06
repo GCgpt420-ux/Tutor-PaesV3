@@ -38,7 +38,11 @@ from app.schemas.quiz import (
     AnswerOut,
     TopicCompletedOut,
     AttemptResultOut,
-    AttemptFeedbackDetailOut
+    AttemptFeedbackDetailOut,
+    ExamAttemptCreateIn,
+    ExamAttemptCreateOut,
+    ExamAttemptSubmitIn,
+    ExamAttemptSubmitOut,
 )
 from app.services.ai_service import generate_feedback
 from app.services.user_progress_service import update_user_progress
@@ -511,64 +515,7 @@ def submit_answer(
 # -----------------------------------------------------------------------
 
 
-class ExamAttemptCreateIn(BaseModel):
-    """Payload para crear un intento de examen.
-
-    Attributes:
-        exam_id: ID del examen objetivo.
-        subject_id: ID de la materia del intento.
-        topic_id: ID opcional del tema, para intentos acotados.
-    """
-    exam_id: int
-    subject_id: int
-    topic_id: Optional[int] = None
-
-
-class ExamAttemptCreateOut(BaseModel):
-    """Respuesta al crear un intento de examen.
-
-    Attributes:
-        attempt_id: ID generado del intento.
-        exam_id: ID del examen asociado.
-        subject_id: ID de la materia asociada.
-        topic_id: ID del tema asociado (si aplica).
-        total_questions: Cantidad de preguntas previstas para el intento.
-    """
-    attempt_id: int
-    exam_id: int
-    subject_id: int
-    topic_id: Optional[int]
-    total_questions: int
-
-
-class ExamAttemptSubmitIn(BaseModel):
-    """Payload para finalizar manualmente un intento de examen.
-
-    Attributes:
-        attempt_id: ID del intento a cerrar.
-        correct_count: Número de respuestas correctas.
-        total_questions: Total de preguntas del intento.
-        score: Puntaje opcional calculado por cliente.
-    """
-    attempt_id: int
-    correct_count: int
-    total_questions: int
-    score: Optional[int] = None
-
-
-class ExamAttemptSubmitOut(BaseModel):
-    """Respuesta al finalizar un intento de examen.
-
-    Attributes:
-        attempt_id: ID del intento cerrado.
-        status: Estado final del intento (por ejemplo, completed).
-        score: Puntaje final persistido.
-        accuracy: Precisión porcentual calculada.
-    """
-    attempt_id: int
-    status: str
-    score: Optional[int]
-    accuracy: float
+# Endpoints for exam attempts
 
 
 @router.post("/exam-attempts", response_model=ExamAttemptCreateOut)

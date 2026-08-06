@@ -9,34 +9,14 @@ from typing import Literal
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, Query, Response
-from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
 from app.db.session import get_db
 from app.db.models import Exam, Subject, Topic, Question, User
 from app.core.exceptions import bad_request, not_found
+from app.schemas.catalog import CustomExamCreateIn, CustomExamCreateOut
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
-
-
-class CustomExamCreateIn(BaseModel):
-    title: str = Field(min_length=3, max_length=100)
-    duration_minutes: int = Field(ge=15, le=300, default=150)
-    selected_subjects: list[int] = Field(default_factory=list)
-    selected_topics: list[int] = Field(default_factory=list)
-    difficulty: Literal["all", "easy", "medium", "hard"] = "all"
-    num_questions: int = Field(ge=5, le=200, default=40)
-
-
-class CustomExamCreateOut(BaseModel):
-    exam_id: int
-    code: str
-    name: str
-    is_custom: bool
-    question_count: int
-    duration_minutes: int
-    created_by: str | None
-    created_at: str
 
 
 def _topics_with_active_questions_query(subject_id: int):

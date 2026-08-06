@@ -81,3 +81,31 @@ class AttemptResultOut(BaseModel):
     started_at: str
     completed_at: Optional[str] = None
     answers_detail: List[AttemptFeedbackDetailOut]
+
+
+class ExamAttemptCreateIn(BaseModel):
+    exam_id: int
+    subject_id: int
+    topic_id: Optional[int] = None
+
+
+class ExamAttemptCreateOut(BaseModel):
+    attempt_id: int
+    exam_id: int
+    subject_id: int
+    topic_id: Optional[int]
+    total_questions: int
+
+
+class ExamAttemptSubmitIn(BaseModel):
+    attempt_id: int
+    correct_count: int
+    total_questions: int
+    score: Optional[int] = None
+
+
+class ExamAttemptSubmitOut(BaseModel):
+    attempt_id: int
+    status: str
+    score: Optional[int]
+    accuracy: float

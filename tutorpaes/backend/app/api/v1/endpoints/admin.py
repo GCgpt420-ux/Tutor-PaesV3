@@ -1,30 +1,15 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.core.auth import require_admin_user
 from app.db.models import User
 from app.db.session import get_db
+from app.schemas.admin import AdminUserOut, AdminUserUpdateIn
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_user)])
-
-
-class AdminUserOut(BaseModel):
-    id: int
-    email: str
-    name: str
-    role: str
-    is_admin: bool
-    is_active: bool
-
-
-class AdminUserUpdateIn(BaseModel):
-    role: Optional[str] = None
-    is_admin: Optional[bool] = None
-    is_active: Optional[bool] = None
 
 
 @router.get("/users", response_model=List[AdminUserOut])

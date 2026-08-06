@@ -6,7 +6,6 @@ Handles payment creation and confirmation for premium plan subscriptions.
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -17,67 +16,18 @@ from app.core.auth import get_current_user
 from app.core.rate_limiter import limiter
 from app.services.transbank_service import create_payment_order, confirm_payment
 from app.services.invoice_service import get_user_billing_history, get_invoice_by_id
+from app.schemas.payments import (
+    PaymentCreateIn,
+    PaymentCreateOut,
+    PaymentConfirmOut,
+    PaymentStatusOut,
+    InvoiceOut,
+    BillingItemOut,
+    BillingHistoryOut,
+)
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
-
-
-# -----------------------------------------------------------------------
-# PYDANTIC MODELS
-# -----------------------------------------------------------------------
-
-class PaymentCreateIn(BaseModel):
-    plan: str  # "monthly" or "annual"
-
-
-class PaymentCreateOut(BaseModel):
-    url: str
-    buy_order: str
-    token_ws: Optional[str] = None
-
-
-class PaymentConfirmOut(BaseModel):
-    success: bool
-    message: str
-    plan: str
-    authorized_at: Optional[str] = None
-
-
-class PaymentStatusOut(BaseModel):
-    id: int
-    amount: int
-    plan: str
-    status: str
-    created_at: str
-    authorized_at: Optional[str] = None
-
-
-# Billing & Invoice Models
-class InvoiceOut(BaseModel):
-    id: int
-    invoice_number: str
-    status: str
-    issue_date: str
-    due_date: str
-    total_amount: int
-    pdf_url: Optional[str] = None
-
-
-class BillingItemOut(BaseModel):
-    payment_id: int
-    buy_order: str
-    amount: int
-    plan: str
-    status: str
-    created_at: Optional[str] = None
-    authorized_at: Optional[str] = None
-    invoice: Optional[InvoiceOut] = None
-
-
-class BillingHistoryOut(BaseModel):
-    payments: list[BillingItemOut]
-    total_spent: int
-    count: int
 
 
 # -----------------------------------------------------------------------

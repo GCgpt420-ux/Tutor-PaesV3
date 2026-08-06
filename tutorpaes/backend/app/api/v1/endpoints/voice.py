@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from app.core.auth import get_current_user
 from app.core.config import settings
 from app.db.models import User
-from pydantic import BaseModel
+from app.schemas.voice import TTSRequest
 
 from app.core.rate_limiter import limiter
 
@@ -68,8 +68,7 @@ async def transcribe_audio(
         return {"text": result.get("text", "")}
 
 
-class TTSRequest(BaseModel):
-    text: str
+# TTS helper functions
 
 def clean_text_for_speech(text: str) -> str:
     """Removes markdown formatting like bold (**), italics (*), code blocks (`), etc."""

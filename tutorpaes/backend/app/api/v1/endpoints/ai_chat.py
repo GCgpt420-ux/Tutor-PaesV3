@@ -3,22 +3,17 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_user
 from app.db.models import User
 from app.db.session import get_db
 from app.services.chatbot_service import run_pedagogical_loop_stream
+from app.schemas.ai import ChatIn
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-
-class ChatIn(BaseModel):
-    message: str
-    attempt_id: Optional[int] = None
-    question_context: Optional[dict] = None
 
 @router.post("/chat")
 async def chat_with_tutor(

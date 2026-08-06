@@ -9,21 +9,10 @@ from app.db.models import (
 from app.core.exceptions import not_found, bad_request
 from app.core.auth import get_current_user
 from fastapi import Query
-from pydantic import BaseModel
 from typing import List
-from datetime import datetime
+from app.schemas.users import RankingEntryOut, ExamAttemptOut, UserStatsOut
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-class RankingEntryOut(BaseModel):
-    rank: int
-    user_id: int
-    name: str
-    total_attempts: int
-    average_score: float
-    best_score: int
-    accuracy: float
 
 
 @router.get("/ranking", response_model=List[RankingEntryOut])
@@ -73,7 +62,7 @@ def get_users_ranking(
 
     return ranking
 
-@router.get("/{user_id}/stats")
+@router.get("/{user_id}/stats", response_model=UserStatsOut)
 def user_stats(
     user_id: int,
     db: Session = Depends(get_db),
@@ -183,23 +172,8 @@ def user_stats(
 
 
 # -----------------------------------------------------------------------
-# PYDANTIC MODELS
+# ENDPOINTS
 # -----------------------------------------------------------------------
-
-class ExamAttemptOut(BaseModel):
-    id: int
-    exam_id: int
-    exam_title: str
-    subject_id: int
-    topic_id: int | None
-    status: str  # "in_progress", "completed", "abandoned"
-    total_questions: int
-    correct_count: int
-    incorrect_count: int
-    omitted_count: int
-    score: int | None
-    started_at: datetime
-    completed_at: datetime | None
 
 
 # -----------------------------------------------------------------------
