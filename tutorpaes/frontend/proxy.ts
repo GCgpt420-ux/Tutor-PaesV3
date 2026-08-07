@@ -19,6 +19,9 @@ function buildCsp() {
       ]
   
   const scriptSrcString = scriptSrc.join(' ')
+  const connectSrc = isDev
+    ? "connect-src 'self' https: http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8001 http://localhost:8001"
+    : "connect-src 'self' https:"
 
   return [
     "default-src 'self'",
@@ -29,7 +32,7 @@ function buildCsp() {
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
     scriptSrcString,
-    "connect-src 'self' https: http://127.0.0.1:8000 http://localhost:8000",
+    connectSrc,
     "form-action 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl",
   ].join('; ')
 }

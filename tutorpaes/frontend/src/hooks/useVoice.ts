@@ -181,6 +181,7 @@ export function useVoice() {
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/`([^`]*)`/g, '$1')
+      .replace(/\$/g, '')
       .replace(/#{1,6}\s*/g, '')
       .replace(/\n{2,}/g, '. ')
       .replace(/\n/g, ' ')

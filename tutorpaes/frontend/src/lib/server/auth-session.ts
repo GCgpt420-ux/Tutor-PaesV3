@@ -40,6 +40,7 @@ export async function relayAuthResponse(response: Response) {
     email: payload.email,
     name: payload.name,
     is_admin: payload.is_admin,
+    role: payload.role,
   });
 
   if (payload.access_token) {
