@@ -24,13 +24,22 @@ export function AiTutorChat(props: AiTutorChatProps) {
   
   const messages = props.messages ?? internalTutor.messages;
   const loading = props.loading ?? internalTutor.loading;
-  const error = props.error ?? internalTutor.error;
+  const tutorError = props.error ?? internalTutor.error;
   const sendMessage = props.sendMessage ?? internalTutor.sendMessage;
 
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastAutoSpokenMessageRef = useRef('');
-  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording, speak, stopSpeaking, isPlaying } = useVoice();
+  const {
+    isRecording,
+    isProcessing: isVoiceProcessing,
+    startRecording,
+    stopRecording,
+    speak,
+    stopSpeaking,
+    isPlaying,
+    error,
+  } = useVoice();
 
   // Auto-scroll to bottom inteligente y suave
   useEffect(() => {
@@ -204,7 +213,8 @@ export function AiTutorChat(props: AiTutorChatProps) {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        {error && <p className="text-[10px] text-red-400 mt-2 ml-1 font-medium">{error}</p>}
+        {tutorError && <p className="text-[10px] text-red-400 mt-2 ml-1 font-medium">{tutorError}</p>}
+        {error && <p className="text-[10px] text-amber-300 mt-2 ml-1 font-medium">{error}</p>}
       </div>
     </div>
   );

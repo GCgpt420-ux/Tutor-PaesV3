@@ -2,7 +2,7 @@ from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.auth import get_current_user
 from app.db.session import get_db
@@ -73,32 +73,54 @@ def get_course_detail(
     if current_user.role != "admin" and course.teacher_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este curso")
         
-    # Obtener inscripciones
-    enrollments = db.scalars(
-        select(CourseEnrollment).where(CourseEnrollment.course_id == course_id)
+    # 1. Obtener todos los alumnos inscritos en 1 sola consulta JOIN (sin N+1)
+    students = db.scalars(
+        select(User)
+        .join(CourseEnrollment, CourseEnrollment.student_id == User.id)
+        .where(CourseEnrollment.course_id == course_id)
     ).all()
     
+    if not students:
+        return CourseDetailOut(course_id=course.id, name=course.name, students=[])
+        
+    student_ids = [s.id for s in students]
+    
+    # 2. Obtener estadísticas agregadas por estudiante en 1 sola consulta agrupada
+    stats_rows = db.execute(
+        select(
+            Attempt.user_id,
+            func.count(Attempt.id).label("total_attempts"),
+            func.avg(Attempt.score).label("avg_score"),
+            func.sum(Attempt.total_questions).label("sum_questions"),
+            func.sum(Attempt.correct_count).label("sum_correct")
+        )
+        .where(Attempt.user_id.in_(student_ids), Attempt.status == "completed")
+        .group_by(Attempt.user_id)
+    ).all()
+    
+    stats_by_user = {
+        row.user_id: {
+            "total_attempts": row.total_attempts or 0,
+            "avg_score": float(row.avg_score or 0.0),
+            "sum_questions": row.sum_questions or 0,
+            "sum_correct": row.sum_correct or 0,
+        }
+        for row in stats_rows
+    }
+    
     students_payload = []
-    for enroll in enrollments:
-        student = db.get(User, enroll.student_id)
-        if not student:
-            continue
-            
-        # Calcular estadísticas agregadas
-        attempts = db.scalars(
-            select(Attempt).where(Attempt.user_id == student.id, Attempt.status == "completed")
-        ).all()
-        
-        total_attempts = len(attempts)
-        average_score = 0.0
-        average_accuracy = 0.0
-        
-        if total_attempts > 0:
-            average_score = round(sum(a.score or 0 for a in attempts) / total_attempts, 1)
-            # Calcular precisión promedio
-            total_questions = sum(a.total_questions or 0 for a in attempts)
-            total_correct = sum(a.correct_count or 0 for a in attempts)
+    for student in students:
+        s_stats = stats_by_user.get(student.id)
+        if s_stats and s_stats["total_attempts"] > 0:
+            total_attempts = s_stats["total_attempts"]
+            average_score = round(s_stats["avg_score"], 1)
+            total_questions = s_stats["sum_questions"]
+            total_correct = s_stats["sum_correct"]
             average_accuracy = round((total_correct / total_questions) * 100, 1) if total_questions else 0.0
+        else:
+            total_attempts = 0
+            average_score = 0.0
+            average_accuracy = 0.0
             
         students_payload.append(
             StudentOut(
@@ -156,17 +178,20 @@ def get_course_topics_performance(
     for p in progress_records:
         topic_data.setdefault(p.topic_id, []).append(p)
         
-    # Armar lista de resultados
+    # Cargar tópicos y materias asociadas en 1 sola consulta con joinedload (sin N+1)
+    topic_ids = list(topic_data.keys())
+    topics = db.scalars(
+        select(Topic).options(joinedload(Topic.subject)).where(Topic.id.in_(topic_ids))
+    ).all()
+    topics_by_id = {t.id: t for t in topics}
+    
     result = []
     for topic_id, progress_list in topic_data.items():
-        topic = db.get(Topic, topic_id)
+        topic = topics_by_id.get(topic_id)
         if not topic:
             continue
             
-        subject = db.get(Subject, topic.subject_id)
-        subject_name = subject.name if subject else "General"
-        
-        # Promediar precisión
+        subject_name = topic.subject.name if topic.subject else "General"
         avg_accuracy = round(sum(p.accuracy for p in progress_list) / len(progress_list), 1)
         
         result.append(

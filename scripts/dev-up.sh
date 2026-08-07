@@ -201,7 +201,12 @@ except Exception as e:
 " 2>/dev/null)"
 
 	if [[ "${ALEMBIC_MISSING_VERSION}" == "STAMP_NEEDED" ]]; then
-		echo "[dev-up] ⚠️  Tablas ya existen pero alembic_version no existe — haciendo stamp head (sin re-crear tablas)..."
+		if [[ "${ENVIRONMENT:-development}" == "production" ]]; then
+			echo "[dev-up] 🛑 ABORT: alembic_version falta en producción. Inspeccionar la BD manualmente antes de continuar."
+			echo "[dev-up] ℹ️  El guard automático de stamp head está deshabilitado en ENVIRONMENT=production para evitar enmascarar migraciones faltantes."
+			exit 1
+		fi
+		echo "[dev-up] ⚠️  Tablas ya existen pero alembic_version no existe — haciendo stamp head (solo dev/staging, sin re-crear tablas)..."
 		"${VENV_PY}" -m alembic stamp head
 		echo "[dev-up] ✔  Stamp completado. Alembic ahora conoce el estado actual de la BD."
 	fi

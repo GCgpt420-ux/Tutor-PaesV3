@@ -31,6 +31,7 @@ export function useVoice() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -77,6 +78,7 @@ export function useVoice() {
 
   // START RECORDING
   const startRecording = useCallback(async () => {
+    setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
@@ -105,15 +107,19 @@ export function useVoice() {
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
-      console.error('Error starting recording:', err);
-      alert('No se pudo acceder al micrófono. Por favor revisa los permisos de tu navegador.');
+      console.error('Error al acceder al micrófono:', err);
+      setError('No se pudo acceder al micrófono. Por favor revisa los permisos.');
     }
   }, []);
 
-  // STOP RECORDING & TRANSCRIBE
+  // STOP RECORDING & TRANSCRIBE (STT)
   const stopRecording = useCallback(async (): Promise<string | null> => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
+      return null;
+    }
+
     return new Promise((resolve) => {
-      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
+      if (!mediaRecorderRef.current) {
         resolve(null);
         return;
       }
@@ -147,7 +153,7 @@ export function useVoice() {
               extractApiErrorMessage(errPayload) ||
               `Error en transcripción (HTTP ${response.status})`;
             console.warn('STT unavailable:', message, errPayload ?? {});
-            alert(`No se pudo procesar tu voz: ${message}`);
+            setError(`No se pudo procesar tu voz: ${message}`);
             resolve(null);
             return;
           }
@@ -156,7 +162,7 @@ export function useVoice() {
           resolve(data.text || '');
         } catch (err) {
           console.error('STT Error:', err);
-          alert('Hubo un problema de conexión al procesar el audio de tu micrófono.');
+          setError('Hubo un problema de conexión al procesar el audio de tu micrófono.');
           resolve(null);
         } finally {
           setIsProcessing(false);
@@ -185,6 +191,7 @@ export function useVoice() {
   const speak = useCallback(async (text: string, forceBackend: boolean = false) => {
     if (typeof text !== 'string' || !text.trim()) return;
 
+    setError(null);
     const cleanText = cleanTextForSpeech(text);
 
     // ── Intento 1: Web Speech API nativa (instantánea) ──────────────
@@ -223,7 +230,6 @@ export function useVoice() {
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
-      audio.preload = 'auto';
 
       await new Promise<void>((resolve, reject) => {
         audio.oncanplaythrough = () => resolve();
@@ -234,6 +240,7 @@ export function useVoice() {
       await audio.play();
     } catch (err) {
       console.warn('Backend TTS también falló:', err);
+      setError('No se pudo reproducir el audio del tutor.');
       setIsPlaying(false);
     }
   }, [speakWithBrowserFallback, cleanTextForSpeech]);
@@ -253,6 +260,7 @@ export function useVoice() {
     isRecording,
     isProcessing,
     isPlaying,
+    error,
     startRecording,
     stopRecording,
     speak,

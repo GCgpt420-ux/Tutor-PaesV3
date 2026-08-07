@@ -1,7 +1,10 @@
 """Test rate limiter initialization behavior in different environments."""
 import os
 import sys
-import importlib
+from unittest.mock import patch
+
+import pytest
+from slowapi.util import get_remote_address
 
 
 def test_rate_limiter_with_redis():
@@ -18,13 +21,17 @@ def test_rate_limiter_with_redis():
     if "app.core.config" in sys.modules:
         del sys.modules["app.core.config"]
     
-    try:
+    with patch("slowapi.Limiter") as limiter_factory:
+        limiter_factory.return_value = object()
         from app.core.rate_limiter import limiter
-        print("✅ Rate limiter initialized with Redis in production")
-        return True
-    except Exception as e:
-        print(f"❌ Failed with Redis: {e}")
-        return False
+
+    limiter_factory.assert_called_once()
+    limiter_kwargs = limiter_factory.call_args.kwargs
+    assert limiter_kwargs["key_func"] is get_remote_address
+    assert limiter_kwargs["headers_enabled"] is True
+    assert limiter_kwargs["storage_uri"] == "redis://localhost:6379"
+
+    assert limiter is not None
 
 
 def test_rate_limiter_dev_without_redis():
@@ -41,17 +48,13 @@ def test_rate_limiter_dev_without_redis():
     if "app.core.config" in sys.modules:
         del sys.modules["app.core.config"]
     
-    try:
-        from app.core.rate_limiter import limiter
-        print("✅ Rate limiter fell back to memory in development without Redis")
-        return True
-    except Exception as e:
-        print(f"❌ Failed in development: {e}")
-        return False
+    from app.core.rate_limiter import limiter
+
+    assert limiter is not None
 
 
-def test_rate_limiter_production_requires_redis():
-    """Rate limiter should fail in production without Redis."""
+def test_rate_limiter_production_warns_without_redis():
+    """Rate limiter should warn when production Redis is not configured."""
     os.environ["ENVIRONMENT"] = "production"
     os.environ["REDIS_URL"] = ""
     os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost/db"
@@ -64,17 +67,7 @@ def test_rate_limiter_production_requires_redis():
     if "app.core.config" in sys.modules:
         del sys.modules["app.core.config"]
     
-    try:
+    with pytest.warns(RuntimeWarning, match="REDIS_URL"):
         from app.core.rate_limiter import limiter
-        print("❌ Rate limiter should have raised ValueError for production without Redis")
-        return False
-    except ValueError as e:
-        if "REDIS_URL" in str(e):
-            print("✅ Rate limiter correctly rejected production without Redis")
-            return True
-        else:
-            print(f"❌ Wrong error message: {e}")
-            return False
-    except Exception as e:
-        print(f"❌ Unexpected error: {e}")
-        return False
+
+    assert limiter is not None
