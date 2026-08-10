@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     # Datos demo (seed)
     DEMO_EMAIL: str = "demo@example.com"
     DEMO_PASSWORD: str = "demo123"
+    DEMO_STUDENT_EMAIL: str = "estudiante@example.com"
+    DEMO_STUDENT_PASSWORD: str = "demo123"
     PAES_CODE: str = "PAES"
 
     # Configuración API

@@ -53,7 +53,7 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
     
-    const demoEmail = "demo@example.com";
+    const demoEmail = "estudiante@example.com";
     const demoPassword = "demo123";
     
     // Simular tipeo animado

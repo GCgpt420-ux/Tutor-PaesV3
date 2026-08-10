@@ -8,7 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 BACKEND_BASE="${BACKEND_BASE:-http://127.0.0.1:8001}"
 FRONTEND_BASE="${FRONTEND_BASE:-http://127.0.0.1:3000}"
-DEMO_EMAIL="${DEMO_EMAIL:-demo@example.com}"
+DEMO_EMAIL="${DEMO_EMAIL:-estudiante@example.com}"
 DEMO_PASSWORD="${DEMO_PASSWORD:-demo123}"
 
 wait_for_url() {

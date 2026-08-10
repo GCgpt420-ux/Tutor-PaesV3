@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from app.core.auth import get_password_hash, verify_password
-from scripts.seed_user import sync_demo_user
+from scripts.seed_user import sync_demo_user, sync_student_user
 
 
 class FakeDB:
@@ -37,4 +37,21 @@ def test_sync_demo_user_resets_password_when_user_exists():
 
     assert db.user.is_admin is True
     assert verify_password("demo123", db.user.hashed_password)
+    assert db.commit_calls == 1
+
+
+def test_sync_student_user_creates_student_account():
+    db = FakeDB()
+
+    user, created = sync_student_user(
+        db,
+        student_email="estudiante@example.com",
+        student_password="demo123",
+    )
+
+    assert created is True
+    assert user.email == "estudiante@example.com"
+    assert user.role == "student"
+    assert user.is_admin is False
+    assert verify_password("demo123", user.hashed_password)
     assert db.commit_calls == 1
