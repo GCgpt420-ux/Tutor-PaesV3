@@ -89,6 +89,8 @@ interface ExamAttemptResponse {
   completed_at: string | null;
 }
 
+import { TeacherCoursesPageView } from '@/src/features/courses/components/teacher-courses-page-view';
+
 export default function MiProgresoPage() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -96,6 +98,7 @@ export default function MiProgresoPage() {
   const [topicStats, setTopicStats] = useState<TopicData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -108,8 +111,8 @@ export default function MiProgresoPage() {
         }
 
         const userRole = user.role || 'student';
+        setRole(userRole);
         if (userRole === 'teacher' || userRole === 'admin') {
-          router.replace('/protected/cursos');
           return;
         }
 
@@ -222,6 +225,10 @@ export default function MiProgresoPage() {
         </div>
       </div>
     );
+  }
+
+  if (role === 'teacher' || role === 'admin') {
+    return <TeacherCoursesPageView />;
   }
 
   if (error) {

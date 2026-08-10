@@ -229,7 +229,7 @@ echo "[dev-up] 4) Backend (uvicorn) en background: ${BACKEND_HOST}:${BACKEND_POR
 # Compat: limpiamos archivos antiguos si existen.
 rm -f .uvicorn.pid .uvicorn.log
 rm -f "${RUNTIME_DIR}/backend.uvicorn.pid" "${RUNTIME_DIR}/backend.uvicorn.log"
-nohup "${VENV_PY}" -m uvicorn app.main:app --host "${BACKEND_HOST}" --port "${BACKEND_PORT}" > "${RUNTIME_DIR}/backend.uvicorn.log" 2>&1 &
+setsid nohup "${VENV_PY}" -m uvicorn app.main:app --host "${BACKEND_HOST}" --port "${BACKEND_PORT}" > "${RUNTIME_DIR}/backend.uvicorn.log" 2>&1 &
 echo $! > "${RUNTIME_DIR}/backend.uvicorn.pid"
 
 # Espera activa: evita race conditions con smoke tests.
@@ -246,7 +246,7 @@ cd "${ROOT_DIR}/tutorpaes/frontend"
 rm -f .next-dev.pid .next-dev.log
 rm -f "${RUNTIME_DIR}/frontend.next-dev.pid" "${RUNTIME_DIR}/frontend.next-dev.log"
 API_BASE_URL="http://${BACKEND_HOST}:${BACKEND_PORT}"
-nohup env NEXT_PUBLIC_API_URL="${API_BASE_URL}" NEXT_PUBLIC_API_BASE_URL="${API_BASE_URL}" npm run dev -- --hostname 0.0.0.0 --port "${FRONTEND_PORT}" > "${RUNTIME_DIR}/frontend.next-dev.log" 2>&1 &
+setsid nohup env NEXT_PUBLIC_API_URL="${API_BASE_URL}" NEXT_PUBLIC_API_BASE_URL="${API_BASE_URL}" npm run dev -- --webpack --hostname 0.0.0.0 --port "${FRONTEND_PORT}" > "${RUNTIME_DIR}/frontend.next-dev.log" 2>&1 &
 echo $! > "${RUNTIME_DIR}/frontend.next-dev.pid"
 
 if ! wait_for_url "http://${FRONTEND_HOST}:${FRONTEND_PORT}" "Frontend" 80 0.25; then

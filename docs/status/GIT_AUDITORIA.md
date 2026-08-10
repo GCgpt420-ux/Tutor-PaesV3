@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-08-07 02:40:02 Local  
+**Generado automáticamente:** 2026-08-10 18:19:25 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,15 +12,23 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/frontend/proxy.ts
-M  tutorpaes/frontend/src/hooks/useVoice.ts
-M  tutorpaes/frontend/src/lib/server/auth-session.ts
+M  scripts/dev-up.sh
+ M scripts/smoke-demo.sh
+ M scripts/smoke-phase-2-2.sh
+ M tutorpaes/backend/app/core/config.py
+ M tutorpaes/backend/scripts/seed_user.py
+ M tutorpaes/backend/tests/test_auth/test_seed_user.py
+M  tutorpaes/frontend/app/protected/progreso/page.tsx
+M  tutorpaes/frontend/next.config.ts
+M  tutorpaes/frontend/package.json
+ M tutorpaes/frontend/src/features/auth/components/login-form.tsx
+A  tutorpaes/frontend/src/middleware.ts
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 63
-- **Total commits en main:** 63
+- **Total commits en la rama actual:** 64
+- **Total commits en main:** 64
 - **Merges integrados:** 3
 
 ## 3. Inventario de Ramas
@@ -41,17 +49,18 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 63
+- **feature/priority-1-security-testing**: ahead 14, behind 64
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  e65467e [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  27ea449 [main]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-e65467e (HEAD -> main) fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pruebas de rate limiter
+27ea449 (HEAD -> main) fix(auth-ux): retransmitir role en login proxy, condicionar CSP por entorno y limpiar LaTeX en TTS
+e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pruebas de rate limiter
 3908323 docs: guia de arquitectura/costos, índice de lectura y status report actualizado
 9d80b2d feat(scripts): dev-up en puerto 8001 + guard de Alembic stamp y utilidades de seed/docs
 9e00b56 refactor(frontend-portal): actualizar pages protegidas, AiTutorChat, ranking, sidebar y proxies
@@ -65,7 +74,6 @@ a2f5a67 refactor(backend): extraer schemas Pydantic a app/schemas/
 e10c401 (tag: pre-revision-2026-08-06, origin/main, origin/HEAD) perf(backend): optimize index strategy by removing redundant indexes and adding missing topic index
 726a26c style(frontend): improve chatbot scroll behavior and introduce dashboard skeletal loaders
 adb653d feat(frontend): add Probar Demostración button with simulated credentials typing and redirect
-9ce3f84 feat(backend): add setup_demo.py script and fix duplicate SQLAlchemy user and question indexes
 ```
 
 ---
