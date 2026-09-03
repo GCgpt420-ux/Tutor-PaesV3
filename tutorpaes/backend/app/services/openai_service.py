@@ -268,8 +268,8 @@ def generate_llm_explanation(
                     "content": prompt
                 }
             ],
-            temperature=settings.OPENAI_TEMPERATURE,
-            max_tokens=settings.OPENAI_MAX_TOKENS
+            temperature=getattr(settings, "OPENAI_TEMPERATURE", settings.LLM_TEMPERATURE),
+            max_tokens=getattr(settings, "OPENAI_MAX_TOKENS", settings.LLM_MAX_TOKENS)
         )
         
         explanation = response.choices[0].message.content.strip()
@@ -340,8 +340,8 @@ def generate_llm_explanation_stream(
                     "content": prompt
                 }
             ],
-            temperature=settings.OPENAI_TEMPERATURE,
-            max_tokens=settings.OPENAI_MAX_TOKENS,
+            temperature=getattr(settings, "OPENAI_TEMPERATURE", settings.LLM_TEMPERATURE),
+            max_tokens=getattr(settings, "OPENAI_MAX_TOKENS", settings.LLM_MAX_TOKENS),
             stream=True
         )
         

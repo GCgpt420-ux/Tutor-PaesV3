@@ -165,7 +165,10 @@ class CerebrasProvider(LLMProvider):
     def __init__(self):
         if not settings.CEREBRAS_API_KEY:
             raise ValueError("CEREBRAS_API_KEY not configured")
-        from cerebras_cloud_sdk import Cerebras
+        try:
+            from cerebras.cloud.sdk import Cerebras
+        except ImportError:
+            from cerebras_cloud_sdk import Cerebras
         self.client = Cerebras(api_key=settings.CEREBRAS_API_KEY)
     
     def stream_completion(self,

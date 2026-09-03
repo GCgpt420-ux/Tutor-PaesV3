@@ -6,10 +6,10 @@
 - Ultima revision: 2026-04-23.
 - Objetivo: consolidar el contexto real del proyecto, cruzando documentacion, codigo, pruebas, CI y scripts operativos.
 
-## Actualizacion de consenso (2026-04-23)
-- Estado consolidado: post-MVP tecnico avanzado, con fases base completadas.
-- Implementacion: alta en nucleo backend y alta en integraciones clave (IA y pagos/facturacion).
-- Madurez global: medio-alta para piloto y escalamiento controlado; aun con brechas operativas para produccion de mayor exigencia.
+## Actualizacion de consenso (2026-09-02)
+- Estado consolidado: post-MVP tecnico avanzado, con fases base completadas y bugs criticos resueltos.
+- Implementacion: alta en nucleo backend (102 tests passing) y alta en frontend (15 tests, 0 errores TS).
+- Madurez global: alta para piloto y demostracion; medio-alta para produccion con brechas en observabilidad y PDF de facturacion.
 
 ## 1. Proposito
 Este documento resume en un solo lugar:
@@ -185,10 +185,10 @@ Lectura de estado:
 - La integracion OpenAI esta efectivamente implementada en backend con fallback.
 
 ### 5.2 Lo que esta parcial o desalineado
-- El frontend ofrece paginas de recuperacion/cambio de password, pero no se identificaron endpoints backend equivalentes para forgot/reset password en este estudio.
-- La pagina de resultados de ensayos permanece como placeholder visible.
-- Parte de la narrativa de observabilidad mas avanzada sigue siendo aspiracional porque no hay Prometheus ni dashboards operativos en el repositorio.
-- La integracion Transbank esta implementada, pero este estudio no confirma cierre productivo completo.
+- ~~El frontend ofrece paginas de recuperacion/cambio de password, pero no se identificaron endpoints backend equivalentes para forgot/reset password en este estudio.~~ **Actualización Sep 2026:** Endpoints `POST /auth/forgot-password` y `POST /auth/reset-password` implementados con JWT temporal y email SMTP real via `aiosmtplib`.
+- ~~La pagina de resultados de ensayos permanece como placeholder visible.~~ **Actualización Sep 2026:** `exam-results-view.tsx` conectado a `GET /quiz/attempts/{id}/results` con desglose completo por pregunta.
+- Parte de la narrativa de observabilidad mas avanzada sigue siendo aspiracional: Prometheus `/metrics` esta expuesto y funcional, pero no hay Grafana ni dashboards operativos en el repositorio.
+- La integracion Transbank esta implementada, pero opera en modo sandbox (`TBK_ENVIRONMENT=integration`). No se confirma cierre productivo completo.
 
 ## 6. Consenso de estado actual
 
@@ -208,13 +208,13 @@ Estimacion razonable basada en evidencia del repo:
 
 | Area | Estado estimado | Lectura breve |
 |---|---:|---|
-| Backend funcional | 75% | Solido en auth, quiz, catalogo, IA, pagos y administracion |
-| Frontend funcional | 55% | Amplio en superficie, pero con huecos y placeholders |
-| Integracion IA | 70% | Real, segura y con fallback, aun dependiente de configuracion completa |
-| Seguridad aplicada | 70% | Mejoro claramente con rate limiting, sanitizacion, CI y hardening base |
-| Observabilidad | 35% | Logging, request ID y Sentry base; sin metricas operativas completas |
-| Resiliencia | 20% | Backup/rollback existe, pero faltan cache, circuit breaker y retries maduros |
-| Preparacion productiva global | 60% | El proyecto puede demostrarse y evolucionar, pero aun no esta cerrado para escala ni operacion robusta |
+| Backend funcional | 85% | Solido en auth (incl. forgot/reset), quiz, catalogo, IA con fallback, pagos, teacher panel y administracion |
+| Frontend funcional | 70% | Amplio (22 paginas), resultados de ensayos conectados, panel docente, chat IA con voz. PDF factura placeholder |
+| Integracion IA | 85% | Real, segura, multi-LLM con Circuit Breaker, fallback dinamico, chat socratico SSE y voz |
+| Seguridad aplicada | 80% | Rate limiting, IDOR protection, key rotation, CI security (Semgrep, Gitleaks, Trivy), sanitizacion |
+| Observabilidad | 80% | Prometheus /metrics, Sentry, correlation IDs, logging JSON. Sin Grafana ni alertas SLO |
+| Resiliencia | 75% | Circuit Breaker, tenacity retries, fallback multi-LLM. Sin cache Redis general |
+| Preparacion productiva global | 70% | Demo-ready y operable para pilotos. Faltan Grafana, PDF real y validacion Transbank produccion |
 
 ### 6.3 Lo que ya esta resuelto
 - Arquitectura full-stack definida.

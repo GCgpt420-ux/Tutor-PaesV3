@@ -1,23 +1,25 @@
 # Progress Tracking - TutorPAES
 
-Ultima actualizacion: 2026-04-27
-Estado general: Auditoría completa al 94% local. Integración multimedia y voz operativa.
+Ultima actualizacion: 2026-09-02
+Estado general: Auditoría contrastada con código real. 102 backend + 15 frontend tests passing. 0 errores de sintaxis.
 
-Nivel de implementacion global: Muy alto (94%)
-Nivel de madurez operativa: Alto (Backups y seguridad reforzada)
+Nivel de implementacion global: Muy alto (~95% local)
+Nivel de madurez operativa: Alto (CI unificada, smoke tests, backups y seguridad reforzada)
 
 ---
 
 ## Estado Actual
 
-- Fases completadas: 6/6 + Auditoría Técnica Post-MVP
-- Backend tests: 49 passed
-- Frontend tests: 10 passed (Suite completa en verde)
-- IA Tutor: **Voz (STT/TTS)** integrada y funcional.
+- Fases completadas: 6/6 + Auditoría Técnica Post-MVP + Auditoría de Cierre (Sep 2026)
+- Backend tests: 102 passed (verificado 2026-09-02, Python 3.12 venv)
+- Frontend tests: 15 passed (verificado 2026-09-02, Jest 30, 4 suites)
+- TypeScript: 0 errores (tsc --noEmit limpio)
+- IA Tutor: **Voz (STT/TTS)** integrada y funcional. Chat socrático con streaming SSE.
 - Contenido: **Soporte de imágenes** en el Quiz para geometría/ciencias.
-- Billing: Integrado con Transbank y reporte de facturación.
-- Seguridad: Rate limiting en IA/Voz, headers de seguridad y proxy binario corregido.
-- DevOps: Script de **backup automático** con rotación implementado.
+- Billing: Integrado con Transbank (sandbox) y reporte de facturación. PDF placeholder pendiente.
+- Seguridad: Rate limiting en IA/Voz, headers de seguridad, IDOR protection, key rotation.
+- DevOps: Script de **backup automático** con rotación. CI unificada. Smoke tests automatizados.
+- Auth: Forgot/reset password implementado con email SMTP real.
 
 ---
 
@@ -64,12 +66,18 @@ FASE 6 - Testing y validacion: completada
 
 ---
 
-## Que Falta (Trabajo Real Pendiente)
+## Que Falta (Trabajo Real Pendiente — Verificado 2026-09-02)
 
-1. Pipeline CI unificada para ejecutar backend + frontend tests en cada push.
-2. Smoke test de preproduccion automatizado (check de login, quiz, payment callback, billing history).
-3. Cobertura adicional en endpoints de quiz resultados avanzados.
-4. Hardening de observabilidad (dash de errores + alertas basicas).
+### Resuelto desde ultima revision:
+- ~~Pipeline CI unificada~~ → ✅ Existe `.github/workflows/ci.yml`
+- ~~Smoke tests automatizados~~ → ✅ Existen `smoke-demo.sh`, `smoke-horizon-0.sh`, `smoke-phase-2-2.sh`
+
+### Pendiente real:
+1. Dashboards Grafana y alertas por SLO (latencia, 5xx, disponibilidad).
+2. Generacion de PDF real de facturas (actualmente placeholder).
+3. Validacion de Transbank con credenciales de produccion.
+4. Fase 5 de calidad operativa (tests de recuperacion, smoke post-rollback).
+5. Cobertura adicional en endpoints de quiz resultados avanzados.
 
 ---
 
@@ -109,8 +117,10 @@ Verificacion rapida:
 
 ## Nota De Continuidad
 
-Si el objetivo es "subir de nivel", el siguiente paso recomendado es abrir una rama de trabajo para:
+Si el objetivo es "subir de nivel", el siguiente paso recomendado es:
 
-1. CI unificada de tests + lint.
-2. Smoke tests automatizados.
-3. Hardening final pre-staging.
+1. ~~CI unificada de tests + lint.~~ ✅ Completado.
+2. ~~Smoke tests automatizados.~~ ✅ Completado.
+3. Hardening de observabilidad (Grafana + alertas SLO).
+4. Generacion de PDF real de facturas.
+5. Validacion Transbank en produccion.

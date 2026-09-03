@@ -8,12 +8,12 @@ Este repositorio contiene el código fuente completo y estructurado para la plat
 - Reportes y estado del proyecto: `docs/status/`
 - Documentación canónica técnica: `DOCS/`
 
-## Estado Actualizado (2026-04-23)
+## Estado Actualizado (2026-09-02)
 
-- Estado de implementacion: nucleo funcional implementado de punta a punta (auth, catalogo, quiz, IA, pagos y facturacion).
-- Nivel de madurez actual: alto para demostracion y pilotos controlados; medio-alto para despliegue productivo inicial.
-- Calidad observada: suites de backend y frontend en verde segun ultimo corte de validacion registrado.
-- Pendientes criticos: CI unificada, smoke tests automatizados de preproduccion y hardening de observabilidad.
+- Estado de implementacion: nucleo funcional implementado de punta a punta (auth con forgot/reset password, catalogo, quiz adaptativo, IA multi-modelo con fallback, pagos y facturacion).
+- Nivel de madurez actual: alto (~95% local) para demostracion y pilotos controlados; medio-alto para despliegue productivo inicial.
+- Calidad observada: 102 tests backend y 15 tests frontend en verde (0 errores de sintaxis Python / TypeScript). CI unificada y smoke tests automatizados operativos.
+- Pendientes reales: observabilidad avanzada (Grafana / alertas SLO), generacion de PDF binario para facturas y validacion de Transbank en produccion comercial.
 
 > [!NOTE]
 > **Contexto de IA:** Este repositorio ha sido estabilizado y escalado a través de las Fases 1 a 6. El estado actual representa una plataforma conectada en Full-Stack con integración de múltiples LLMs, facturación automática y un sistema de UI moderno de cristal (Glassmorphism).

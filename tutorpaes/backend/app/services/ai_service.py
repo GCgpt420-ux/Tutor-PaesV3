@@ -215,7 +215,7 @@ def generate_feedback_phase1(feedback: AttemptFeedback, db: Session, user: Optio
     """
     
     # Obtener question y correcta choice
-    question = db.query(Question).get(feedback.question_id)
+    question = db.get(Question, feedback.question_id)
     correct_choice = db.query(QuestionChoice).filter(
         QuestionChoice.question_id == feedback.question_id,
         QuestionChoice.is_correct == True
