@@ -1,6 +1,6 @@
 # 📊 REPORT DE ESTADO DEL PROYECTO - TutorPAES
 
-**Última Actualización:** 2026-09-03 05:39  
+**Última Actualización:** 2026-09-22 16:31  
 **Estado General:** 🟢 **EXCELENTE (Fases críticas completadas y estabilizadas)**  
 **Readiness Level:** 🟢 **96% Local / 86% Producción**
 
@@ -36,15 +36,8 @@ TutorPAES se encuentra en una etapa de **consolidación técnica avanzada pre-pr
 
 ### Cobertura de Pruebas
 ```text
-Backend: 102/102 passing (102/102 passed (recuperado de caché/historial))
-├── Auth tests: 12
-├── Payment tests: 12
-├── AI/Voice/Resilience tests: 14
-└── Security/Health/CircuitBreaker: 58
-
-Frontend: 15/15 passing (15/15 passed (recuperado de caché/historial))
-├── Hook tests (useBilling, etc.): 5
-└── Component tests (question-card, etc.): 5
+Backend: 97/97 passing (97/97 passed (recuperado de caché/historial))
+Frontend: 34/34 passing (34/34 passed (recuperado de caché/historial))
 ```
 
 ---
@@ -52,33 +45,35 @@ Frontend: 15/15 passing (15/15 passed (recuperado de caché/historial))
 ## 🔍 Arquitectura y Configuración del Sistema
 
 ### Backend Stack
-- **FastAPI + Python 3.12**
-- **Base de Datos:** PostgreSQL + SQLAlchemy + Alembic.
-- **Resiliencia:** Custom Circuit Breaker + Tenacity Retries + Multi-LLM Fallback.
-- **Métricas:** Prometheus Client (`/metrics` ASGI app mounted).
+- **FastAPI + Python 3.12** (puerto `:8001` en local)
+- **Base de Datos:** PostgreSQL 16 + SQLAlchemy 2.0 + Alembic (19 modelos ORM).
+- **Resiliencia:** Custom Circuit Breaker + Tenacity Retries + Multi-LLM Fallback (OpenAI, Groq, Cerebras).
+- **Métricas:** Prometheus Client (`/metrics` ASGI app montada).
 - **Pasarela de Pagos:** Transbank Webpay Plus SDK.
 
 ### Frontend Stack
-- **Next.js 15 + React 19 (TypeScript)**
-- **Estilos:** Tailwind CSS + Shadcn UI.
+- **Next.js 16 (Turbopack) + React 19 (TypeScript)**
+- **Estilos:** Tailwind CSS 3 (tokens semánticos) + Shadcn UI / Radix.
 - **Manejo de Estado de Servidor:** React Query.
-- **Seguridad:** JWT guardado en cookies httpOnly, refresco automático de sesión.
+- **Seguridad:** JWT en cookies httpOnly, BFF proxy layer en `/api/*`.
 
 ---
 
-## ⚠️ Hallazgos Críticos y Deuda Técnica Pendiente
+## 🛡️ Estado de Deuda Técnica y Hallazgos Previos
 
-1. **🔴 Renderizado de `quiz.error` en Frontend:**
-   - **Archivo:** `app/protected/quiz/[subject_code]/[topic_code]/page.tsx`
-   - **Problema:** Los errores de carga de preguntas o respuestas se guardan en el estado `quiz.error` pero no se muestran en pantalla, lo que deja al usuario con la interfaz congelada.
-   - **Prioridad:** Alta.
+1. **✅ Renderizado de `quiz.error` en Frontend:**
+   - **Estado:** 100% Resuelto. Implementada pantalla de reintento y banner accesible en `page.tsx`.
 
-2. **🔴 Fragmentación de SSE en use-ai-explanation.ts:**
-   - **Problema:** No acumula los chunks SSE en un buffer (a diferencia del chat), lo que puede truncar explicaciones matemáticas bajo latencia.
-   - **Prioridad:** Alta.
+2. **✅ Buffer SSE en `use-ai-explanation.ts`:**
+   - **Estado:** 100% Resuelto. Implementada acumulación en buffer idéntica a `use-ai-tutor.ts`.
 
-3. **🟡 Archivos Huérfanos en Backend:**
-   - Los archivos `models_backup_20260226_120421.py` y `models_v2_production.py` en `app/db/` están muertos y deben ser archivados para evitar confusión.
+3. **✅ Modelos Huérfanos en Backend:**
+   - **Estado:** 100% Resuelto. Archivos obsoletos removidos de `app/db/` y archivados.
+
+4. **🟡 Frentes Abiertos para Fase Final de Producción:**
+   - Consolidación del árbol de trabajo de frontend en commit formal.
+   - Configuración de credenciales de producción para Transbank Webpay.
+   - Definición de alertas y tableros en Grafana para métricas de Prometheus.
 
 ---
 *Este documento se actualiza automáticamente a través del script scripts/auto_update_docs.py en cada pre-commit o ejecución de integración.*

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Loader, BookOpen, Clock, ArrowLeft } from 'lucide-react';
 import { apiFetch } from '@/src/lib/api/client';
 
@@ -71,8 +72,9 @@ export default function ExamPage() {
           <p className="text-red-400 font-bold uppercase tracking-wider text-sm">Error</p>
           <p className="text-red-300 text-sm mt-2">{error || 'No se encontró el ensayo'}</p>
           <button
+            type="button"
             onClick={() => router.back()}
-            className="mt-6 px-6 py-2 bg-red-900/40 hover:bg-red-900/60 text-red-200 border border-red-900/50 rounded-lg transition-colors font-bold uppercase tracking-wide text-xs"
+            className="mt-6 px-6 py-2 bg-red-900/40 hover:bg-red-900/60 text-red-200 border border-red-900/50 rounded-lg transition-colors font-bold uppercase tracking-wide text-xs interactive-focus"
           >
             Volver
           </button>
@@ -86,33 +88,34 @@ export default function ExamPage() {
       {/* Header con botón atrás */}
       <div className="flex items-start gap-4 mb-8">
         <button
+          type="button"
           onClick={() => router.back()}
-          className="p-2.5 bg-zinc-900/50 border border-white/10 hover:bg-zinc-800 rounded-xl transition-all shadow-lg mt-1"
+          className="p-2.5 bg-surface-raised/80 border border-surface-container hover:bg-surface-raised rounded-xl transition-all shadow-lg mt-1 interactive-focus"
           aria-label="Volver"
         >
-          <ArrowLeft className="h-5 w-5 text-zinc-300" />
+          <ArrowLeft className="h-5 w-5 text-text-secondary hover:text-text-primary" aria-hidden="true" />
         </button>
         <div>
-          <h1 className="text-3xl font-black text-zinc-50 uppercase tracking-tight">{exam.name}</h1>
-          <p className="text-zinc-400 mt-2 font-medium">
+          <h1 className="text-3xl font-black text-text-primary uppercase tracking-tight">{exam.name}</h1>
+          <p className="text-text-secondary mt-2 font-medium">
             Entrenamiento enfocado en {exam.subjects.length} materias disponibles
           </p>
         </div>
       </div>
 
       {/* Información del Ensayo */}
-      <div className="glass-card bg-brand-primary/5 border-brand-primary/20 p-6 mb-8 flex flex-col md:flex-row md:items-center gap-6">
+      <div className="glass-card bg-brand-primary/5 border-brand-primary/20 p-6 mb-8 flex flex-col md:flex-row md:items-center gap-6 rounded-2xl">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-brand-primary/20 rounded-xl text-brand-primary">
-            <Clock className="h-6 w-6" />
+            <Clock className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
             <p className="text-xs font-bold text-brand-primary/80 uppercase tracking-widest leading-relaxed">Duración simulada</p>
-            <p className="text-2xl font-black text-zinc-100">180 <span className="text-sm text-zinc-400 font-medium">minutos</span></p>
+            <p className="text-2xl font-black text-text-primary tabular-nums">180 <span className="text-sm text-text-tertiary font-medium">minutos</span></p>
           </div>
         </div>
-        <div className="h-px md:h-12 w-full md:w-px bg-white/10" />
-        <p className="text-zinc-300 text-sm leading-relaxed flex-1">
+        <div className="h-px md:h-12 w-full md:w-px bg-surface-container/60" />
+        <p className="text-text-secondary text-sm leading-relaxed flex-1">
           Este ensayo incluye los ejes temáticos oficiales de <strong className="text-brand-primary">{exam.code}</strong>. 
           Puedes practicar una materia puntual o completar todo el set.
         </p>
@@ -124,36 +127,36 @@ export default function ExamPage() {
         
         {exam.subjects.length === 0 ? (
           <div className="glass-card p-12 text-center border-dashed border-white/20">
-            <BookOpen className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <BookOpen className="h-12 w-12 text-zinc-600 mx-auto mb-4" aria-hidden="true" />
             <p className="text-zinc-300 font-bold mb-2 uppercase tracking-wide">Sin módulos</p>
             <p className="text-zinc-500 text-sm">No hay materias configuradas para este ensayo.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {exam.subjects.map((subject) => (
-              <div
+              <Link
                 key={subject.subject_id}
-                className="glass-card p-6 border-white/10 hover:border-brand-primary hover:bg-white/5 transition-all cursor-pointer group"
-                onClick={() => router.push(`/protected/cursos/${subject.subject_id}`)}
+                href={`/protected/cursos/${subject.subject_id}`}
+                className="glass-card block p-6 border-surface-container/60 hover:border-brand-primary hover:bg-surface-raised/30 transition-[border-color,background-color,transform] duration-150 hover:-translate-y-0.5 group interactive-focus rounded-2xl"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-zinc-800/80 rounded-xl text-zinc-400 group-hover:bg-brand-primary/20 group-hover:text-brand-primary transition-colors">
-                      <BookOpen className="h-5 w-5" />
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="p-3 bg-surface-raised rounded-xl text-text-tertiary group-hover:bg-brand-primary/20 group-hover:text-brand-primary transition-colors flex-shrink-0">
+                      <BookOpen className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-zinc-100">{subject.name}</h3>
-                      <p className="text-xs text-brand-primary font-bold tracking-widest uppercase mt-0.5">{subject.code}</p>
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-bold text-text-primary truncate">{subject.name}</h3>
+                      <p className="text-xs text-brand-primary font-bold tracking-widest uppercase mt-0.5 font-mono">{subject.code}</p>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-brand-accent"></div>
-                  <p className="text-sm text-zinc-400 font-medium">
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-surface-container/40">
+                  <div className="h-1.5 w-1.5 rounded-full bg-brand-accent" aria-hidden="true"></div>
+                  <p className="text-sm text-text-secondary font-medium">
                     {subject.topics.length} temas integrados
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

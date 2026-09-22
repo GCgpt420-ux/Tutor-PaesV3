@@ -190,27 +190,32 @@ export function AiTutorChat(props: AiTutorChatProps) {
         <div className="relative flex items-center">
           <input
             type="text"
+            aria-label="Mensaje para Tuto"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={isVoiceProcessing ? "Procesando voz..." : isRecording ? "Escuchando..." : "Pregunta algo sobre matemáticas..."}
+            placeholder={isVoiceProcessing ? "Procesando voz…" : isRecording ? "Escuchando…" : "Pregunta algo sobre este ejercicio…"}
             disabled={isVoiceProcessing}
             className={`w-full bg-zinc-900/50 border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all font-medium ${isRecording ? 'border-brand-primary ring-1 ring-brand-primary/30' : ''} ${isVoiceProcessing ? 'opacity-70 cursor-wait border-brand-primary/30' : ''}`}
           />
           <button
+            type="button"
+            aria-label={isRecording ? 'Detener dictado' : 'Iniciar dictado'}
             onClick={toggleRecording}
             disabled={loading || isVoiceProcessing}
             className={`absolute left-2 p-2 rounded-lg transition-all ${isRecording ? 'bg-brand-danger text-white animate-pulse' : 'text-zinc-500 hover:bg-white/5 hover:text-brand-primary'}`}
           >
-            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            {isRecording ? <MicOff className="h-5 w-5" aria-hidden="true" /> : <Mic className="h-5 w-5" aria-hidden="true" />}
           </button>
           <Button
+            type="button"
+            aria-label="Enviar mensaje"
             onClick={() => handleSend()}
             disabled={loading || !input.trim()}
             size="icon"
             className="absolute right-2 bg-brand-primary h-9 w-9 rounded-lg shadow-lg hover:bg-brand-primary/90 hover:scale-105 transition-all text-white disabled:opacity-50 disabled:hover:scale-100"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
         {tutorError && <p className="text-[10px] text-red-400 mt-2 ml-1 font-medium">{tutorError}</p>}

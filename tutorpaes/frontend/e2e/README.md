@@ -7,7 +7,7 @@ End-to-end tests for TutorPAES using Playwright. Tests cover critical user journ
 ### Prerequisites
 - Node.js 18+ (or 20+)
 - npm or yarn
-- Backend running on http://localhost:8000 (optional, Playwright can auto-start)
+- Backend running on http://localhost:8001 (optional, Playwright can auto-start)
 - Frontend running on http://localhost:3000 (optional, Playwright can auto-start)
 
 ### Installation

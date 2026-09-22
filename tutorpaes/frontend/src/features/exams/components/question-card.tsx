@@ -55,23 +55,23 @@ export function QuestionCard({
   const difficultyLevel = question.difficulty.toLowerCase();
 
   return (
-    <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-sm shadow-2xl overflow-hidden relative">
+    <div className="rounded-2xl border border-surface-container/70 bg-surface-default/90 backdrop-blur-md shadow-2xl overflow-hidden relative">
       {/* Decorative Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none mix-blend-overlay" />
 
       {/* Header */}
-      <div className="bg-white/5 border-b border-white/10 p-6 relative z-10">
+      <div className="bg-surface-raised/40 border-b border-surface-container/60 p-6 md:p-8 relative z-10">
         <div className="flex items-start justify-between mb-6 gap-4">
           <div className="flex items-center gap-2 mb-2">
-            <TerminalSquare className="h-4 w-4 text-brand-primary" />
-            <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
+            <TerminalSquare className="h-4 w-4 text-brand-primary" aria-hidden="true" />
+            <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-text-tertiary">
               Pregunta ID: #{question.question_id}
             </span>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
             <span
-              className={`px-3 py-1 rounded-sm text-[9px] font-mono font-black uppercase tracking-[0.2em] ${
+              className={`px-3 py-1 rounded-lg text-[9px] font-mono font-black uppercase tracking-[0.2em] ${
                 difficultyColors[difficultyLevel as keyof typeof difficultyColors] ||
                 difficultyColors.medio
               }`}
@@ -81,32 +81,32 @@ export function QuestionCard({
           </div>
         </div>
 
-        <h2 className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tighter mb-4 pr-12">
+        <h2 className="text-2xl md:text-3xl font-black text-text-primary leading-tight tracking-tighter mb-4 pr-12 break-words">
           {question.prompt}
         </h2>
 
         {/* Leyenda extraída del texto previo si hay reading_text */}
         {question.reading_text && (
-          <div className="mt-6 border-l-2 border-brand-primary/50 bg-brand-primary/5 p-5 italic text-zinc-400 font-mono text-xs leading-relaxed">
+          <div className="mt-6 rounded-xl border-l-2 border-brand-primary bg-brand-primary/5 p-5 text-text-secondary font-sans text-sm leading-relaxed whitespace-pre-wrap">
             {question.reading_text}
           </div>
         )}
       </div>
 
       {/* Opciones Tipo Terminal */}
-      <fieldset className="p-6 md:p-8 space-y-4 relative z-10">
-        <legend className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-brand-primary mb-6 flex items-center gap-2">
-          <Crosshair className="h-3 w-3" /> Selecciona una alternativa
+      <fieldset className="p-6 md:p-8 space-y-3 relative z-10">
+        <legend className="text-[10px] font-mono font-black uppercase tracking-[0.25em] text-brand-primary mb-4 flex items-center gap-2">
+          <Crosshair className="h-3.5 w-3.5" aria-hidden="true" /> Selecciona una alternativa
         </legend>
 
         {optionsWithLetters.map((option) => (
           <label
             key={option.value}
-            className={`w-full flex items-center p-4 border transition-all cursor-pointer group ${
+            className={`w-full min-h-[52px] flex items-center p-4 rounded-xl border transition-[border-color,background-color,box-shadow] duration-150 cursor-pointer group ${
               selectedAnswer === option.value
                 ? 'border-brand-primary bg-brand-primary/10 shadow-[inset_4px_0_0_0_rgba(99,102,241,1)]'
-                : 'border-white/5 bg-black/40 hover:border-white/20 hover:bg-white/5'
-            }`}
+                : 'border-surface-container/50 bg-surface-raised/30 hover:border-surface-container hover:bg-surface-raised/60'
+            } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background`}
           >
             <input
               type="radio"
@@ -120,10 +120,10 @@ export function QuestionCard({
             <div className="flex items-center gap-4 w-full">
               {/* Indicador de opción Vector */}
               <div
-                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center font-mono font-black text-lg transition-all ${
+                className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-mono font-black text-sm transition-[background-color,color,transform,box-shadow] duration-150 ${
                   selectedAnswer === option.value
-                    ? 'bg-brand-primary text-white scale-110 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
-                    : 'bg-white/5 text-zinc-500 border border-white/10 group-hover:bg-white/10 group-hover:text-white'
+                    ? 'bg-brand-primary text-white scale-105 shadow-md shadow-brand-primary/30'
+                    : 'border border-surface-container bg-surface-raised text-text-tertiary group-hover:text-text-primary group-hover:border-brand-primary/40'
                 }`}
                 aria-hidden="true"
               >
@@ -131,7 +131,7 @@ export function QuestionCard({
               </div>
 
               {/* Texto de opción */}
-              <span className={`font-medium transition-colors ${selectedAnswer === option.value ? 'text-white' : 'text-zinc-400 group-hover:text-white'}`}>
+              <span className={`text-sm md:text-base leading-relaxed break-words font-medium transition-colors duration-150 ${selectedAnswer === option.value ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
                 {option.value}
               </span>
             </div>
@@ -140,12 +140,13 @@ export function QuestionCard({
       </fieldset>
 
       {/* Explicación (toggle) */}
-      <div className="border-t border-white/10 bg-black/40 relative z-10">
+      <div className="border-t border-surface-container/60 bg-surface-raised/20 relative z-10">
         <button
+          type="button"
           onClick={() => setShowExplanation(!showExplanation)}
-          className="flex items-center justify-center w-full py-4 gap-2 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-primary hover:bg-brand-primary/10 transition-colors border-b border-transparent hover:border-brand-primary/30"
+          className="flex items-center justify-center w-full py-4 gap-2 text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-primary hover:bg-brand-primary/10 transition-colors border-b border-transparent hover:border-brand-primary/30 interactive-focus"
         >
-          <Info className="h-4 w-4" />
+          <Info className="h-4 w-4" aria-hidden="true" />
           {showExplanation ? 'OCULTAR EXPLICACIÓN' : 'VER EXPLICACIÓN DEL TUTOR'}
         </button>
 
@@ -153,18 +154,18 @@ export function QuestionCard({
           <div className="p-6 md:p-8 space-y-6">
             {/* Explicación Estática */}
             {explanation && (
-              <div className="p-6 bg-zinc-950 border border-white/10 relative">
-                <div className="absolute top-0 left-0 w-2 h-full bg-zinc-700" />
-                <p className="font-mono font-black text-zinc-500 uppercase tracking-[0.2em] text-[9px] mb-3">Explicación base:</p>
-                <p className="text-zinc-300 text-sm">{explanation}</p>
+              <div className="p-6 rounded-xl bg-surface-base border border-surface-container/70 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-primary/60" />
+                <p className="font-mono font-black text-text-tertiary uppercase tracking-[0.2em] text-[9px] mb-3">Explicación base:</p>
+                <p className="text-text-secondary text-sm leading-relaxed">{explanation}</p>
               </div>
             )}
             
             {/* Explicación IA */}
             {selectedAnswer && selectedAnswer !== correctAnswer && (
-              <div className="border border-brand-accent/20 bg-brand-accent/5 rounded-none p-1">
-                <div className="bg-black p-4 flex items-center gap-3 border-b border-brand-accent/10 mb-4">
-                  <span className="w-2 h-2 bg-brand-accent rounded-full animate-pulse" />
+              <div className="rounded-xl border border-brand-accent/30 bg-brand-accent/5 p-1 overflow-hidden">
+                <div className="bg-surface-base rounded-t-lg p-4 flex items-center gap-3 border-b border-brand-accent/15 mb-4">
+                  <span className="w-2 h-2 bg-brand-accent rounded-full animate-pulse" aria-hidden="true" />
                   <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-brand-accent">
                     Intervención IA Generativa
                   </span>
@@ -178,9 +179,9 @@ export function QuestionCard({
             )}
 
             {!selectedAnswer && (
-              <div className="flex items-center gap-3 p-4 bg-orange-500/10 border border-orange-500/20">
-                <AlertTriangle className="h-4 w-4 text-orange-500" />
-                <span className="text-[10px] font-mono font-bold text-orange-400 uppercase tracking-widest">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/25">
+                <AlertTriangle className="h-4 w-4 text-orange-400 flex-shrink-0" aria-hidden="true" />
+                <span className="text-[10px] font-mono font-bold text-orange-300 uppercase tracking-widest">
                   Para activar IA debes ingresar un intento erróneo previo.
                 </span>
               </div>

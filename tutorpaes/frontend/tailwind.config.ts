@@ -3,6 +3,8 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 // NOTE: los estilos "paes" ya fueron fusionados aqui desde tailwind.paes-extension.ts.
 
+const withOpacity = (variable: string) => `rgb(var(${variable}) / <alpha-value>)`;
+
 export default {
   darkMode: ["class"],
   content: [
@@ -79,21 +81,29 @@ export default {
         "paes-blue": "#3B82F6",
         // Nuevos tokens unificados de globals.css
         brand: {
-          primary: "var(--color-brand-primary)",
-          accent: "var(--color-brand-accent)",
-          secondary: "var(--color-brand-accent-active)",
-          danger: "var(--color-brand-danger)",
+          primary: {
+            DEFAULT: withOpacity("--color-brand-primary"),
+            hover: withOpacity("--color-brand-primary-hover"),
+            active: withOpacity("--color-brand-primary-active"),
+          },
+          accent: {
+            DEFAULT: withOpacity("--color-brand-accent"),
+            hover: withOpacity("--color-brand-accent-hover"),
+            active: withOpacity("--color-brand-accent-active"),
+          },
+          secondary: withOpacity("--color-brand-accent-active"),
+          danger: withOpacity("--color-brand-danger"),
         },
         surface: {
-          base: "var(--color-surface-base)",
-          default: "var(--color-surface-default)",
-          raised: "var(--color-surface-raised)",
-          container: "var(--color-surface-container)",
+          base: withOpacity("--color-surface-base"),
+          default: withOpacity("--color-surface-default"),
+          raised: withOpacity("--color-surface-raised"),
+          container: withOpacity("--color-surface-container"),
         },
         text: {
-          primary: "var(--color-text-primary)",
-          secondary: "var(--color-text-secondary)",
-          tertiary: "var(--color-text-tertiary)",
+          primary: withOpacity("--color-text-primary"),
+          secondary: withOpacity("--color-text-secondary"),
+          tertiary: withOpacity("--color-text-tertiary"),
         }
       },
       backgroundImage: {

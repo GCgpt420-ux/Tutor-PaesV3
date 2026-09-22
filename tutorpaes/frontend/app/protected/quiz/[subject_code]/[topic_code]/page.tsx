@@ -1,6 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   AlertCircle,
@@ -27,9 +32,17 @@ import type {
 // --- COMPONENTES REFINADOS (LOCALES) ---
 
 const ProgressBar = ({ current, total }: { current: number; total: number }) => {
-  const percent = total > 0 ? (current / total) * 100 : 0;
+  const clampedCurrent = Math.min(Math.max(current, 0), total);
+  const percent = total > 0 ? (clampedCurrent / total) * 100 : 0;
   return (
-    <div className="absolute top-0 left-0 w-full z-30">
+    <div
+      role="progressbar"
+      aria-label="Progreso del ensayo"
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={clampedCurrent}
+      className="absolute top-0 left-0 w-full z-30"
+    >
       <div className="h-[2px] w-full bg-white/[0.02]">
         <div 
           className="h-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-primary bg-[length:200%_auto] transition-all duration-1000"
@@ -55,9 +68,9 @@ const QuestionCard = ({
 }) => (
   <div className="w-full max-w-3xl text-left pt-4">
     <div className="flex items-center gap-3 mb-6 group">
-      <div className="h-6 w-1 bg-brand-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-      <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 uppercase">
-        Materia: <span className="text-zinc-300">{category}</span>
+      <div className="h-6 w-1 bg-brand-primary rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+      <span className="text-[10px] font-black tracking-[0.2em] text-text-tertiary uppercase">
+        Materia: <span className="text-text-secondary">{category}</span>
       </span>
     </div>
 
@@ -66,21 +79,21 @@ const QuestionCard = ({
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
           Texto base
         </p>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
           {readingText}
         </p>
       </section>
     )}
 
     <div className="space-y-4">
-      <span className="text-sm font-bold text-brand-primary/60 font-mono">Q.0{number}</span>
-      <h1 className="text-2xl md:text-3xl font-display font-semibold leading-[1.4] text-zinc-100 tracking-tight">
+      <span className="text-sm font-bold text-brand-primary/80 font-mono">Q.0{number}</span>
+      <h1 className="text-2xl md:text-3xl font-display font-semibold leading-[1.4] text-text-primary tracking-tight break-words">
         {content}
       </h1>
     </div>
 
     {imageUrl && (
-      <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-surface-container bg-surface-raised/40">
         <img 
           src={imageUrl} 
           alt="Gráfico de la pregunta" 
@@ -101,9 +114,15 @@ export default function QuizPage() {
 
   // IA Hook para control proactivo
   const aiTutor = useAiTutor();
+  const { addAssistantMessage, cancelMessage, resetChat, setExternalLoading } = aiTutor;
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const answerGenerationRef = useRef(0);
+  const questionControllerRef = useRef<AbortController | null>(null);
+  const hintControllerRef = useRef<AbortController | null>(null);
   const lastHintQuestionIdRef = useRef<number | null>(null);
+  const mobileChatTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileChatCloseRef = useRef<HTMLButtonElement>(null);
 
   const [totalQuestions, setTotalQuestions] = useState(15);
   const [showMobileChat, setShowMobileChat] = useState(false);
@@ -126,12 +145,35 @@ export default function QuizPage() {
     correctAnswers: 0,
   });
 
+  const closeMobileChat = useCallback(() => {
+    setShowMobileChat(false);
+    mobileChatTriggerRef.current?.focus();
+  }, []);
+
   // CARGAR PREGUNTA
   const loadNextQuestion = useCallback(async () => {
+    answerGenerationRef.current += 1;
+    questionControllerRef.current?.abort();
+    questionControllerRef.current = null;
+
     if (!subject_code || !topic_code || subject_code === 'undefined' || topic_code === 'undefined') {
       setQuiz((prev) => ({ ...prev, loading: false, error: 'Parámetros no encontrados' }));
       return;
     }
+
+    const controller = new AbortController();
+    questionControllerRef.current = controller;
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    hintControllerRef.current?.abort();
+    hintControllerRef.current = null;
+    cancelMessage();
+    setExternalLoading(false);
+    resetChat();
+    lastHintQuestionIdRef.current = null;
 
     try {
       setQuiz((prev) => ({
@@ -147,8 +189,11 @@ export default function QuizPage() {
       }));
 
       const response = await apiFetch<NextQuestionResponse>(
-        `/quiz/next-question?subject_code=${subject_code}&topic_code=${topic_code}`
+        `/quiz/next-question?subject_code=${subject_code}&topic_code=${topic_code}`,
+        { signal: controller.signal },
       );
+
+      if (questionControllerRef.current !== controller) return;
 
       if (response.kind === "topic_completed") {
         setQuiz((prev) => ({
@@ -172,42 +217,79 @@ export default function QuizPage() {
         }));
       }
     } catch (err) {
+      if (questionControllerRef.current !== controller) return;
       setQuiz((prev) => ({
         ...prev,
         loading: false,
         error: err instanceof Error ? err.message : 'Error al cargar pregunta',
       }));
+    } finally {
+      if (questionControllerRef.current === controller) {
+        questionControllerRef.current = null;
+      }
     }
-  }, [subject_code, topic_code]);
+  }, [cancelMessage, resetChat, setExternalLoading, subject_code, topic_code]);
 
   useEffect(() => {
     if (subject_code && topic_code) loadNextQuestion();
   }, [subject_code, topic_code, loadNextQuestion]);
 
-  // Cargar pista inicial de forma proactiva y segura al cambiar de pregunta
   useEffect(() => {
-    if (!quiz.question || quiz.submitted) return;
+    if (!showMobileChat) return;
+
+    mobileChatCloseRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMobileChat();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [closeMobileChat, showMobileChat]);
+
+  // Cargar pista inicial de forma proactiva y segura al cambiar de pregunta
+  const questionId = quiz.question?.question_id;
+
+  useEffect(() => {
+    if (questionId == null || quiz.submitted) return;
     
-    const qId = quiz.question.question_id;
+    const qId = questionId;
     if (lastHintQuestionIdRef.current === qId) return;
     
     lastHintQuestionIdRef.current = qId;
+    const controller = new AbortController();
+    hintControllerRef.current = controller;
     
     apiFetch<{ hint: string }>('/ai/hint', {
       method: 'POST',
       body: JSON.stringify({ question_id: qId }),
+      signal: controller.signal,
     }).then((hintRes) => {
-      if (hintRes && hintRes.hint) {
+      if (!controller.signal.aborted && hintRes && hintRes.hint) {
         const friendlyHint = `**Pista inicial de Tuto:**\n${hintRes.hint}`;
-        aiTutor.addAssistantMessage(friendlyHint);
+        addAssistantMessage(friendlyHint);
       }
     }).catch((err) => {
-      console.error('Error fetching proactive hint:', err);
+      if (!controller.signal.aborted) {
+        console.error('Error fetching proactive hint:', err);
+      }
     });
-  }, [quiz.question, quiz.submitted, aiTutor]);
+
+    return () => {
+      controller.abort();
+      if (hintControllerRef.current === controller) {
+        hintControllerRef.current = null;
+        if (lastHintQuestionIdRef.current === qId) {
+          lastHintQuestionIdRef.current = null;
+        }
+      }
+    };
+  }, [questionId, quiz.submitted, addAssistantMessage]);
 
   useEffect(() => {
     return () => {
+      answerGenerationRef.current += 1;
+      const questionController = questionControllerRef.current;
+      questionControllerRef.current = null;
+      questionController?.abort();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
@@ -247,6 +329,8 @@ export default function QuizPage() {
   const handleSubmitAnswer = async () => {
     if (quiz.selectedChoice === null || !quiz.question) return;
 
+    const answerGeneration = ++answerGenerationRef.current;
+
     try {
       setQuiz((prev) => ({ ...prev, loading: true, error: null }));
       aiTutor.setExternalLoading(true); // Mostrar estado "Analizando" en IA
@@ -257,6 +341,8 @@ export default function QuizPage() {
         question_id: quiz.question.question_id,
         selected_choice_id: quiz.selectedChoice,
       }) as BackendAnswerOut;
+
+      if (answerGenerationRef.current !== answerGeneration) return;
 
       const isCorrect = response.is_correct;
       const tutorFeedback = typeof response.feedback_text === 'string' && response.feedback_text.trim().length > 0
@@ -292,6 +378,7 @@ export default function QuizPage() {
         attemptId: response.attempt_id,
       }));
     } catch {
+      if (answerGenerationRef.current !== answerGeneration) return;
       setQuiz((prev) => ({ ...prev, loading: false, error: 'Error al enviar respuesta' }));
       aiTutor.setExternalLoading(false);
     }
@@ -320,7 +407,7 @@ export default function QuizPage() {
   // PANTALLAS DE ESTADO
   if (quiz.error && !quiz.loading && !quiz.question) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-surface p-6 text-center">
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-surface-base p-6 text-center">
         <div className="p-5 rounded-full bg-red-500/10">
           <AlertCircle className="h-12 w-12 text-red-400" />
         </div>
@@ -329,6 +416,7 @@ export default function QuizPage() {
           <p className="text-sm text-zinc-400 max-w-sm">{quiz.error}</p>
         </div>
         <button
+          type="button"
           onClick={loadNextQuestion}
           className="px-8 py-3 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all"
         >
@@ -340,7 +428,7 @@ export default function QuizPage() {
 
   if (quiz.loading && !quiz.question) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-surface">
+      <div className="flex h-screen w-screen items-center justify-center bg-surface-base">
         <Loader className="h-8 w-8 text-brand-primary animate-spin" />
       </div>
     );
@@ -349,13 +437,14 @@ export default function QuizPage() {
   if (!quiz.question && (quiz.questionsAnswered > 0 || quiz.isFinished)) {
       const percentage = Math.round((quiz.correctAnswers / Math.max(1, quiz.questionsAnswered)) * 100);
       return (
-        <div className="flex h-screen w-screen flex-col items-center justify-center bg-surface p-6 text-center">
+        <div className="flex h-screen w-screen flex-col items-center justify-center bg-surface-base p-6 text-center">
             <div className={`mb-8 p-6 rounded-full ${percentage >= 60 ? 'bg-green-500/10' : 'bg-brand-danger/10'}`}>
                 {percentage >= 60 ? <CheckCircle className="h-16 w-16 text-green-500" /> : <XCircle className="h-16 w-16 text-brand-danger" />}
             </div>
             <h1 className="text-4xl font-black text-zinc-100 mb-2">{percentage}% CORRECTO</h1>
             <p className="text-zinc-400 mb-8">Has completado el entrenamiento de {topic_code}.</p>
             <button
+              type="button"
               onClick={() => {
                 if (quiz.attemptId) {
                   router.push(`/protected/resultados?attempt_id=${quiz.attemptId}`);
@@ -372,21 +461,34 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] min-h-[600px] w-full bg-surface text-zinc-300 font-sans relative rounded-3xl border border-white/5 shadow-2xl overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[calc(100svh-10rem)] min-h-0 lg:h-[calc(100vh-140px)] lg:min-h-[600px] w-full bg-surface-base text-zinc-300 font-sans relative rounded-3xl border border-white/5 shadow-2xl overflow-hidden">
       <ProgressBar current={quiz.questionsAnswered} total={totalQuestions} />
 
       {/* MOBILE TOP BAR */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-surface-raised/40 backdrop-blur-md z-20">
-        <button onClick={() => router.back()} className="p-2 bg-white/5 rounded-xl border border-white/10 text-zinc-400">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-surface-container/60 bg-surface-raised/40 backdrop-blur-md z-20">
+        <button 
+          type="button"
+          onClick={() => router.back()} 
+          className="p-2.5 bg-surface-raised/80 rounded-xl border border-surface-container text-text-secondary hover:text-text-primary interactive-focus"
+          aria-label="Volver"
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-brand-primary" />
-          <span className="text-xs font-bold text-zinc-300 tracking-widest uppercase">Misión {subject_code}</span>
+          <Sparkles className="h-4 w-4 text-brand-primary" aria-hidden="true" />
+          <span className="text-xs font-bold text-text-primary tracking-widest uppercase font-mono">Misión {subject_code}</span>
         </div>
-        <button onClick={() => setShowMobileChat(true)} className="p-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-brand-primary relative">
-          <MessageCircle className="h-5 w-5" />
-          <span className="absolute top-1 right-1 flex h-2 w-2">
+        <button
+          ref={mobileChatTriggerRef}
+          type="button"
+          onClick={() => setShowMobileChat(true)}
+          className="p-2.5 bg-brand-primary/10 border border-brand-primary/30 rounded-xl text-brand-primary hover:bg-brand-primary/20 interactive-focus relative"
+          aria-label="Abrir tutor IA"
+          aria-controls="quiz-tutor-panel"
+          aria-expanded={showMobileChat}
+        >
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <span className="absolute top-1 right-1 flex h-2 w-2" aria-hidden="true">
              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
           </span>
@@ -397,7 +499,7 @@ export default function QuizPage() {
       <div className="flex-1 flex flex-col relative z-10 w-full overflow-hidden">
         
         {/* Scrollable Content Area */}
-        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-8 lg:px-20 overflow-y-auto scrollbar-hide pb-32">
+        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-8 lg:px-20 overflow-y-auto scrollbar-hide pb-40">
           <div className="w-full max-w-3xl space-y-8 md:space-y-12 animate-fade-in-up mt-4 md:mt-12">
             
             <QuestionCard 
@@ -416,60 +518,72 @@ export default function QuizPage() {
 
                 return (
                   <button
+                    type="button"
                     key={choice.id}
                     onClick={() => !quiz.submitted && setQuiz(p => ({ ...p, selectedChoice: choice.id, error: null }))}
                     disabled={quiz.submitted}
+                    aria-pressed={isSelected}
                     className={`
-                      group relative flex items-center p-4 md:p-5 rounded-2xl border transition-all duration-200 text-left outline-none
-                      ${!quiz.submitted ? 'hover:bg-white/[0.03] active:scale-[0.99]' : 'cursor-default'}
-                      ${isSelected && !quiz.submitted ? 'bg-white/5 border-white/20' : 'bg-surface-raised/20 border-white/5'}
-                      ${isCorrect ? 'bg-green-500/10 border-green-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : ''}
-                      ${isWrong ? 'bg-brand-danger/10 border-brand-danger/40' : ''}
+                      group relative flex items-center min-h-[52px] p-4 md:p-5 rounded-2xl border transition-[background-color,border-color,box-shadow,transform] duration-150 text-left
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                      ${!quiz.submitted ? 'hover:bg-surface-raised/40 hover:border-surface-container active:scale-[0.99]' : 'cursor-default'}
+                      ${isSelected && !quiz.submitted ? 'bg-brand-primary/10 border-brand-primary shadow-[inset_4px_0_0_0_rgba(99,102,241,1)]' : 'bg-surface-raised/20 border-surface-container/60'}
+                      ${isCorrect ? '!bg-green-500/10 !border-green-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : ''}
+                      ${isWrong ? '!bg-brand-danger/10 !border-brand-danger/50' : ''}
                     `}
                   >
                     <div className={`
-                      flex items-center justify-center w-7 h-7 flex-shrink-0 rounded-md border text-xs font-black transition-all
-                      ${isSelected ? 'bg-zinc-100 border-transparent text-zinc-950' : 'border-white/10 text-zinc-500'}
-                      ${isCorrect ? '!bg-green-500 !text-white border-none' : ''}
-                      ${isWrong ? '!bg-brand-danger !text-white border-none' : ''}
+                      flex items-center justify-center w-7 h-7 flex-shrink-0 rounded-lg border text-xs font-black font-mono transition-[background-color,color,border-color] duration-150
+                      ${isSelected ? 'bg-brand-primary border-transparent text-white shadow-sm shadow-brand-primary/30' : 'border-surface-container/80 bg-surface-raised text-text-tertiary'}
+                      ${isCorrect ? '!bg-green-500 !text-white !border-transparent' : ''}
+                      ${isWrong ? '!bg-brand-danger !text-white !border-transparent' : ''}
                     `}>
                       {choice.label}
                     </div>
-                    <span className={`ml-4 text-sm md:text-base ${isSelected ? 'text-zinc-50' : 'text-zinc-300'}`}>
+                    <span className={`ml-4 text-sm md:text-base leading-relaxed break-words font-medium transition-colors ${isSelected ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}`}>
                       {choice.text}
                     </span>
+                    {isCorrect && <span className="sr-only">, respuesta correcta</span>}
+                    {isWrong && <span className="sr-only">, tu respuesta, incorrecta</span>}
                   </button>
                 );
               })}
             </div>
+            <span role="status" aria-live="polite" className="sr-only">
+              {quiz.submitted ? (quiz.isCorrect ? 'Respuesta correcta.' : 'Respuesta incorrecta.') : ''}
+            </span>
           </div>
         </main>
 
         {/* Action Bar Floating (Absoluto respecto al contenedor central) */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-full md:max-w-xl z-30 pointer-events-none">
-            <div className="pointer-events-auto shadow-[0_-30px_50px_rgba(4,9,20,0.8)] backdrop-blur-md rounded-2xl p-2 bg-[#0B1220]/50">
+            <div className="pointer-events-auto shadow-[0_-30px_50px_rgba(4,9,20,0.8)] backdrop-blur-md rounded-2xl p-2 bg-surface-default/80 border border-surface-container/60">
               {quiz.error && (
-                <div className="mb-2 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <div className="mb-2 p-3 bg-brand-danger/10 border border-brand-danger/25 text-brand-danger text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   <span className="flex-1">{quiz.error}</span>
                   <button 
+                    type="button"
                     onClick={() => setQuiz(p => ({ ...p, error: null }))}
-                    className="p-1 hover:bg-white/5 rounded-md"
+                    className="p-1 hover:bg-white/5 rounded-md interactive-focus"
+                    aria-label="Cerrar alerta"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 </div>
               )}
               {!quiz.submitted ? (
                   <button 
+                    type="button"
                     onClick={handleSubmitAnswer}
                     disabled={quiz.selectedChoice === null || quiz.loading}
-                    className="w-full py-4 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-[0_5px_15px_rgba(59,130,246,0.3)] transition-all"
+                    className="w-full min-h-[48px] py-3.5 bg-brand-primary hover:bg-brand-primary-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-primary/25 transition-[background-color,transform,box-shadow] duration-150 hover:scale-[1.01] active:scale-[0.99] interactive-focus"
                   >
                       {quiz.loading ? 'Sincronizando...' : 'Fijar Respuesta'}
                   </button>
               ) : (
                   <button 
+                    type="button"
                     onClick={() => {
                       if (quiz.isFinished && quiz.attemptId) {
                         router.push(`/protected/resultados?attempt_id=${quiz.attemptId}`);
@@ -477,7 +591,7 @@ export default function QuizPage() {
                       }
                       loadNextQuestion();
                     }}
-                    className="w-full py-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-black uppercase tracking-widest text-xs shadow-[0_5px_15px_rgba(255,255,255,0.2)] transition-all"
+                    className="w-full min-h-[48px] py-3.5 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-primary/25 transition-[background-color,transform,box-shadow] duration-150 hover:scale-[1.01] active:scale-[0.99] interactive-focus"
                   >
                       {quiz.isFinished ? 'Ver Resultados Finales' : 'Siguiente Desafío'}
                   </button>
@@ -487,13 +601,17 @@ export default function QuizPage() {
       </div>
 
       {/* 3. DERECHA: TUTOR IA PROACTIVO (Desktop Panel / Mobile Drawer) */}
-      <aside className={`
-        fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] lg:w-[400px] 2xl:w-[460px] h-full flex-shrink-0 
+      <aside
+        id="quiz-tutor-panel"
+        aria-label="Tutor PAES"
+        className={`
+        fixed inset-y-0 right-0 z-50 w-[min(88vw,400px)] lg:w-[400px] 2xl:w-[460px] h-full flex-shrink-0
         border-l border-white/5 bg-surface-raised/95 backdrop-blur-2xl lg:shadow-[-10px_0_40px_rgba(0,0,0,0.5)]
-        transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:bg-surface-raised/60 lg:backdrop-blur-xl
-        ${showMobileChat ? 'translate-x-0 shadow-[-20px_0_50px_rgba(0,0,0,0.8)]' : 'translate-x-full'}
+        transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:visible lg:pointer-events-auto lg:bg-surface-raised/60 lg:backdrop-blur-xl
+        ${showMobileChat ? 'translate-x-0 visible pointer-events-auto shadow-[-20px_0_50px_rgba(0,0,0,0.8)]' : 'translate-x-full invisible pointer-events-none'}
         flex flex-col p-4 md:p-6
-      `}>
+      `}
+      >
         <header className="flex items-center justify-between mb-6 lg:mb-8 pt-4 lg:pt-0">
             <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-brand-primary" />
@@ -504,8 +622,14 @@ export default function QuizPage() {
               <div className="px-3 py-1 bg-brand-primary/10 border border-brand-primary/20 rounded-full hidden md:block">
                   <span className="text-[10px] font-bold text-brand-primary uppercase">Socrático</span>
               </div>
-              <button onClick={() => setShowMobileChat(false)} className="p-2 lg:hidden bg-white/5 rounded-full text-zinc-400">
-                <X className="h-5 w-5" />
+              <button
+                ref={mobileChatCloseRef}
+                type="button"
+                onClick={closeMobileChat}
+                className="p-2 lg:hidden bg-white/5 rounded-full text-zinc-400 interactive-focus"
+                aria-label="Cerrar tutor IA"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
         </header>

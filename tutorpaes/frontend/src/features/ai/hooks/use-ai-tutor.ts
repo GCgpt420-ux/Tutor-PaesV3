@@ -120,8 +120,7 @@ export function useAiTutor(): UseAiTutorReturn {
       }
 
     } catch (err) {
-      const isSuperseded = activeControllerRef.current !== controller && activeControllerRef.current !== null;
-      if (!isSuperseded) {
+      if (activeControllerRef.current === controller) {
         if (err instanceof Error && err.name === 'AbortError') {
           setError('Generación cancelada.');
         } else {
@@ -129,11 +128,8 @@ export function useAiTutor(): UseAiTutorReturn {
         }
       }
     } finally {
-      const isSuperseded = activeControllerRef.current !== controller && activeControllerRef.current !== null;
-      if (!isSuperseded) {
-        if (activeControllerRef.current === controller) {
-          activeControllerRef.current = null;
-        }
+      if (activeControllerRef.current === controller) {
+        activeControllerRef.current = null;
         setLoading(false);
       }
     }
@@ -147,9 +143,9 @@ export function useAiTutor(): UseAiTutorReturn {
   // Cancelar la petición pendiente si el componente del chat se desmonta
   useEffect(() => {
     return () => {
-      if (activeControllerRef.current) {
-        activeControllerRef.current.abort();
-      }
+      const controller = activeControllerRef.current;
+      activeControllerRef.current = null;
+      controller?.abort();
     };
   }, []);
 
