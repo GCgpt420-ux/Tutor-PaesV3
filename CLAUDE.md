@@ -12,8 +12,12 @@ Two apps live under `tutorpaes/` (this is **not** an npm/uv workspace — each a
 Supporting directories at the repo root:
 
 - `scripts/` — operational bash + one-off Python helpers. `dev-up.sh` / `dev-down.sh` orchestrate the full local stack.
-- `DOCS/` (uppercase) — canonical technical documentation (architecture, security, billing, OpenAI setup).
-- `docs/` (lowercase) — `docs/NAVIGATION.md` is the repo map; `docs/status/` holds status reports and audits; `docs/superpowers/plans/` holds execution plans.
+- `docs/` — canonical unified technical documentation (`docs/architecture/`, `docs/security/`, `docs/operations/`, `docs/guides/`, `docs/status/`, `docs/roadmap/`). `docs/NAVIGATION.md` is the repo map.
+
+## Knowledge Base & Obsidian Binding (Strict Boundaries)
+
+- **Canonical Project Vault:** `/home/gabriel/Memoria semantica` (specifically folder `TutorPAES/` and PAES notes in `Conversaciones/`).
+- **STRICT PROHIBITION:** Do NOT read, search, or reference other vaults on this machine (e.g. `/home/gabriel/AGENTES/Panaderia-Inteligente`, `/home/gabriel/AGENTES/Memorias Gabriel`). Keep all memory and context strictly isolated to Tutor PAES.
 
 ## Running locally
 

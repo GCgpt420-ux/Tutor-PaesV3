@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-09-22 16:31:45 Local  
+**Generado automáticamente:** 2026-09-22 16:39:33 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,13 +12,13 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  docs/status/GIT_AUDITORIA.md
+M  CLAUDE.md
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 69
-- **Total commits en main:** 69
+- **Total commits en la rama actual:** 70
+- **Total commits en main:** 70
 - **Merges integrados:** 3
 
 ## 3. Inventario de Ramas
@@ -39,17 +39,18 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 69
+- **feature/priority-1-security-testing**: ahead 14, behind 70
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  3a3ddbc [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  7e4556d [main]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-3a3ddbc (HEAD -> main) refactor(docs): consolidar estructura canonica docs, reparar generador de metricas y podar artefactos obsoletos
+7e4556d (HEAD -> main) chore(status): actualizar auditoria git post-limpieza
+3a3ddbc refactor(docs): consolidar estructura canonica docs, reparar generador de metricas y podar artefactos obsoletos
 b3c419c feat(frontend): refinar tokens semanticos tailwind 3, accesibilidad en quiz y tests unitarios
 8ad00d1 fix(ai-services): resolve OPENAI_TEMPERATURE attribute, cerebras import, sqlalchemy 2.0 query, and sync status documentation
 d7e4a0a feat(auth): add student demo account and decouple demo button by role
@@ -63,7 +64,6 @@ bb0d4c9 feat(frontend-voice): deteccion de mimeType, Web Speech API nativa y lim
 da9aadd feat(frontend-teacher): dashboard de profesor con cursos, alumnos en riesgo y performance por topico
 0f85b80 fix(auth): añadir role a los schemas AuthTokenOut y UserMeOut
 8ffc007 feat(ai): feedback socrático, endpoint /hint y question_id en historial chat
-55c4db2 feat(teacher): nuevo modulo de profesor con cursos, alumnos y rendimiento
 ```
 
 ---
