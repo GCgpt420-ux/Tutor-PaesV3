@@ -34,7 +34,7 @@ cd /home/gcuevas/ia_bot_v2
 4. Verificar health:
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/ai/health
+curl http://127.0.0.1:8001/api/v1/ai/health
 ```
 
 5. Probar endpoint de explicación con token de usuario.

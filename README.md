@@ -6,37 +6,40 @@ Este repositorio contiene el código fuente completo y estructurado para la plat
 
 - Mapa de navegación del repo: `docs/NAVIGATION.md`
 - Reportes y estado del proyecto: `docs/status/`
-- Documentación canónica técnica: `DOCS/`
+- Documentación canónica técnica: `docs/`
 
-## Estado Actualizado (2026-09-02)
+## Estado Actualizado (2026-09-22)
 
-- Estado de implementacion: nucleo funcional implementado de punta a punta (auth con forgot/reset password, catalogo, quiz adaptativo, IA multi-modelo con fallback, pagos y facturacion).
-- Nivel de madurez actual: alto (~95% local) para demostracion y pilotos controlados; medio-alto para despliegue productivo inicial.
-- Calidad observada: 102 tests backend y 15 tests frontend en verde (0 errores de sintaxis Python / TypeScript). CI unificada y smoke tests automatizados operativos.
-- Pendientes reales: observabilidad avanzada (Grafana / alertas SLO), generacion de PDF binario para facturas y validacion de Transbank en produccion comercial.
+- Estado de implementación: núcleo funcional implementado de punta a punta (auth con forgot/reset password, catálogo, quiz adaptativo, IA multi-modelo con fallback, pagos y facturación).
+- Nivel de madurez actual: alto (~96% local / 86% producción) para demostración y pilotos controlados; listo para etapa de pre-producción.
+- Calidad observada: **97 tests backend (pytest) y 34 tests frontend (jest) en verde (100% passing)**. Compilación a producción Next.js 16 (Turbopack) sin errores.
+- Pendientes reales: observabilidad avanzada (Grafana / alertas SLO), generación de PDF binario para facturas y validación de Transbank en producción comercial.
 
 > [!NOTE]
-> **Contexto de IA:** Este repositorio ha sido estabilizado y escalado a través de las Fases 1 a 6. El estado actual representa una plataforma conectada en Full-Stack con integración de múltiples LLMs, facturación automática y un sistema de UI moderno de cristal (Glassmorphism).
+> **Contexto de IA:** Este repositorio ha sido estabilizado y escalado a través de las Fases 1 a 6. El estado actual representa una plataforma conectada en Full-Stack con integración de múltiples LLMs (OpenAI, Groq, Cerebras) con Circuit Breakers, facturación automática y un sistema de UI moderno de cristal (Glassmorphism).
 
 ## 🚀 Runbook de Primer Arranque
 
-Para inicializar este proyecto por primera vez, desde cero, debes seguir **estrictamente** el siguiente orden:
+La forma recomendada y canónica de arrancar el stack completo local es:
 
-1. `cp backend/.env.example backend/.env`
-   - *Abre el archivo `.env` y asegúrate de editar las claves reales (removiendo cualquier credencial hardcodeada que venga del template).*
-2. `cd backend && docker compose up -d`
-   - *Inicia PostgreSQL y Redis. Si presentas errores de permisos de lectura/escritura en la base de datos (habitual en entornos Linux), utiliza la siguiente solución temporal:*
-   - `docker exec -it ia_bot_db chmod -R 777 /var/lib/postgresql/data`
+```bash
+./scripts/dev-up.sh
+```
+
+Para inicializar manualmente desde cero:
+
+1. `cp tutorpaes/backend/.env.example tutorpaes/backend/.env`
+   - *Abre el archivo `.env` y edita tus claves reales.*
+2. `cd tutorpaes/backend && docker compose up -d`
+   - *Inicia PostgreSQL y Redis.*
 3. `alembic upgrade head`
-   - *Ejecutar dentro del proyecto backend. Generará tablas, esquemas y la migración asincrónica pendiente.*
-4. `python scripts/seed_paes.py`
-   - *Inicializa la estructura básica del contenido.*
-5. `python scripts/seed_questions.py`
-   - *Puebla la DB con preguntas semilla.*
-6. `python scripts/seed_user.py`
-   - *Crea un usuario administrador/demo base de prueba (ej. demo@example.com).*
-7. `cd ../tutorpaes/frontend && npm install && npm run dev`
-   - *Levanta el entorno de la interfaz (Next.js) en el puerto por defecto (3000).*
+   - *Aplica migraciones en la base de datos.*
+4. Sembrar datos iniciales (desde `tutorpaes/backend`):
+   - `python -m scripts.seed_paes`
+   - `python -m scripts.seed_questions`
+   - `python -m scripts.seed_user`
+5. `cd ../frontend && npm install && npm run dev`
+   - *Inicia la interfaz Next.js en `:3000` (el backend corre en `:8001`).*
 
 ## 🏛 Estructura del Proyecto
 

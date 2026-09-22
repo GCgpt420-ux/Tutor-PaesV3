@@ -1,44 +1,46 @@
-# Navegacion del Proyecto
+# Navegación del Repositorio — TutorPAES
 
-## Estructura recomendada
+## Estructura Canónica de Directorios
 
-- `README.md`: entrada principal del repositorio (setup y panorama general).
-- `tutorpaes/backend`: API FastAPI, servicios, tests y scripts backend.
-- `tutorpaes/frontend`: app Next.js, componentes y tests frontend.
-- `scripts`: utilidades operativas locales.
-- `DOCS`: documentacion canónica de arquitectura, seguridad y operación.
-- `docs/status`: reportes de estado, auditorias e informes ejecutivos.
-- `docs/superpowers/plans`: planes de ejecución y trabajo interno.
-- `docs/archive`: snapshots históricos y contexto archivado.
+- `README.md`: Entrada principal del repositorio (setup, arquitectura básica y comandos).
+- `CLAUDE.md`: Guía de arquitectura, comandos y convenciones para asistentes IA y desarrolladores.
+- `tutorpaes/backend/`: API FastAPI (Python 3.12, SQLAlchemy 2.0, Alembic, PostgreSQL, Redis, Prometheus).
+- `tutorpaes/frontend/`: Aplicación Next.js 16 (App Router, React 19, TailwindCSS 3, React Query).
+- `scripts/`: Utilidades operativas (`dev-up.sh`, `dev-down.sh`, `db-backup.sh`, `auto_update_docs.py`).
+- `docs/`: Documentación técnica unificada y organizada por dominio:
+  - `docs/architecture/`: Arquitectura de alto nivel, diagrama de base de datos, sistema de IA y costos.
+  - `docs/security/`: Bases de seguridad, políticas de rotación de claves y auditoría de permisos.
+  - `docs/operations/`: Procedimientos operativos, checklist de despliegue, backup/rollback y setup LLM.
+  - `docs/guides/`: Onboarding de colaboradores, referencias de archivos y guías para agentes IA.
+  - `docs/roadmap/`: Roadmap de ejecución v2 y cronograma de fases.
+  - `docs/status/`: Reportes de estado dinámicos (`PROJECT_STATUS_REPORT.md`, `GIT_AUDITORIA.md`, `PROGRESS_TRACKING.md`).
+  - `docs/superpowers/plans/`: Planes de ejecución técnica task-by-task.
+  - `docs/archive/`: Snapshots históricos, radiografías pasadas y scripts de migración archivados.
 
-## Donde buscar cada cosa
+## Dónde consultar cada aspecto
 
-- Estado global y tracking:
-  - `docs/status/PROJECT_STATUS_REPORT.md`
-  - `docs/status/PROGRESS_TRACKING.md`
-  - `docs/status/GIT_AUDITORIA_2026-06-14.md`
+- **Estado y Salud del Proyecto:**
+  - `docs/status/PROJECT_STATUS_REPORT.md` (métricas reales de tests, estado de fases y readiness).
+  - `docs/status/GIT_AUDITORIA.md` (ramas, commits recientes y estado del working tree).
+  - `docs/status/PROGRESS_TRACKING.md` (bitácora de progreso).
 
-- Integración OpenAI:
-  - `DOCS/OPENAI_SETUP.md`
-  - `docs/archive/status_cleanup_2026-06-21/OPENAI_INTEGRATION_COMPLETE.md`
-  - `docs/archive/status_cleanup_2026-06-21/OPENAI_VALIDATION_REPORT.md`
+- **Arquitectura y Modelos:**
+  - `docs/architecture/ARQUITECTURA_Y_ROADMAP_PRODUCCION.md`
+  - `docs/architecture/DIAGRAMA_BASE_DE_DATOS.md`
+  - `docs/architecture/AI_PERSONALIZATION_SYSTEM.md`
 
-- Facturación y proveedores:
-  - `docs/archive/status_cleanup_2026-06-21/BILLING_INTEGRATION.md`
-  - `docs/archive/status_cleanup_2026-06-21/LLM_PROVIDERS_SETUP.md`
+- **Seguridad y Credenciales:**
+  - `docs/security/BASES_SEGURIDAD.md`
+  - `docs/security/API_KEY_ROTATION_POLICY.md`
 
-- Frontend y UX:
-  - `docs/archive/status_cleanup_2026-06-21/FRONTEND_CODEBASE_REPORT.md`
-  - `docs/archive/status_cleanup_2026-06-21/INSTRUCCIONES_FRONTEND_VOZ.md`
+- **Operación y Despliegue:**
+  - `docs/operations/CHECKLIST_DESPLIEGUE_PREPROD_PROD.md`
+  - `docs/operations/PROCESOS_OPERATIVOS.md`
+  - `docs/operations/BACKUP_Y_ROLLBACK.md`
+  - `docs/operations/OPENAI_SETUP.md` y `OPENAI_QUICK_START.md`
 
-- Históricos y respaldo documental:
-  - `docs/archive/GEMINI_CONTEXTO_REAL_2026-04-23`
-  - `docs/archive/status_cleanup_2026-06-21`
-  - `docs/archive/doc_cleanup_2026-06-21`
-  - `docs/archive/docs_isolated_2026-06-21`
+## Reglas de Gobernanza Documental
 
-## Regla para mantener orden
-
-- Evitar nuevos `.md` de reporte en el root.
-- Todo reporte/auditoria nueva debe ir en `docs/status`.
-- Todo snapshot de contexto debe ir en `docs/archive`.
+1. Toda la documentación técnica vive bajo `docs/` en minúsculas. No crear carpetas `DOCS/` o especializadas en la raíz.
+2. Los reportes dinámicos se generan exclusivamente mediante `python3 scripts/auto_update_docs.py`.
+3. Documentos históricos, análisis caducos y scripts únicos deben situarse en `docs/archive/`.

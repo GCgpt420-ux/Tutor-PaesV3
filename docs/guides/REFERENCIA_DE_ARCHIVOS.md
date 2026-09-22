@@ -94,7 +94,7 @@ pip freeze > requirements.txt
 **Uso:**
 ```bash
 docker build -t tutorpaes-backend .
-docker run -p 8000:8000 tutorpaes-backend
+docker run -p 8001:8000 tutorpaes-backend   # host :8001 (evita Portainer en :8000)
 ```
 
 ---
@@ -434,7 +434,7 @@ explanation = await generate_llm_explanation(
 
 **Cómo crear pregunta con LaTeX:**
 ```bash
-curl -X POST http://localhost:8000/api/v1/questions \
+curl -X POST http://localhost:8001/api/v1/questions \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -480,7 +480,7 @@ curl -X POST http://localhost:8000/api/v1/questions \
 
 **Ejemplo:**
 ```bash
-curl -X POST http://localhost:8000/api/v1/ai/explain \
+curl -X POST http://localhost:8001/api/v1/ai/explain \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"question_id": 10, "user_level": "intermedio"}'
@@ -763,7 +763,7 @@ npm run lint         # ESLint
 
 **Ejemplo:**
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 NEXT_PUBLIC_OPENAI_API_KEY=sk-proj-xxxxx  # Si se usa OpenAI cliente
 ```
 

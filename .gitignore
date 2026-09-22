@@ -100,3 +100,4 @@ tutorpaes/frontend/test-results/
 
 # Codebase Memory MCP
 .codebase-memory/
+app.log

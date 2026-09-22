@@ -46,7 +46,7 @@ cd /home/gcuevas/ia_bot_v2/tutorpaes/backend
 ### 1. Verificación de health
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/ai/health
+curl http://127.0.0.1:8001/api/v1/ai/health
 ```
 
 Resultado esperado:
@@ -57,12 +57,12 @@ Resultado esperado:
 ### 2. Verificación de explicación real
 
 ```bash
-TOKEN=$(curl -sS -X POST http://127.0.0.1:8000/api/v1/auth/login \
+TOKEN=$(curl -sS -X POST http://127.0.0.1:8001/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"demo@example.com","password":"demo123"}' \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
 
-curl -X POST http://127.0.0.1:8000/api/v1/ai/explain \
+curl -X POST http://127.0.0.1:8001/api/v1/ai/explain \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"question_id": 1}'
