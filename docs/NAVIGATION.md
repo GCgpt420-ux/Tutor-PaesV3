@@ -13,11 +13,19 @@
   - `docs/operations/`: Procedimientos operativos, checklist de despliegue, backup/rollback y setup LLM.
   - `docs/guides/`: Onboarding de colaboradores, referencias de archivos y guías para agentes IA.
   - `docs/roadmap/`: Roadmap de ejecución v2 y cronograma de fases.
+  - `docs/contexto_agentes/`: Radiografía completa del proyecto para onboarding y desarrollo multiagente (`01_vision` a `05_contexto_academico`).
   - `docs/status/`: Reportes de estado dinámicos (`PROJECT_STATUS_REPORT.md`, `GIT_AUDITORIA.md`, `PROGRESS_TRACKING.md`).
   - `docs/superpowers/plans/`: Planes de ejecución técnica task-by-task.
   - `docs/archive/`: Snapshots históricos, radiografías pasadas y scripts de migración archivados.
 
 ## Dónde consultar cada aspecto
+
+- **Contexto Multiagente y Onboarding (Radiografía):**
+  - `docs/contexto_agentes/01_vision_y_objetivos.md` (problema, alcance e hitos: Sábado, 4to Medio, Feria).
+  - `docs/contexto_agentes/02_arquitectura_multiagente.md` (roles de agy, agy2, claude, opencode y worktrees).
+  - `docs/contexto_agentes/03_stack_tecnologico.md` (FastAPI, Next.js 16, KaTeX, DB y LLM fallback).
+  - `docs/contexto_agentes/04_estado_actual_y_bloqueos.md` (tests verdes, puntos de fricción y backlog a 5 días).
+  - `docs/contexto_agentes/05_contexto_academico_y_pruebas.md` (Bloom 2-sigma, métricas TTFT/SLA, DEMRE y referencias).
 
 - **Estado y Salud del Proyecto:**
   - `docs/status/PROJECT_STATUS_REPORT.md` (métricas reales de tests, estado de fases y readiness).

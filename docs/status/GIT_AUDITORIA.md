@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-09-22 16:39:33 Local  
+**Generado automáticamente:** 2026-09-28 19:18:38 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,13 +12,19 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  CLAUDE.md
+M  docs/NAVIGATION.md
+A  docs/contexto_agentes/01_vision_y_objetivos.md
+A  docs/contexto_agentes/02_arquitectura_multiagente.md
+A  docs/contexto_agentes/03_stack_tecnologico.md
+A  docs/contexto_agentes/04_estado_actual_y_bloqueos.md
+A  docs/contexto_agentes/05_contexto_academico_y_pruebas.md
+M  tutorpaes/backend/scripts/seed_paes_data.py
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 70
-- **Total commits en main:** 70
+- **Total commits en la rama actual:** 71
+- **Total commits en main:** 71
 - **Merges integrados:** 3
 
 ## 3. Inventario de Ramas
@@ -39,17 +45,18 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 70
+- **feature/priority-1-security-testing**: ahead 14, behind 71
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  7e4556d [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3  b408e36 [main]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-7e4556d (HEAD -> main) chore(status): actualizar auditoria git post-limpieza
+b408e36 (HEAD -> main) chore(claude): fijar directiva de aislamiento estricto de boveda Obsidian
+7e4556d chore(status): actualizar auditoria git post-limpieza
 3a3ddbc refactor(docs): consolidar estructura canonica docs, reparar generador de metricas y podar artefactos obsoletos
 b3c419c feat(frontend): refinar tokens semanticos tailwind 3, accesibilidad en quiz y tests unitarios
 8ad00d1 fix(ai-services): resolve OPENAI_TEMPERATURE attribute, cerebras import, sqlalchemy 2.0 query, and sync status documentation
@@ -63,7 +70,6 @@ e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pr
 bb0d4c9 feat(frontend-voice): deteccion de mimeType, Web Speech API nativa y limpieza de markdown en TTS
 da9aadd feat(frontend-teacher): dashboard de profesor con cursos, alumnos en riesgo y performance por topico
 0f85b80 fix(auth): añadir role a los schemas AuthTokenOut y UserMeOut
-8ffc007 feat(ai): feedback socrático, endpoint /hint y question_id en historial chat
 ```
 
 ---

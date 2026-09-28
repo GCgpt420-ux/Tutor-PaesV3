@@ -14,8 +14,9 @@ from app.db.models import Exam, Subject, Topic, Question, QuestionChoice
 
 JSONL_FILE = os.getenv(
     "PAES_JSONL_FILE",
-    "/home/gabriel/proyecto_nuevo/salida_lista_hoy/preguntas_bd_listas_con_respuestas.jsonl",
+    "/home/gabriel/Escritorio/Proyectos2026/Procesamiento_Datos_Psu/salida_lista_hoy/preguntas_bd_listas_con_respuestas.jsonl",
 )
+
 
 
 def build_prompt_key(prompt: str) -> str:
