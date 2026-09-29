@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-3.5-turbo"
 
+    # Configuración OpenRouter (proveedor: openrouter) - Saldo prepagado
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
+
     # Configuración Groq (proveedor: groq) - Modelos gratuitos con cuotas
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "mixtral-8x7b-32768"

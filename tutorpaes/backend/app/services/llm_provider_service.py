@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 # Circuit Breakers aislados por proveedor para evitar que la caida de uno afecte al resto
 circuit_breakers = {
     "openai": CircuitBreaker("openai", failure_threshold=3, recovery_timeout=15.0),
+    "openrouter": CircuitBreaker("openrouter", failure_threshold=3, recovery_timeout=15.0),
     "groq": CircuitBreaker("groq", failure_threshold=3, recovery_timeout=15.0),
     "cerebras": CircuitBreaker("cerebras", failure_threshold=3, recovery_timeout=15.0),
 }
@@ -102,6 +103,67 @@ class OpenAIProvider(LLMProvider):
             raise
         finally:
             LLM_REQUEST_LATENCY.labels(provider="openai").observe(time.time() - start_time)
+
+
+class OpenRouterProvider(LLMProvider):
+    """Proveedor OpenRouter (API compatible con OpenAI con base_url y soporte de saldo prepagado)"""
+    name = "openrouter"
+    
+    def __init__(self):
+        if not settings.OPENROUTER_API_KEY:
+            raise ValueError("OPENROUTER_API_KEY not configured")
+        from openai import OpenAI
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=settings.OPENROUTER_API_KEY,
+            default_headers={
+                "HTTP-Referer": "https://tutorpaes.cl",
+                "X-Title": "TutorPAES V3"
+            }
+        )
+    
+    def stream_completion(self,
+                          system_prompt: str,
+                          user_message: str,
+                          conversation_messages: Optional[list[dict[str, str]]] = None,
+                          temperature: Optional[float] = None,
+                          max_tokens: Optional[int] = None) -> Generator[str, None, None]:
+        """Stream completion desde OpenRouter"""
+        temperature = temperature or settings.LLM_TEMPERATURE
+        max_tokens = max_tokens or settings.LLM_MAX_TOKENS
+        messages = _build_messages(system_prompt, user_message, conversation_messages)
+        
+        @circuit_breakers["openrouter"]
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=0.5, min=0.2, max=2.0),
+            retry=retry_if_exception_type(Exception),
+            reraise=True
+        )
+        def _connect():
+            return self.client.chat.completions.create(
+                model=settings.OPENROUTER_MODEL,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True,
+                timeout=settings.LLM_TIMEOUT_SECONDS
+            )
+
+        start_time = time.time()
+        try:
+            stream = _connect()
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+            LLM_REQUESTS_TOTAL.labels(provider="openrouter", status="success").inc()
+        except Exception as e:
+            LLM_ERRORS_TOTAL.labels(provider="openrouter", error_type=type(e).__name__).inc()
+            LLM_REQUESTS_TOTAL.labels(provider="openrouter", status="error").inc()
+            logger.error(f"OpenRouter streaming error: {e}")
+            raise
+        finally:
+            LLM_REQUEST_LATENCY.labels(provider="openrouter").observe(time.time() - start_time)
 
 
 class GroqProvider(LLMProvider):
@@ -221,6 +283,8 @@ def get_llm_provider() -> LLMProvider:
     
     if provider == "openai":
         return OpenAIProvider()
+    elif provider == "openrouter":
+        return OpenRouterProvider()
     elif provider == "groq":
         return GroqProvider()
     elif provider == "cerebras":
@@ -233,6 +297,8 @@ def get_provider_by_name(name: str) -> LLMProvider:
     """Retorna un proveedor de LLM específico por nombre"""
     if name == "openai":
         return OpenAIProvider()
+    elif name == "openrouter":
+        return OpenRouterProvider()
     elif name == "groq":
         return GroqProvider()
     elif name == "cerebras":
@@ -258,10 +324,12 @@ def stream_llm_response(system_prompt: str,
     providers_to_try = [primary_provider]
     
     # Resolver proveedores de fallback disponibles basados en las API Keys sembradas
-    all_possible = ["openai", "groq", "cerebras"]
+    all_possible = ["openrouter", "openai", "groq", "cerebras"]
     for p in all_possible:
         if p != primary_provider:
-            if p == "openai" and settings.OPENAI_API_KEY:
+            if p == "openrouter" and settings.OPENROUTER_API_KEY:
+                providers_to_try.append(p)
+            elif p == "openai" and settings.OPENAI_API_KEY:
                 providers_to_try.append(p)
             elif p == "groq" and settings.GROQ_API_KEY:
                 providers_to_try.append(p)
