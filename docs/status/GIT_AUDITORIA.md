@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-09-28 21:16:26 Local  
+**Generado automáticamente:** 2026-10-01 15:58:41 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,14 +12,20 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/backend/app/core/config.py
-M  tutorpaes/backend/app/services/llm_provider_service.py
+A  docs/contexto_agentes/07_DATASET_DEMRE_2026_AUDITADO.md
+A  docs/contexto_agentes/08_PLAN_OPERATIVO_PILOTO_OCTUBRE.md
+A  docs/contexto_agentes/09_ESTADO_HERDR_Y_AGENTES.md
+A  docs/contexto_agentes/PROMPT_REINICIO_SESION_LIMPIA.md
+M  docs/status/GIT_AUDITORIA.md
+M  docs/status/PROJECT_STATUS_REPORT.md
+A  scripts/start-local-tunnel.sh
+M  tutorpaes/backend/app/services/chatbot_service.py
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 73
-- **Total commits en main:** 73
+- **Total commits en la rama actual:** 74
+- **Total commits en main:** 74
 - **Merges integrados:** 3
 
 ## 3. Inventario de Ramas
@@ -42,19 +48,20 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 73
+- **feature/priority-1-security-testing**: ahead 14, behind 74
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             6e56652 [main]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   6e56652 [sprint-backend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             cece03c [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   cece03c [sprint-backend]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  6e56652 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-6e56652 (HEAD -> main, sprint-frontend, sprint-backend) docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
+cece03c (HEAD -> main, sprint-backend) feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
+6e56652 (sprint-frontend) docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
 b408e36 chore(claude): fijar directiva de aislamiento estricto de boveda Obsidian
 7e4556d chore(status): actualizar auditoria git post-limpieza
@@ -68,7 +75,6 @@ e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pr
 3908323 docs: guia de arquitectura/costos, índice de lectura y status report actualizado
 9d80b2d feat(scripts): dev-up en puerto 8001 + guard de Alembic stamp y utilidades de seed/docs
 9e00b56 refactor(frontend-portal): actualizar pages protegidas, AiTutorChat, ranking, sidebar y proxies
-bb0d4c9 feat(frontend-voice): deteccion de mimeType, Web Speech API nativa y limpieza de markdown en TTS
 ```
 
 ---
