@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001';
 
 async function forwardRequest(request: NextRequest, path: string[]) {
@@ -63,7 +66,7 @@ async function forwardRequest(request: NextRequest, path: string[]) {
       responseHeaders.set('Cache-Control', cacheControl);
     }
 
-    return new Response(text, {
+    return new NextResponse(text, {
       status: backendResponse.status,
       headers: responseHeaders,
     });
