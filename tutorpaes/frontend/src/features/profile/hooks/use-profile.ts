@@ -10,6 +10,9 @@ export interface UserProfile {
   academic_level?: string | null;
   target_university?: string | null;
   target_degree?: string | null;
+  // Puntaje PAES objetivo del alumno (0-1000); lo devuelve /auth/me pero no
+  // estaba declarado aquí. Ver docs/status/ deuda técnica frontend.
+  target_score?: number | null;
 }
 
 export interface ProfileFormData {

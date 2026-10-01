@@ -3,13 +3,25 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  hidden?: boolean;
+}
+
+interface SendMessageOptions {
+  // Envía el mensaje al backend para que la IA responda con contexto, pero lo
+  // oculta de la transcripción visible (p.ej. el puente "Preguntar a la Tuto").
+  hidden?: boolean;
 }
 
 interface UseAiTutorReturn {
   messages: Message[];
   loading: boolean;
   error: string | null;
-  sendMessage: (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => Promise<void>;
+  sendMessage: (
+    text: string,
+    attemptId?: string,
+    questionContext?: Record<string, unknown>,
+    options?: SendMessageOptions,
+  ) => Promise<void>;
   cancelMessage: () => void;
   addAssistantMessage: (text: string) => void;
   setExternalLoading: (loading: boolean) => void;
@@ -41,7 +53,12 @@ export function useAiTutor(): UseAiTutorReturn {
     }
   }, []);
 
-  const sendMessage = useCallback(async (text: string, attemptId?: string, questionContext?: Record<string, unknown>) => {
+  const sendMessage = useCallback(async (
+    text: string,
+    attemptId?: string,
+    questionContext?: Record<string, unknown>,
+    options?: SendMessageOptions,
+  ) => {
     if (!text.trim()) return;
 
     // Abortar cualquier petición en curso antes de enviar una nueva
@@ -53,7 +70,7 @@ export function useAiTutor(): UseAiTutorReturn {
     setError(null);
 
     // Optimísticamente añadir mensaje del usuario
-    const userMsg: Message = { role: 'user', content: text };
+    const userMsg: Message = { role: 'user', content: text, hidden: options?.hidden };
     setMessages((prev) => [...prev, userMsg]);
 
     const controller = new AbortController();

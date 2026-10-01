@@ -11,6 +11,7 @@ import { useVoice } from '@/src/hooks/useVoice';
 interface TutorMessage {
   role: 'user' | 'assistant';
   content: string;
+  hidden?: boolean;
 }
 
 interface AiTutorChatProps {
@@ -19,6 +20,12 @@ interface AiTutorChatProps {
   error?: string | null;
   sendMessage?: (text: string) => Promise<void>;
 }
+
+const STARTER_QUESTIONS = [
+  'Explícame esta pregunta desde cero',
+  '¿En qué me equivoqué exactamente?',
+  'Dame un ejercicio similar',
+];
 
 export function AiTutorChat(props: AiTutorChatProps) {
   const internalTutor = useAiTutor();
@@ -137,10 +144,22 @@ export function AiTutorChat(props: AiTutorChatProps) {
                 Puedes preguntarme sobre la pregunta que acabas de ver, o sobre cualquier concepto que quieras reforzar.
               </p>
             </div>
+            <div className="flex flex-col gap-2 w-full px-2">
+              {STARTER_QUESTIONS.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => handleSend(question)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-xs text-zinc-300 hover:border-brand-primary/40 hover:bg-brand-primary/10 hover:text-zinc-100 transition-colors interactive-focus"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {messages.map((m, i) => (
+        {messages.filter((m) => !m.hidden).map((m, i) => (
           <div
             key={i}
             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}

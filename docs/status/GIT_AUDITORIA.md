@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-01 16:07:36 Local  
+**Generado automáticamente:** 2026-10-01 16:14:12 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,19 +12,19 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
+A  docs/status/DEUDA_TECNICA_FRONTEND_HARDCODEO_2026-10-01.md
 M  tutorpaes/frontend/src/features/ai/components/AiTutorChat.tsx
-A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.test.tsx
-A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.test.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/WidgetRegistry.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.test.ts
-A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.ts
+A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.test.tsx
+A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.tsx
+M  tutorpaes/frontend/src/features/ai/hooks/use-ai-tutor.ts
+A  tutorpaes/frontend/src/features/exams/components/exam-results-view.test.tsx
+M  tutorpaes/frontend/src/features/exams/components/exam-results-view.tsx
+M  tutorpaes/frontend/src/features/profile/hooks/use-profile.ts
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 73
+- **Total commits en la rama actual:** 74
 - **Total commits en main:** 75
 - **Merges integrados:** 3
 
@@ -55,12 +55,13 @@ origin/HEAD -> origin/main
 ```text
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             cec7d9c [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ebc7e5b [sprint-backend]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  6e56652 [sprint-frontend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  881df05 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-6e56652 (HEAD -> sprint-frontend) docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
+881df05 (HEAD -> sprint-frontend) feat(ai): interceptar marcadores [WIDGET:PARABOLA|...] en el chat del tutor
+6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
 b408e36 chore(claude): fijar directiva de aislamiento estricto de boveda Obsidian
 7e4556d chore(status): actualizar auditoria git post-limpieza
@@ -74,7 +75,6 @@ e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pr
 3908323 docs: guia de arquitectura/costos, índice de lectura y status report actualizado
 9d80b2d feat(scripts): dev-up en puerto 8001 + guard de Alembic stamp y utilidades de seed/docs
 9e00b56 refactor(frontend-portal): actualizar pages protegidas, AiTutorChat, ranking, sidebar y proxies
-bb0d4c9 feat(frontend-voice): deteccion de mimeType, Web Speech API nativa y limpieza de markdown en TTS
 ```
 
 ---
