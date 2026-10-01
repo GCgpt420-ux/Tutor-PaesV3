@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-01 15:58:41 Local  
+**Generado automáticamente:** 2026-10-01 19:41:06 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,20 +12,32 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-A  docs/contexto_agentes/07_DATASET_DEMRE_2026_AUDITADO.md
-A  docs/contexto_agentes/08_PLAN_OPERATIVO_PILOTO_OCTUBRE.md
-A  docs/contexto_agentes/09_ESTADO_HERDR_Y_AGENTES.md
-A  docs/contexto_agentes/PROMPT_REINICIO_SESION_LIMPIA.md
+A  docs/operations/COMO_LANZAR_EL_PROYECTO.md
+A  docs/status/DEUDA_TECNICA_2026-10-01.md
+A  docs/status/DEUDA_TECNICA_FRONTEND_HARDCODEO_2026-10-01.md
 M  docs/status/GIT_AUDITORIA.md
 M  docs/status/PROJECT_STATUS_REPORT.md
-A  scripts/start-local-tunnel.sh
-M  tutorpaes/backend/app/services/chatbot_service.py
+M  tutorpaes/frontend/app/api/backend/[...path]/route.ts
+M  tutorpaes/frontend/src/features/ai/components/AiTutorChat.tsx
+A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.test.tsx
+A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.tsx
+A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.test.tsx
+A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.tsx
+M  tutorpaes/frontend/src/features/ai/hooks/use-ai-tutor.ts
+A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.test.tsx
+A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.tsx
+A  tutorpaes/frontend/src/features/ai/widgets/WidgetRegistry.tsx
+A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.test.ts
+A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.ts
+A  tutorpaes/frontend/src/features/exams/components/exam-results-view.test.tsx
+M  tutorpaes/frontend/src/features/exams/components/exam-results-view.tsx
+M  tutorpaes/frontend/src/features/profile/hooks/use-profile.ts
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 74
-- **Total commits en main:** 74
+- **Total commits en la rama actual:** 75
+- **Total commits en main:** 75
 - **Merges integrados:** 3
 
 ## 3. Inventario de Ramas
@@ -48,20 +60,21 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 74
+- **feature/priority-1-security-testing**: ahead 14, behind 75
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             cece03c [main]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   cece03c [sprint-backend]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  6e56652 [sprint-frontend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             cec7d9c [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ebc7e5b [sprint-backend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  fad2f04 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-cece03c (HEAD -> main, sprint-backend) feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
-6e56652 (sprint-frontend) docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
+cec7d9c (HEAD -> main) feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
+cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
+6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
 b408e36 chore(claude): fijar directiva de aislamiento estricto de boveda Obsidian
 7e4556d chore(status): actualizar auditoria git post-limpieza
@@ -74,7 +87,6 @@ d7e4a0a feat(auth): add student demo account and decouple demo button by role
 e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pruebas de rate limiter
 3908323 docs: guia de arquitectura/costos, índice de lectura y status report actualizado
 9d80b2d feat(scripts): dev-up en puerto 8001 + guard de Alembic stamp y utilidades de seed/docs
-9e00b56 refactor(frontend-portal): actualizar pages protegidas, AiTutorChat, ranking, sidebar y proxies
 ```
 
 ---

@@ -30,14 +30,30 @@ async function forwardRequest(request: NextRequest, path: string[]) {
       method,
       headers,
       body,
+      redirect: 'follow',
       // Required by undici when forwarding request bodies in some runtimes.
       // @ts-expect-error duplex is not in all TS lib versions yet.
       duplex: body ? 'half' : undefined,
     });
 
-    // Preserve streaming semantics (SSE/chunked) by returning the backend body directly.
+    const isStream = backendResponse.headers.get('content-type')?.includes('text/event-stream');
     const responseHeaders = new Headers(backendResponse.headers);
-    return new NextResponse(backendResponse.body, {
+    // CRITICAL: Node fetch decodes gzip/br/deflate automatically.
+    // If we forward content-encoding / content-length, the browser tries to decode already decoded bytes,
+    // causing ERR_CONTENT_DECODING_FAILED and browser "Failed to fetch".
+    responseHeaders.delete('content-encoding');
+    responseHeaders.delete('content-length');
+    responseHeaders.delete('transfer-encoding');
+
+    if (isStream) {
+      return new NextResponse(backendResponse.body, {
+        status: backendResponse.status,
+        headers: responseHeaders,
+      });
+    }
+
+    const data = await backendResponse.arrayBuffer();
+    return new NextResponse(data, {
       status: backendResponse.status,
       headers: responseHeaders,
     });
