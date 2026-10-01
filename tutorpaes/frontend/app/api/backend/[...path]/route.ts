@@ -36,24 +36,30 @@ async function forwardRequest(request: NextRequest, path: string[]) {
       duplex: body ? 'half' : undefined,
     });
 
-    const isStream = backendResponse.headers.get('content-type')?.includes('text/event-stream');
-    const responseHeaders = new Headers(backendResponse.headers);
-    // CRITICAL: Node fetch decodes gzip/br/deflate automatically.
-    // If we forward content-encoding / content-length, the browser tries to decode already decoded bytes,
-    // causing ERR_CONTENT_DECODING_FAILED and browser "Failed to fetch".
-    responseHeaders.delete('content-encoding');
-    responseHeaders.delete('content-length');
-    responseHeaders.delete('transfer-encoding');
+    const resContentType: string = backendResponse.headers.get('content-type') || 'application/json';
+    const cacheControl = backendResponse.headers.get('cache-control');
+    const isStream = resContentType.includes('text/event-stream');
 
     if (isStream) {
-      return new NextResponse(backendResponse.body, {
+      return new Response(backendResponse.body, {
         status: backendResponse.status,
-        headers: responseHeaders,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
       });
     }
 
-    const data = await backendResponse.arrayBuffer();
-    return new NextResponse(data, {
+    const text = await backendResponse.text();
+    const responseHeaders = new Headers();
+    responseHeaders.set('Content-Type', resContentType);
+    if (cacheControl) {
+      responseHeaders.set('Cache-Control', cacheControl);
+    }
+
+    return new Response(text, {
       status: backendResponse.status,
       headers: responseHeaders,
     });

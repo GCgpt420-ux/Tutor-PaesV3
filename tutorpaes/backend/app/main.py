@@ -109,8 +109,10 @@ async def correlation_id_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID") or str(uuid4())
     request.state.request_id = request_id
     token = set_request_id(request_id)
+    logger.info("--> %s %s (req_id=%s)", request.method, request.url.path, request_id)
     try:
         response = await call_next(request)
+        logger.info("<-- %s %s -> %s", request.method, request.url.path, response.status_code)
     except Exception:
         logger.exception("Error no controlado en middleware")
         response = JSONResponse(
