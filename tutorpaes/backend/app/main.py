@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import make_asgi_app
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -193,6 +195,10 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
 app.include_router(health_router, prefix="/api/v1")
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
+static_dir = Path(__file__).resolve().parent.parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 app.include_router(catalog_router, prefix="/api/v1")
