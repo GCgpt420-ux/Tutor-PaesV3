@@ -23,6 +23,10 @@ async function forwardRequest(request: NextRequest, path: string[]) {
       headers.set('Authorization', accessToken);
     }
 
+    // Force identity encoding: prevents Cloudflare Tunnel from sending chunked gzip
+    // which hangs undici/Node fetch stream reader on serverless environments.
+    headers.set('Accept-Encoding', 'identity');
+
     const body = method === 'GET' || method === 'HEAD' ? undefined : await request.arrayBuffer();
     console.log(`[Proxy] ${method} ${targetUrl}`);
     
