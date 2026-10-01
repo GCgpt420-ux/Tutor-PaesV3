@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/src/components/ui/button';
-import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer';
+import { GenUIMessageRenderer } from './GenUIMessageRenderer';
 import { Send, Loader2, Sparkles, Mic, MicOff, Volume2 } from 'lucide-react';
 import { useAiTutor } from '../hooks/use-ai-tutor';
+import { cleanTextForSpeech } from '../widgets/genui-parser';
 import { useVoice } from '@/src/hooks/useVoice';
 
 interface TutorMessage {
@@ -70,7 +71,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
     if (content === lastAutoSpokenMessageRef.current) return;
     lastAutoSpokenMessageRef.current = content;
 
-    void speak(content, true);
+    void speak(cleanTextForSpeech(content), true);
   }, [messages, loading, speak]);
 
   const handleSend = async (textToSend?: string) => {
@@ -152,7 +153,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
               }`}
             >
               <div className="flex flex-col gap-2">
-                <MarkdownMathRenderer content={m.content} />
+                <GenUIMessageRenderer content={m.content} />
                 {m.role === 'assistant' && (
                   <button 
                     onClick={() => {
@@ -161,7 +162,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
                          lastAutoSpokenMessageRef.current = '';
                       } else {
                          lastAutoSpokenMessageRef.current = typeof m.content === 'string' ? m.content : '';
-                         speak(m.content, true);
+                         speak(cleanTextForSpeech(m.content), true);
                       }
                     }}
                     className="self-end p-1 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-brand-primary"
