@@ -103,6 +103,7 @@ def create_custom_exam(
 
 
 @router.get("/exams/")
+@router.get("/exams")
 def get_exams(response: Response, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/exams/
@@ -145,6 +146,7 @@ def get_exams(response: Response, db: Session = Depends(get_db)):
 
 
 @router.get("/subjects/")
+@router.get("/subjects")
 def get_subjects(exam_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/subjects/?exam_id=1
@@ -205,6 +207,7 @@ def get_subjects(exam_id: int = Query(...), response: Response = None, db: Sessi
 
 
 @router.get("/topics/")
+@router.get("/topics")
 def get_topics(subject_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/topics/?subject_id=1

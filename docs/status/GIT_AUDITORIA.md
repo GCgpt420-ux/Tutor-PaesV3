@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-01 19:41:06 Local  
+**Generado automáticamente:** 2026-10-01 19:52:59 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,33 +12,14 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-A  docs/operations/COMO_LANZAR_EL_PROYECTO.md
-A  docs/status/DEUDA_TECNICA_2026-10-01.md
-A  docs/status/DEUDA_TECNICA_FRONTEND_HARDCODEO_2026-10-01.md
-M  docs/status/GIT_AUDITORIA.md
-M  docs/status/PROJECT_STATUS_REPORT.md
-M  tutorpaes/frontend/app/api/backend/[...path]/route.ts
-M  tutorpaes/frontend/src/features/ai/components/AiTutorChat.tsx
-A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.test.tsx
-A  tutorpaes/frontend/src/features/ai/components/AskTutorButton.tsx
-A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.test.tsx
-A  tutorpaes/frontend/src/features/ai/components/GenUIMessageRenderer.tsx
-M  tutorpaes/frontend/src/features/ai/hooks/use-ai-tutor.ts
-A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.test.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/ParabolaWidget.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/WidgetRegistry.tsx
-A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.test.ts
-A  tutorpaes/frontend/src/features/ai/widgets/genui-parser.ts
-A  tutorpaes/frontend/src/features/exams/components/exam-results-view.test.tsx
-M  tutorpaes/frontend/src/features/exams/components/exam-results-view.tsx
-M  tutorpaes/frontend/src/features/profile/hooks/use-profile.ts
+M  tutorpaes/backend/app/api/v1/endpoints/catalog.py
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 75
-- **Total commits en main:** 75
-- **Merges integrados:** 3
+- **Total commits en la rama actual:** 78
+- **Total commits en main:** 78
+- **Merges integrados:** 4
 
 ## 3. Inventario de Ramas
 
@@ -60,19 +41,22 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 75
+- **feature/priority-1-security-testing**: ahead 14, behind 78
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             cec7d9c [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             4667029 [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ebc7e5b [sprint-backend]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  fad2f04 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-cec7d9c (HEAD -> main) feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
+4667029 (HEAD -> main, origin/main, origin/HEAD) feat(frontend): integrar sprint-frontend (GenUI, puente tutor IA, debrief PAES) y corregir streaming proxy headers
+fad2f04 (sprint-frontend) feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y starter questions
+881df05 feat(ai): interceptar marcadores [WIDGET:PARABOLA|...] en el chat del tutor
+cec7d9c feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
 cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
 6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
@@ -84,9 +68,6 @@ b3c419c feat(frontend): refinar tokens semanticos tailwind 3, accesibilidad en q
 d7e4a0a feat(auth): add student demo account and decouple demo button by role
 04a7e8c fix(dev-ux): stabilize dev server with webpack and role-based views
 27ea449 fix(auth-ux): retransmitir role en login proxy, condicionar CSP por entorno y limpiar LaTeX en TTS
-e65467e fix(pre-pilot): consolidación de parches P0, P1, P2 y corrección de pruebas de rate limiter
-3908323 docs: guia de arquitectura/costos, índice de lectura y status report actualizado
-9d80b2d feat(scripts): dev-up en puerto 8001 + guard de Alembic stamp y utilidades de seed/docs
 ```
 
 ---
