@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-01 20:21:03 Local  
+**Generado automáticamente:** 2026-10-01 20:25:41 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,14 +12,13 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/frontend/app/api/backend/[...path]/route.ts
-M  tutorpaes/frontend/package.json
+M  tutorpaes/frontend/src/lib/api/client.ts
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 81
-- **Total commits en main:** 81
+- **Total commits en la rama actual:** 82
+- **Total commits en main:** 82
 - **Merges integrados:** 4
 
 ## 3. Inventario de Ramas
@@ -42,19 +41,20 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 81
+- **feature/priority-1-security-testing**: ahead 14, behind 82
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             32ba52d [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             2e18ef5 [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ebc7e5b [sprint-backend]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  fad2f04 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-32ba52d (HEAD -> main, origin/main, origin/HEAD) fix(proxy): forzar Accept-Encoding identity hacia Cloudflare tunnel para evitar streams truncados en Vercel
+2e18ef5 (HEAD -> main, origin/main, origin/HEAD) fix(build): compilar con --webpack en Vercel para resolver ENOENT middleware.js.nft.json y forzar dynamic en route handler
+32ba52d fix(proxy): forzar Accept-Encoding identity hacia Cloudflare tunnel para evitar streams truncados en Vercel
 f7d138c fix(proxy): retornar cuerpo textual y cabeceras sanitizadas en proxy de Next.js para Vercel
 545b5c5 fix(catalog): soportar rutas /exams, /subjects y /topics con y sin trailing slash para evitar 307 redirects en proxy Vercel
 4667029 feat(frontend): integrar sprint-frontend (GenUI, puente tutor IA, debrief PAES) y corregir streaming proxy headers
@@ -68,7 +68,6 @@ b408e36 chore(claude): fijar directiva de aislamiento estricto de boveda Obsidia
 7e4556d chore(status): actualizar auditoria git post-limpieza
 3a3ddbc refactor(docs): consolidar estructura canonica docs, reparar generador de metricas y podar artefactos obsoletos
 b3c419c feat(frontend): refinar tokens semanticos tailwind 3, accesibilidad en quiz y tests unitarios
-8ad00d1 fix(ai-services): resolve OPENAI_TEMPERATURE attribute, cerebras import, sqlalchemy 2.0 query, and sync status documentation
 ```
 
 ---

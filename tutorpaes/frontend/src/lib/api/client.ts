@@ -32,7 +32,10 @@ function redirectToLogin() {
 
 export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions = {}, allowRefresh = true) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = endpoint.startsWith('http') ? endpoint : `${API_PROXY_BASE}${cleanEndpoint}`;
+  const [pathname, search] = cleanEndpoint.split('?');
+  const normalizedPath = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  const finalEndpoint = search ? `${normalizedPath}?${search}` : normalizedPath;
+  const url = endpoint.startsWith('http') ? endpoint : `${API_PROXY_BASE}${finalEndpoint}`;
   
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> || {}),
