@@ -59,6 +59,24 @@ async function forwardRequest(request: NextRequest, path: string[]) {
       });
     }
 
+    if (
+      resContentType.includes('audio/') ||
+      resContentType.includes('image/') ||
+      resContentType.includes('application/octet-stream') ||
+      resContentType.includes('application/pdf')
+    ) {
+      const buffer = await backendResponse.arrayBuffer();
+      const responseHeaders = new Headers();
+      responseHeaders.set('Content-Type', resContentType);
+      if (cacheControl) {
+        responseHeaders.set('Cache-Control', cacheControl);
+      }
+      return new NextResponse(buffer, {
+        status: backendResponse.status,
+        headers: responseHeaders,
+      });
+    }
+
     const text = await backendResponse.text();
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', resContentType);

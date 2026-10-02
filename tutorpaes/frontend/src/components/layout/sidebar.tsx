@@ -19,10 +19,12 @@ const baseItems = [
   { icon: ClipboardList, label: "Ensayos", href: "/protected/ensayos" },
   { icon: TrendingUp, label: "Ranking", href: "/protected/ranking" },
   { icon: User, label: "Perfil", href: "/protected/perfil" },
-  { icon: Shield, label: "Facturación", href: "/protected/billing" },
 ];
 
-const adminItem = { icon: Shield, label: "Admin", href: "/protected/admin", adminOnly: true };
+const adminItems = [
+  { icon: Shield, label: "Facturación", href: "/protected/billing", adminOnly: true },
+  { icon: Shield, label: "Admin", href: "/protected/admin", adminOnly: true },
+];
 
 export function DashboardSidebar() {
   const [user, setUser] = useState<UserMe | null>(null);
@@ -56,7 +58,7 @@ export function DashboardSidebar() {
     };
   }, []);
 
-  const items = user?.is_admin ? [...baseItems, adminItem] : baseItems;
+  const items = user?.is_admin ? [...baseItems, ...adminItems] : baseItems;
 
   return (
     <aside className="w-80 h-screen sticky top-0 bg-surface-base flex flex-col py-10 px-6 gap-y-1 z-40 border-r border-white/5">

@@ -144,6 +144,7 @@ export function useVoice() {
 
           const response = await fetch('/api/backend/voice/transcribe', {
             method: 'POST',
+            credentials: 'include',
             body: formData,
           });
 
@@ -207,6 +208,7 @@ export function useVoice() {
       const response = await fetch('/api/backend/voice/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ text: cleanText }),
       });
 

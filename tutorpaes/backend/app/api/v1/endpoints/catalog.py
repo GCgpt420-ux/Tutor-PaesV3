@@ -179,6 +179,9 @@ def get_subjects(exam_id: int = Query(...), response: Response = None, db: Sessi
         .options(selectinload(Subject.topics))
     ).all()
 
+    priority_order = {"LENG": 1, "LECT": 1, "M1": 2, "M2": 3, "CIEN": 4, "BIO": 5, "FIS": 6, "QUI": 7, "HIST": 8}
+    subjects = sorted(subjects, key=lambda s: priority_order.get(s.code, 99))
+
     active_topic_ids: set[int] = set(
         db.scalars(select(Topic.id).where(Topic.id.in_(
             select(Topic.id)

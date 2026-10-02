@@ -192,6 +192,13 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
         },
     )
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+static_path = Path(__file__).resolve().parent.parent / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
 app.include_router(health_router, prefix="/api/v1")
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
