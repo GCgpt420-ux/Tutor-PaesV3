@@ -62,7 +62,7 @@ export function TopicCard({
           className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"
         >
           <div
-            className="h-full bg-gradient-to-r from-brand-primary to-brand-accent transition-all duration-700 ease-snappy shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+            className="h-full bg-brand-primary transition-all duration-700 ease-snappy shadow-[0_0_8px_rgba(255,107,53,0.4)]"
             style={{ width: `${progress}%` }}
           />
         </div>

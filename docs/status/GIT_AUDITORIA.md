@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-03 01:26:30 Local  
+**Generado automáticamente:** 2026-10-03 01:32:48 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,14 +12,16 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/frontend/app/globals.css
-M  tutorpaes/frontend/src/features/auth/components/login-form.tsx
-M  tutorpaes/frontend/src/features/auth/components/sign-up-form.tsx
+M  tutorpaes/frontend/app/protected/cursos/[subject_id]/page.tsx
+A  tutorpaes/frontend/src/features/courses/components/topic-study-modal.test.tsx
+A  tutorpaes/frontend/src/features/courses/components/topic-study-modal.tsx
+A  tutorpaes/frontend/src/features/courses/data/topic-study-data.ts
+M  tutorpaes/frontend/src/features/dashboard/components/topic-card.tsx
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 88
+- **Total commits en la rama actual:** 89
 - **Total commits en main:** 86
 - **Merges integrados:** 4
 
@@ -50,12 +52,13 @@ origin/HEAD -> origin/main
 ```text
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             be82dba [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ca4ed82 [sprint-backend]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  7ef8459 [sprint-frontend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  2fcd5f0 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-7ef8459 (HEAD -> sprint-frontend) docs(status): documentar 3 tests de race-condition fallando en quiz page (preexistente, no bloqueante)
+2fcd5f0 (HEAD -> sprint-frontend) style(auth): rediseño login/registro a identidad High Performance Cockpit
+7ef8459 docs(status): documentar 3 tests de race-condition fallando en quiz page (preexistente, no bloqueante)
 2f9dbbd style(home): rediseño landing page a identidad High Performance Cockpit
 be82dba (origin/main, origin/HEAD, main) style(pricing): conversión al tema dark High Performance Cockpit
 2d90cb6 style(identity): opción C — Geist+Inter fonts, paleta naranja fuego #FF6B35, superficies slate neutro
@@ -69,7 +72,6 @@ f7d138c fix(proxy): retornar cuerpo textual y cabeceras sanitizadas en proxy de 
 fad2f04 feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y starter questions
 881df05 feat(ai): interceptar marcadores [WIDGET:PARABOLA|...] en el chat del tutor
 cec7d9c feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
-cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
 ```
 
 ---

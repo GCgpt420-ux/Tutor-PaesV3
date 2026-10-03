@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, Zap, Loader } from 'lucide-react';
 import { TopicCard } from '@/src/features/dashboard/components/topic-card';
 import { useSubjectDetails } from '@/src/features/courses/hooks/use-courses';
+import { TopicStudyModal } from '@/src/features/courses/components/topic-study-modal';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/src/lib/api/client';
 import { getCurrentUser } from '@/src/lib/auth/current-user';
@@ -15,6 +16,7 @@ function CursoDetailContent({ subject_id }: { subject_id: string }) {
   const { data: subject, isLoading: loading, isError, error: queryError } = useSubjectDetails(subject_id);
 
   const [userId, setUserId] = useState<number | null>(null);
+  const [studyTopic, setStudyTopic] = useState<{ topic_code: string; name: string } | null>(null);
 
   useEffect(() => {
     getCurrentUser()
@@ -167,12 +169,24 @@ function CursoDetailContent({ subject_id }: { subject_id: string }) {
                 description={`Código: ${topic.topic_code}`}
                 topicNumber={index + 1}
                 progress={topic.progress}
-                onClick={() => router.push(`/protected/quiz/${subject.subject_code}/${topic.topic_code}`)}
+                onClick={() => setStudyTopic({ topic_code: topic.topic_code, name: topic.name })}
               />
             ))}
           </div>
         )}
       </div>
+
+      <TopicStudyModal
+        open={studyTopic !== null}
+        onClose={() => setStudyTopic(null)}
+        subjectCode={subject.subject_code}
+        topicCode={studyTopic?.topic_code ?? ''}
+        topicName={studyTopic?.name ?? ''}
+        onPractice={() => {
+          if (!studyTopic) return;
+          router.push(`/protected/quiz/${subject.subject_code}/${studyTopic.topic_code}`);
+        }}
+      />
     </div>
   );
 }
