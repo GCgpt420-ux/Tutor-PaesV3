@@ -2,14 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/src/components/ui/button';
-import { MarkdownMathRenderer } from '@/src/components/ui/markdown-math-renderer';
+import { GenUIMessageRenderer } from './GenUIMessageRenderer';
 import { Send, Loader2, Sparkles, Mic, MicOff, Volume2 } from 'lucide-react';
 import { useAiTutor } from '../hooks/use-ai-tutor';
+import { cleanTextForSpeech } from '../widgets/genui-parser';
 import { useVoice } from '@/src/hooks/useVoice';
 
 interface TutorMessage {
   role: 'user' | 'assistant';
   content: string;
+  hidden?: boolean;
 }
 
 interface AiTutorChatProps {
@@ -18,6 +20,12 @@ interface AiTutorChatProps {
   error?: string | null;
   sendMessage?: (text: string) => Promise<void>;
 }
+
+const STARTER_QUESTIONS = [
+  'Explícame esta pregunta desde cero',
+  '¿En qué me equivoqué exactamente?',
+  'Dame un ejercicio similar',
+];
 
 export function AiTutorChat(props: AiTutorChatProps) {
   const internalTutor = useAiTutor();
@@ -70,7 +78,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
     if (content === lastAutoSpokenMessageRef.current) return;
     lastAutoSpokenMessageRef.current = content;
 
-    void speak(content, true);
+    void speak(cleanTextForSpeech(content), true);
   }, [messages, loading, speak]);
 
   const handleSend = async (textToSend?: string) => {
@@ -136,10 +144,22 @@ export function AiTutorChat(props: AiTutorChatProps) {
                 Puedes preguntarme sobre la pregunta que acabas de ver, o sobre cualquier concepto que quieras reforzar.
               </p>
             </div>
+            <div className="flex flex-col gap-2 w-full px-2">
+              {STARTER_QUESTIONS.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => handleSend(question)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-xs text-zinc-300 hover:border-brand-primary/40 hover:bg-brand-primary/10 hover:text-zinc-100 transition-colors interactive-focus"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {messages.map((m, i) => (
+        {messages.filter((m) => !m.hidden).map((m, i) => (
           <div
             key={i}
             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -152,7 +172,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
               }`}
             >
               <div className="flex flex-col gap-2">
-                <MarkdownMathRenderer content={m.content} />
+                <GenUIMessageRenderer content={m.content} />
                 {m.role === 'assistant' && (
                   <button 
                     onClick={() => {
@@ -161,7 +181,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
                          lastAutoSpokenMessageRef.current = '';
                       } else {
                          lastAutoSpokenMessageRef.current = typeof m.content === 'string' ? m.content : '';
-                         speak(m.content, true);
+                         speak(cleanTextForSpeech(m.content), true);
                       }
                     }}
                     className="self-end p-1 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-brand-primary"

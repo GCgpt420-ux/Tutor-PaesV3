@@ -103,6 +103,7 @@ def create_custom_exam(
 
 
 @router.get("/exams/")
+@router.get("/exams")
 def get_exams(response: Response, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/exams/
@@ -145,6 +146,7 @@ def get_exams(response: Response, db: Session = Depends(get_db)):
 
 
 @router.get("/subjects/")
+@router.get("/subjects")
 def get_subjects(exam_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/subjects/?exam_id=1
@@ -177,6 +179,9 @@ def get_subjects(exam_id: int = Query(...), response: Response = None, db: Sessi
         .options(selectinload(Subject.topics))
     ).all()
 
+    priority_order = {"LENG": 1, "LECT": 1, "M1": 2, "M2": 3, "CIEN": 4, "BIO": 5, "FIS": 6, "QUI": 7, "HIST": 8}
+    subjects = sorted(subjects, key=lambda s: priority_order.get(s.code, 99))
+
     active_topic_ids: set[int] = set(
         db.scalars(select(Topic.id).where(Topic.id.in_(
             select(Topic.id)
@@ -205,6 +210,7 @@ def get_subjects(exam_id: int = Query(...), response: Response = None, db: Sessi
 
 
 @router.get("/topics/")
+@router.get("/topics")
 def get_topics(subject_id: int = Query(...), response: Response = None, db: Session = Depends(get_db)):
     """
     GET /api/v1/catalog/topics/?subject_id=1

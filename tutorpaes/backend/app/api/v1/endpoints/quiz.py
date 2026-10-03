@@ -241,6 +241,7 @@ def next_question(
         "prompt": question.prompt,
         "topic": topic.code,
         "reading_text": question.reading_text,
+        "image_url": question.image_url,
         "choices": [
             {"id": choice.id, "label": choice.label, "text": choice.text}
             for choice in choices
@@ -734,3 +735,64 @@ def get_attempt_results(
         completed_at=attempt.completed_at.isoformat() if attempt.completed_at else None,
         answers_detail=answers_detail
     )
+
+
+class QuestionReportIn(BaseModel):
+    reason: str
+    comment: Optional[str] = None
+
+
+@router.post("/questions/{question_id}/report")
+def report_quiz_question(
+    question_id: int,
+    payload: QuestionReportIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    POST /api/v1/quiz/questions/{question_id}/report
+    Permite a los estudiantes reportar preguntas con problemas durante el quiz/ensayo.
+    """
+    question = db.get(Question, question_id)
+    if not question:
+        raise not_found("question_not_found", f"Question {question_id} not found")
+
+    logger.warning(
+        "🚨 REPORTE DE PREGUNTA #%s por usuario %s (%s). Motivo: '%s', Comentario: '%s'",
+        question_id,
+        current_user.id,
+        current_user.email,
+        payload.reason,
+        payload.comment or "Sin comentario",
+    )
+    return {
+        "status": "ok",
+        "message": "Reporte registrado exitosamente. Gracias por ayudarnos a mejorar.",
+        "question_id": question_id,
+    }
+
+
+class InteractionLog(BaseModel):
+    event: str
+    path: Optional[str] = None
+    meta: Optional[dict] = None
+
+
+@router.post("/telemetry/interaction")
+def log_student_interaction(
+    payload: InteractionLog,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    POST /api/v1/quiz/telemetry/interaction
+    Registra eventos y acciones del estudiante para telemetría académica.
+    """
+    logger.info(
+        "📊 INTERACCION: Usuario %s (%s) -> Evento: '%s', Ruta: '%s', Meta: %s",
+        current_user.id,
+        current_user.email,
+        payload.event,
+        payload.path or "N/A",
+        payload.meta or {},
+    )
+    return {"status": "ok"}

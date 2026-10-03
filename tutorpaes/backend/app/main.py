@@ -111,8 +111,10 @@ async def correlation_id_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID") or str(uuid4())
     request.state.request_id = request_id
     token = set_request_id(request_id)
+    logger.info("--> %s %s (req_id=%s)", request.method, request.url.path, request_id)
     try:
         response = await call_next(request)
+        logger.info("<-- %s %s -> %s", request.method, request.url.path, response.status_code)
     except Exception:
         logger.exception("Error no controlado en middleware")
         response = JSONResponse(
@@ -192,13 +194,16 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
         },
     )
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+static_path = Path(__file__).resolve().parent.parent / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
 app.include_router(health_router, prefix="/api/v1")
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
-
-static_dir = Path(__file__).resolve().parent.parent / "static"
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 app.include_router(catalog_router, prefix="/api/v1")

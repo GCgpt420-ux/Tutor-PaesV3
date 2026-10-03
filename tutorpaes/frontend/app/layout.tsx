@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "@/src/core/providers/query-provider";
 import "./globals.css";
@@ -14,18 +16,17 @@ export const metadata: Metadata = {
   description: "Aplicación TutorPAES: frontend en Next.js con backend personalizado",
 };
 
-const bodySans = IBM_Plex_Sans({
+// Inter → cuerpo de texto (legible, profesional)
+const interBody = Inter({
   variable: "--font-body",
   display: "swap",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const displayMono = IBM_Plex_Mono({
-  variable: "--font-display",
-  display: "swap",
-  weight: ["400", "600", "700"],
-  subsets: ["latin"],
-});
+// GeistSans → --font-geist-sans (headings / display)
+// GeistMono → --font-geist-mono (código / terminales)
+// El tailwind.config.ts mapea --font-geist-sans → font-display
 
 export default function RootLayout({
   children,
@@ -34,7 +35,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${bodySans.variable} ${displayMono.variable} antialiased`}>
+      <body
+        className={`${GeistSans.variable} ${GeistMono.variable} ${interBody.variable} antialiased`}
+      >
         <QueryProvider>
           <ThemeProvider
             attribute="class"
