@@ -236,3 +236,78 @@ def test_get_subjects_with_topics_exam_not_found(client):
     app.dependency_overrides[get_db] = lambda: (yield _SubjectsWithTopicsDB(exam=None))
     response = client.get("/api/v1/catalog/subjects-with-topics?exam_id=999")
     assert response.status_code == 404
+
+
+def test_demre_subjects_priority_order(client):
+    from app.main import app
+
+    sub_hist = SimpleNamespace(id=5, exam_id=1, code="HIST", name="Historia", topics=[])
+    sub_leng = SimpleNamespace(id=9, exam_id=1, code="LENG", name="Competencia Lectora", topics=[])
+    sub_m1 = SimpleNamespace(id=1, exam_id=1, code="M1", name="Matemática 1", topics=[])
+    sub_m2 = SimpleNamespace(id=4, exam_id=1, code="M2", name="Matemática 2", topics=[])
+    sub_bio = SimpleNamespace(id=6, exam_id=1, code="BIO", name="Biología", topics=[])
+    exam = _make_exam(1, subjects=[sub_hist, sub_leng, sub_bio, sub_m2, sub_m1])
+
+    class FakeOrderingDB:
+        def __init__(self):
+            self.calls = 0
+
+        def scalar(self, _q):
+            return exam
+
+        def scalars(self, _q):
+            self.calls += 1
+            if self.calls == 1:
+                return SimpleNamespace(all=lambda: [sub_hist, sub_leng, sub_bio, sub_m2, sub_m1])
+            return SimpleNamespace(all=lambda: [])
+
+    app.dependency_overrides[get_db] = lambda: (yield FakeOrderingDB())
+
+    response = client.get("/api/v1/catalog/subjects?exam_id=1")
+    assert response.status_code == 200
+    body = response.json()
+    codes = [s["subject_code"] for s in body]
+    # LENG (1) -> M1 (2) -> M2 (3) -> BIO (5) -> HIST (8)
+    assert codes == ["LENG", "M1", "M2", "BIO", "HIST"]
+
+
+def test_get_topic_study_notes(client):
+    from app.main import app
+
+    subj = SimpleNamespace(id=1, code="M1", name="Matemática 1")
+    topic = SimpleNamespace(id=1, code="ALG", name="Álgebra y Funciones", subject_id=1, subject=subj)
+
+    class FakeStudyDB:
+        def scalar(self, _q):
+            # First call returns topic, second scalar call returns count
+            if not hasattr(self, "_call"):
+                self._call = 1
+                return topic
+            return 16
+
+    app.dependency_overrides[get_db] = lambda: (yield FakeStudyDB())
+
+    response = client.get("/api/v1/catalog/topics/1/study-notes")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["topic_id"] == 1
+    assert data["topic_code"] == "ALG"
+    assert data["subject_code"] == "M1"
+    assert len(data["key_concepts"]) >= 1
+    assert len(data["demre_traps"]) >= 1
+    assert len(data["recommended_strategies"]) >= 1
+    assert data["available_questions_count"] == 16
+
+
+def test_get_topic_study_notes_not_found(client):
+    from app.main import app
+
+    class FakeEmptyDB:
+        def scalar(self, _q):
+            return None
+
+    app.dependency_overrides[get_db] = lambda: (yield FakeEmptyDB())
+
+    response = client.get("/api/v1/catalog/topics/999/study-notes")
+    assert response.status_code == 404
+

@@ -410,7 +410,8 @@ def generate_feedback(
                 pass
             
             if question.topic and question.topic.code in weak_topics:
-                explanation = f" Este es un tema donde tenemos que reforzar más.\n\n{explanation}"
+                topic_name = question.topic.name or question.topic.code
+                explanation = f" Este es un tema ({topic_name}) donde tenemos que reforzar más.\n\n{explanation}"
 
         return {
             "explanation": (
@@ -435,7 +436,8 @@ def generate_feedback(
             pass
     
     if question.topic and question.topic.code in weak_topics and user_level == "principiante":
-        explanation_text = f" Tema donde practicar más.\n{explanation_text}"
+        topic_name = question.topic.name or question.topic.code
+        explanation_text = f" Tema donde practicar más ({topic_name}).\n{explanation_text}"
     
     new_cache = QuestionExplanation(
         question_id=feedback.question_id,

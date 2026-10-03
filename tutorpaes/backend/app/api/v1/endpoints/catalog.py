@@ -6,7 +6,7 @@ import random
 from datetime import datetime, timezone
 from typing import Literal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, Query, Response
 
@@ -15,8 +15,22 @@ from app.db.session import get_db
 from app.db.models import Exam, Subject, Topic, Question, User
 from app.core.exceptions import bad_request, not_found
 from app.schemas.catalog import CustomExamCreateIn, CustomExamCreateOut
+from app.services.study_notes_service import StudyNoteOut, get_study_card_for_topic
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
+
+SUBJECT_PRIORITY_ORDER: dict[str, int] = {
+    "LENG": 1,
+    "LECT": 1,
+    "M1": 2,
+    "M2": 3,
+    "CIEN": 4,
+    "BIO": 5,
+    "FIS": 6,
+    "QUI": 7,
+    "HIST": 8,
+}
+
 
 
 def _topics_with_active_questions_query(subject_id: int):
@@ -138,7 +152,7 @@ def get_exams(response: Response, db: Session = Depends(get_db)):
                     "subject_code": s.code,
                     "name": s.name
                 }
-                for s in exam.subjects
+                for s in sorted(exam.subjects, key=lambda s: SUBJECT_PRIORITY_ORDER.get(s.code, 99))
             ]
         }
         for exam in exams
@@ -179,8 +193,7 @@ def get_subjects(exam_id: int = Query(...), response: Response = None, db: Sessi
         .options(selectinload(Subject.topics))
     ).all()
 
-    priority_order = {"LENG": 1, "LECT": 1, "M1": 2, "M2": 3, "CIEN": 4, "BIO": 5, "FIS": 6, "QUI": 7, "HIST": 8}
-    subjects = sorted(subjects, key=lambda s: priority_order.get(s.code, 99))
+    subjects = sorted(subjects, key=lambda s: SUBJECT_PRIORITY_ORDER.get(s.code, 99))
 
     active_topic_ids: set[int] = set(
         db.scalars(select(Topic.id).where(Topic.id.in_(
@@ -277,6 +290,43 @@ def get_topic_detail(topic_id: int, response: Response, db: Session = Depends(ge
     }
 
 
+@router.get("/topics/{topic_id}/study-notes", response_model=StudyNoteOut)
+@router.get("/topics/{topic_id}/study-card", response_model=StudyNoteOut)
+def get_topic_study_notes(topic_id: int, response: Response, db: Session = Depends(get_db)):
+    """
+    GET /api/v1/catalog/topics/{topic_id}/study-notes
+    GET /api/v1/catalog/topics/{topic_id}/study-card
+
+    Obtiene la ficha conceptual y trampas DEMRE para alimentar el modal de estudio de un tema.
+    """
+    topic = db.scalar(
+        select(Topic)
+        .where(Topic.id == topic_id)
+        .options(selectinload(Topic.subject))
+    )
+    if not topic:
+        raise not_found("topic_not_found", f"Topic {topic_id} not found")
+
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=60"
+
+    q_count = db.scalar(
+        select(func.count(Question.id)).where(
+            Question.topic_id == topic.id,
+            Question.is_active == True,  # noqa: E712
+        )
+    ) or 0
+
+    return get_study_card_for_topic(
+        topic_id=topic.id,
+        topic_code=topic.code,
+        topic_name=topic.name,
+        subject_id=topic.subject_id,
+        subject_code=topic.subject.code if topic.subject else "",
+        subject_name=topic.subject.name if topic.subject else "",
+        questions_count=q_count,
+    )
+
+
 @router.get("/exams/{exam_id}")
 def get_exam_detail(exam_id: int, response: Response, db: Session = Depends(get_db)):
     """
@@ -338,7 +388,7 @@ def get_exam_detail(exam_id: int, response: Response, db: Session = Depends(get_
                     if t.id in active_topic_ids
                 ]
             }
-            for subject in exam.subjects
+            for subject in sorted(exam.subjects, key=lambda s: SUBJECT_PRIORITY_ORDER.get(s.code, 99))
         ]
     }
 
