@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-03 01:22:40 Local  
+**Generado automáticamente:** 2026-10-03 01:26:30 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,12 +12,14 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-A  docs/status/HALLAZGO_TESTS_QUIZ_PAGE_2026-10-03.md
+M  tutorpaes/frontend/app/globals.css
+M  tutorpaes/frontend/src/features/auth/components/login-form.tsx
+M  tutorpaes/frontend/src/features/auth/components/sign-up-form.tsx
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 87
+- **Total commits en la rama actual:** 88
 - **Total commits en main:** 86
 - **Merges integrados:** 4
 
@@ -47,13 +49,14 @@ origin/HEAD -> origin/main
 ## 5. Estado de Worktrees Activos
 ```text
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             be82dba [main]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   b011f12 [sprint-backend]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  2f9dbbd [sprint-frontend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ca4ed82 [sprint-backend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  7ef8459 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-2f9dbbd (HEAD -> sprint-frontend) style(home): rediseño landing page a identidad High Performance Cockpit
+7ef8459 (HEAD -> sprint-frontend) docs(status): documentar 3 tests de race-condition fallando en quiz page (preexistente, no bloqueante)
+2f9dbbd style(home): rediseño landing page a identidad High Performance Cockpit
 be82dba (origin/main, origin/HEAD, main) style(pricing): conversión al tema dark High Performance Cockpit
 2d90cb6 style(identity): opción C — Geist+Inter fonts, paleta naranja fuego #FF6B35, superficies slate neutro
 5f52095 fix(quiz, voice, catalog): fix question rendering, tutor voice, images, catalog order, report modal and telemetry
@@ -67,7 +70,6 @@ fad2f04 feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 
 881df05 feat(ai): interceptar marcadores [WIDGET:PARABOLA|...] en el chat del tutor
 cec7d9c feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
 cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
-6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 ```
 
 ---

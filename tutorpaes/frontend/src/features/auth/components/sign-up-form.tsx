@@ -75,21 +75,27 @@ export function SignUpForm() {
 
   return (
     <div className="w-full max-w-[500px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
-      
-      {/* Indicador de Estado */}
-      <div className="flex justify-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
-          <ShieldAlert className="h-3 w-3 text-brand-accent" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 font-mono">
-            Registro Seguro
-          </span>
-          <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse ml-2" />
+
+      <div className="flex justify-center mb-6">
+        <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,107,53,0.15)]">
+          <span className="text-black font-black text-sm tracking-tighter">TP</span>
         </div>
       </div>
 
-      <div className="glass-card bg-surface-raised/20 border-white/10 p-8 sm:p-10 rounded-[2.5rem] relative overflow-hidden backdrop-blur-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)]">
+      {/* Indicador de Estado */}
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+          <ShieldAlert className="h-3 w-3 text-brand-primary" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 font-mono">
+            Registro Seguro
+          </span>
+          <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse ml-2" />
+        </div>
+      </div>
+
+      <div className="glass-card bg-surface-raised border-white/10 p-8 sm:p-10 rounded-[2.5rem] relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)]">
         {/* Glow Decorativo */}
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-brand-accent/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-brand-primary/10 blur-[120px] rounded-full pointer-events-none" />
         
         <div className="mb-10 text-center relative z-10">
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white mb-2">
@@ -107,7 +113,7 @@ export function SignUpForm() {
               Nombre
             </Label>
             <div className="relative group">
-              <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
+              <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-primary transition-colors" />
               <Input
                 id="name"
                 type="text"
@@ -115,7 +121,7 @@ export function SignUpForm() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
               />
             </div>
           </div>
@@ -125,7 +131,7 @@ export function SignUpForm() {
               Identificador (Correo)
             </Label>
             <div className="relative group">
-              <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
+              <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-primary transition-colors" />
               <Input
                 id="email"
                 type="email"
@@ -134,7 +140,7 @@ export function SignUpForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                className="pl-11 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
               />
             </div>
           </div>
@@ -145,7 +151,7 @@ export function SignUpForm() {
                 Contraseña
               </Label>
               <div className="relative group">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-primary transition-colors" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -154,7 +160,7 @@ export function SignUpForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
                 />
                 <button
                   type="button"
@@ -172,7 +178,7 @@ export function SignUpForm() {
                 Confirmar
               </Label>
               <div className="relative group">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-accent transition-colors" />
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand-primary transition-colors" />
                 <Input
                   id="repeat-password"
                   type={showRepeatPassword ? "text" : "password"}
@@ -181,7 +187,7 @@ export function SignUpForm() {
                   required
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}
-                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-accent/50 focus-visible:border-brand-accent transition-all rounded-xl"
+                  className="pl-11 pr-12 h-14 bg-black/50 border-white/10 text-white placeholder:text-zinc-700 font-mono text-sm focus-visible:ring-1 focus-visible:ring-brand-primary/50 focus-visible:border-brand-primary transition-all rounded-xl"
                 />
                 <button
                   type="button"
@@ -208,7 +214,7 @@ export function SignUpForm() {
 
           <Button 
             type="submit" 
-            className="w-full h-14 rounded-xl bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2" 
+            className="w-full h-14 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2"
             disabled={isLoading}
           >
             {isLoading ? "Creando cuenta..." : "Crear cuenta"}
@@ -219,7 +225,7 @@ export function SignUpForm() {
             <p className="text-xs text-zinc-500 font-medium">
               ¿Ya tienes cuenta?{" "}
               <br className="sm:hidden" />
-              <Link href="/auth/login" className="text-white hover:text-brand-accent font-bold transition-colors underline decoration-white/20 underline-offset-4 mt-1 sm:mt-0 inline-block">
+              <Link href="/auth/login" className="text-white hover:text-brand-primary font-bold transition-colors underline decoration-white/20 underline-offset-4 mt-1 sm:mt-0 inline-block">
                 Iniciar sesión
               </Link>
             </p>

@@ -6,7 +6,7 @@ import { Label } from "@/src/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Server, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Server } from "lucide-react";
 import { clearCurrentUserCache } from "@/src/lib/auth/current-user";
 
 export function LoginForm() {
@@ -94,7 +94,13 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-[440px] mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
-      
+
+      <div className="flex justify-center mb-6">
+        <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,107,53,0.15)]">
+          <span className="text-black font-black text-sm tracking-tighter">TP</span>
+        </div>
+      </div>
+
       {/* Indicador de Estado */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
@@ -106,7 +112,7 @@ export function LoginForm() {
         </div>
       </div>
 
-      <div className="glass-card bg-surface-raised/20 border-white/10 p-8 sm:p-10 rounded-[2.5rem] relative overflow-hidden backdrop-blur-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)]">
+      <div className="glass-card bg-surface-raised border-white/10 p-8 sm:p-10 rounded-[2.5rem] relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)]">
         {/* Glow Decorativo */}
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-brand-primary/20 blur-[100px] rounded-full pointer-events-none" />
         
@@ -178,9 +184,9 @@ export function LoginForm() {
             </div>
           )}
 
-          <Button 
-            type="submit" 
-            className="w-full h-14 rounded-xl bg-white hover:bg-zinc-200 text-black font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2" 
+          <Button
+            type="submit"
+            className="w-full h-14 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-black uppercase tracking-[0.2em] text-[11px] transition-transform hover:scale-[1.02] active:scale-[0.98] mt-4 flex gap-2"
             disabled={isLoading}
           >
             {isLoading ? "Ingresando..." : "Ir a mi panel"}
@@ -200,10 +206,9 @@ export function LoginForm() {
             type="button"
             onClick={handleDemoLogin}
             disabled={isLoading}
-            className="w-full h-14 rounded-xl bg-gradient-to-r from-brand-primary/20 via-brand-accent/20 to-brand-primary/20 border border-brand-primary/30 text-white hover:border-brand-primary hover:from-brand-primary/30 hover:to-brand-accent/30 font-black uppercase tracking-[0.2em] text-[11px] transition-all hover:scale-[1.02] active:scale-[0.98] flex gap-2 justify-center items-center shadow-[0_0_15px_rgba(59,130,246,0.15)] animate-pulse"
+            className="w-full h-14 rounded-xl bg-brand-primary/10 border border-brand-primary text-white hover:bg-brand-primary/20 font-black uppercase tracking-[0.2em] text-[11px] transition-all hover:scale-[1.02] active:scale-[0.98] flex gap-2 justify-center items-center"
           >
-            <Sparkles className="h-4 w-4 text-brand-primary" />
-            {isLoading ? "Ingresando..." : "Probar Demostración"}
+            {isLoading ? "Ingresando..." : "▶ Demo rápida"}
           </Button>
 
           <div className="pt-6 border-t border-white/5 text-center mt-6">
