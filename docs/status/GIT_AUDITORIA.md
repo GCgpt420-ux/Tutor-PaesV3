@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-03 01:19:48 Local  
+**Generado automáticamente:** 2026-10-03 01:22:40 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,13 +12,12 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/frontend/app/protected/quiz/[subject_code]/[topic_code]/page.test.tsx
-M  tutorpaes/frontend/src/features/home/views/home-view.tsx
+A  docs/status/HALLAZGO_TESTS_QUIZ_PAGE_2026-10-03.md
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 86
+- **Total commits en la rama actual:** 87
 - **Total commits en main:** 86
 - **Merges integrados:** 4
 
@@ -49,12 +48,13 @@ origin/HEAD -> origin/main
 ```text
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             be82dba [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   b011f12 [sprint-backend]
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  be82dba [sprint-frontend]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  2f9dbbd [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-be82dba (HEAD -> sprint-frontend, origin/main, origin/HEAD, main) style(pricing): conversión al tema dark High Performance Cockpit
+2f9dbbd (HEAD -> sprint-frontend) style(home): rediseño landing page a identidad High Performance Cockpit
+be82dba (origin/main, origin/HEAD, main) style(pricing): conversión al tema dark High Performance Cockpit
 2d90cb6 style(identity): opción C — Geist+Inter fonts, paleta naranja fuego #FF6B35, superficies slate neutro
 5f52095 fix(quiz, voice, catalog): fix question rendering, tutor voice, images, catalog order, report modal and telemetry
 0630bb4 fix(client): normalizar endpoints eliminando trailing slash para evitar 308 redirects en Vercel
@@ -68,7 +68,6 @@ fad2f04 feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 
 cec7d9c feat(ux): puente tutor IA desde pregunta fallada, debrief PAES 100-1000 y mejoras de baja friccion
 cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker y streaming
 6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
-f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
 ```
 
 ---
