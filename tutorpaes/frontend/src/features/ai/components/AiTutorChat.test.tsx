@@ -77,6 +77,32 @@ describe('AiTutorChat', () => {
     },
   );
 
+  it('el avatar T muestra "Disponible" cuando está inactivo', () => {
+    render(<AiTutorChat />);
+    expect(screen.getByText('Disponible')).toBeInTheDocument();
+  });
+
+  it('el avatar T muestra "Pensando…" mientras loading es true', () => {
+    render(<AiTutorChat loading />);
+    expect(screen.getByText('Pensando…')).toBeInTheDocument();
+  });
+
+  it('el avatar T muestra "Hablando…" cuando la voz está reproduciéndose', () => {
+    mockedUseVoice.mockReturnValue({
+      isRecording: false,
+      isProcessing: false,
+      isPlaying: true,
+      error: null,
+      startRecording: jest.fn(),
+      stopRecording: jest.fn(),
+      speak: jest.fn(),
+      stopSpeaking: jest.fn(),
+    });
+
+    render(<AiTutorChat />);
+    expect(screen.getByText('Hablando…')).toBeInTheDocument();
+  });
+
   it('muestra los errores de micrófono o audio del hook de voz', () => {
     mockedUseVoice.mockReturnValue({
       isRecording: false,

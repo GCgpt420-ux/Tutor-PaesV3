@@ -105,12 +105,24 @@ export function AiTutorChat(props: AiTutorChatProps) {
     }
   };
 
+  const tutorState: 'thinking' | 'speaking' | 'idle' = loading ? 'thinking' : isPlaying ? 'speaking' : 'idle';
+  const tutorStateLabel = tutorState === 'thinking' ? 'Pensando…' : tutorState === 'speaking' ? 'Hablando…' : 'Disponible';
+
   return (
     <div className="flex flex-col h-full w-full bg-black/20 rounded-2xl border border-white/5 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/5 backdrop-blur-sm">
-        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-primary/40 to-brand-accent/30 flex items-center justify-center border border-brand-primary/20 shadow-[0_0_12px_rgba(59,130,246,0.2)] flex-shrink-0">
-          <Sparkles className="h-4 w-4 text-brand-primary" />
+        <div
+          className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm transition-all duration-300 ${
+            tutorState === 'thinking'
+              ? 'bg-brand-primary/15 border border-brand-primary/40 text-brand-primary animate-pulse'
+              : tutorState === 'speaking'
+                ? 'bg-brand-primary text-white border border-brand-primary shadow-[0_0_16px_rgba(255,107,53,0.5)]'
+                : 'bg-brand-primary/15 border border-brand-primary/30 text-brand-primary'
+          }`}
+          aria-hidden="true"
+        >
+          T
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -119,10 +131,10 @@ export function AiTutorChat(props: AiTutorChatProps) {
           </div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tutorState === 'idle' ? 'bg-green-400' : 'bg-brand-primary'}`}></span>
+              <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${tutorState === 'idle' ? 'bg-green-500' : 'bg-brand-primary'}`}></span>
             </span>
-            <p className="text-[10px] text-zinc-500">Disponible</p>
+            <p className="text-[10px] text-zinc-500">{tutorStateLabel}</p>
           </div>
         </div>
       </div>
@@ -134,7 +146,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
       >
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-6 px-6 py-8">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-primary/30 to-brand-accent/20 flex items-center justify-center border border-brand-primary/20 shadow-[0_0_24px_rgba(59,130,246,0.15)]">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-primary/30 to-brand-accent/20 flex items-center justify-center border border-brand-primary/20 shadow-[0_0_24px_rgba(255,107,53,0.15)]">
               <Sparkles className="h-6 w-6 text-brand-primary" />
             </div>
             <div className="space-y-2">
@@ -167,7 +179,7 @@ export function AiTutorChat(props: AiTutorChatProps) {
             <div
               className={`max-w-[85%] p-3.5 rounded-2xl text-sm ${
                 m.role === 'user'
-                  ? 'bg-brand-primary text-white ml-4 rounded-tr-sm shadow-[0_4px_15px_rgba(59,130,246,0.3)]'
+                  ? 'bg-brand-primary text-white ml-4 rounded-tr-sm shadow-[0_4px_15px_rgba(255,107,53,0.3)]'
                   : 'bg-zinc-800/80 text-zinc-200 mr-4 rounded-tl-sm border border-white/10 backdrop-blur-md'
               }`}
             >

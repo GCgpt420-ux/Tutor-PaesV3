@@ -77,7 +77,7 @@ const QuestionCard = ({
     <div className="w-full max-w-3xl text-left pt-2">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <div className="h-4 w-1 bg-brand-primary rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+          <div className="h-4 w-1 bg-brand-primary rounded-full shadow-[0_0_10px_rgba(255,107,53,0.5)]" />
           <span className="text-[11px] font-mono font-bold tracking-widest text-text-tertiary uppercase">
             Materia: <span className="text-brand-primary">{category}</span>
           </span>
@@ -188,6 +188,11 @@ export default function QuizPage() {
   const [showPersistenceToast, setShowPersistenceToast] = useState(false);
   const [lastAttemptId, setLastAttemptId] = useState<number | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tarea 4A: racha de respuestas correctas consecutivas + toast de racha
+  const [correctStreak, setCorrectStreak] = useState(0);
+  const [streakToast, setStreakToast] = useState<number | null>(null);
+  const streakToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quiz, setQuiz] = useState<QuizState>({
     question: null,
     selectedChoice: null,
@@ -360,6 +365,7 @@ export default function QuizPage() {
       questionController?.abort();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (streakToastTimerRef.current) clearTimeout(streakToastTimerRef.current);
     };
   }, []);
 
@@ -413,6 +419,16 @@ export default function QuizPage() {
       if (answerGenerationRef.current !== answerGeneration) return;
 
       const isCorrect = response.is_correct;
+
+      // Tarea 4A: actualizar racha de aciertos consecutivos
+      const nextStreak = isCorrect ? correctStreak + 1 : 0;
+      setCorrectStreak(nextStreak);
+      if (isCorrect && nextStreak >= 2) {
+        setStreakToast(nextStreak);
+        if (streakToastTimerRef.current) clearTimeout(streakToastTimerRef.current);
+        streakToastTimerRef.current = setTimeout(() => setStreakToast(null), 3200);
+      }
+
       const tutorFeedback = typeof response.feedback_text === 'string' && response.feedback_text.trim().length > 0
         ? response.feedback_text.trim()
         : isCorrect
@@ -466,6 +482,25 @@ export default function QuizPage() {
       aiTutor.setExternalLoading(false);
     }
   };
+
+  // Tarea 4A: Toast inline de racha de aciertos consecutivos
+  const StreakToast = () => (
+    streakToast !== null ? (
+      <div className="fixed bottom-6 left-6 z-[100] flex items-center gap-3 bg-zinc-900 border border-brand-primary/40 rounded-2xl px-4 py-3 shadow-2xl shadow-brand-primary/10 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center flex-shrink-0 text-lg">
+          🔥
+        </div>
+        <div>
+          <p className="text-xs font-bold text-zinc-50">
+            ¡Racha de {streakToast} correctas!
+          </p>
+          <p className="text-[10px] text-zinc-400 font-mono mt-0.5 uppercase tracking-widest">
+            Sigue así
+          </p>
+        </div>
+      </div>
+    ) : null
+  );
 
   // Pilar 3: Componente Toast inline de persistencia
   const PersistenceToast = () => (
@@ -583,7 +618,15 @@ export default function QuizPage() {
         
         {/* Scrollable Content Area */}
         <main className="flex-1 w-full overflow-y-auto p-4 md:p-8 lg:px-14 flex flex-col items-center">
-          <div className="w-full max-w-3xl space-y-6 animate-fade-in-up mt-1 pb-6">
+          <div
+            className={`w-full max-w-3xl space-y-6 animate-fade-in-up mt-1 pb-6 rounded-[2rem] ring-1 transition-[box-shadow,ring-color] duration-500 ${
+              quiz.submitted
+                ? quiz.isCorrect
+                  ? 'ring-success/30'
+                  : 'ring-brand-danger/30'
+                : 'ring-transparent'
+            }`}
+          >
             
             <QuestionCard 
               number={quiz.questionsAnswered + 1} 
@@ -729,6 +772,7 @@ export default function QuizPage() {
         </div>
       </aside>
       <PersistenceToast />
+      <StreakToast />
 
       {/* MODAL DE REPORTE DE PREGUNTA */}
       {showReportModal && (
