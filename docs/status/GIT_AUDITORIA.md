@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-03 00:59:41 Local  
+**Generado automáticamente:** 2026-10-03 01:06:08 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,17 +12,13 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/frontend/app/globals.css
-M  tutorpaes/frontend/app/layout.tsx
-M  tutorpaes/frontend/package-lock.json
-M  tutorpaes/frontend/package.json
-M  tutorpaes/frontend/tailwind.config.ts
+M  tutorpaes/frontend/app/pricing/page.tsx
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 84
-- **Total commits en main:** 84
+- **Total commits en la rama actual:** 85
+- **Total commits en main:** 85
 - **Merges integrados:** 4
 
 ## 3. Inventario de Ramas
@@ -45,19 +41,20 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 84
+- **feature/priority-1-security-testing**: ahead 14, behind 85
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             5f52095 [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             2d90cb6 [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ebc7e5b [sprint-backend]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  fad2f04 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-5f52095 (HEAD -> main, origin/main, origin/HEAD) fix(quiz, voice, catalog): fix question rendering, tutor voice, images, catalog order, report modal and telemetry
+2d90cb6 (HEAD -> main, origin/main, origin/HEAD) style(identity): opción C — Geist+Inter fonts, paleta naranja fuego #FF6B35, superficies slate neutro
+5f52095 fix(quiz, voice, catalog): fix question rendering, tutor voice, images, catalog order, report modal and telemetry
 0630bb4 fix(client): normalizar endpoints eliminando trailing slash para evitar 308 redirects en Vercel
 2e18ef5 fix(build): compilar con --webpack en Vercel para resolver ENOENT middleware.js.nft.json y forzar dynamic en route handler
 32ba52d fix(proxy): forzar Accept-Encoding identity hacia Cloudflare tunnel para evitar streams truncados en Vercel
@@ -71,7 +68,6 @@ cece03c feat(llm): soporte oficial para proveedor OpenRouter con circuit breaker
 6e56652 docs(architecture): especificacion de arquitectura para Generative UI (GenUI) en tutor socratico
 f787d05 docs: radiografia completa del proyecto para onboarding multiagente (docs/contexto_agentes)
 b408e36 chore(claude): fijar directiva de aislamiento estricto de boveda Obsidian
-7e4556d chore(status): actualizar auditoria git post-limpieza
 ```
 
 ---
