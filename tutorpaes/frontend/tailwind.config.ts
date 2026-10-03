@@ -16,18 +16,26 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        // Geist Sans → títulos / display (High Performance Cockpit)
         display: [
-          "var(--font-display)",
-          "ui-monospace",
-          "SFMono-Regular",
-          "Menlo",
-          "monospace",
+          "var(--font-geist-sans)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
         ],
+        // Inter → cuerpo de texto
         sans: [
           "var(--font-body)",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
+        ],
+        // Geist Mono → código / terminales
+        mono: [
+          "var(--font-geist-mono)",
+          "ui-monospace",
+          "SFMono-Regular",
+          "monospace",
         ],
       },
       colors: {
