@@ -27,6 +27,10 @@ jest.mock('@/src/features/ai/components/AiTutorChat', () => ({
   AiTutorChat: () => <div data-testid="ai-tutor-chat" />,
 }));
 
+jest.mock('@/src/components/ui/markdown-math-renderer', () => ({
+  MarkdownMathRenderer: ({ content }: { content: string }) => <span>{content}</span>,
+}));
+
 const mockedUseParams = jest.mocked(useParams);
 const mockedUseRouter = jest.mocked(useRouter);
 const mockedApiFetch = jest.mocked(apiFetch);
