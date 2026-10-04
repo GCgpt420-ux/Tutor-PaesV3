@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline-variant":"#c2c6d6","secondary":"#b52330","surface-tint":"#005ac2","on-tertiary-fixed":"#271900","on-primary-container":"#fefcff","tertiary-container":"#986d00","secondary-container":"#ff5a5f","on-primary-fixed":"#001a42","background":"#faf8ff","surface-border":"#E2E8F0","secondary-fixed-dim":"#ffb3b0","inverse-primary":"#adc6ff","on-error":"#ffffff","on-tertiary":"#ffffff","surface-container-highest":"#dae2fd","on-primary":"#ffffff","demre-cyan":"#06B6D4","surface-base":"#F8FAFC","surface-variant":"#dae2fd","outline":"#727785","on-error-container":"#93000a","surface-dim":"#d2d9f4","primary-fixed-dim":"#adc6ff","inverse-surface":"#283044","streak-fire":"#FF7A00","text-secondary":"#475569","tertiary-fixed":"#ffdea8","on-primary-fixed-variant":"#004395","on-tertiary-container":"#fffbff","secondary-fixed":"#ffdad8","on-secondary":"#ffffff","on-secondary-fixed":"#410007","on-background":"#131b2e","surface-container":"#eaedff","on-surface":"#131b2e","on-surface-variant":"#424754","tuto-blue-light":"#EFF6FF","text-muted":"#94A3B8","primary-container":"#2170e4","on-secondary-fixed-variant":"#92001b","surface-container-lowest":"#ffffff","coral-hover":"#EE5253","tertiary-fixed-dim":"#ffba20","tuto-slate-navy":"#1E2438","on-secondary-container":"#60000e","coral-soft":"#FFF1F2","primary":"#0058be","surface-container-high":"#e2e7ff","error-container":"#ffdad6","on-tertiary-fixed-variant":"#5e4200","primary-fixed":"#d8e2ff","error":"#ba1a1a","surface-bright":"#faf8ff","surface-card":"#FFFFFF","inverse-on-surface":"#eef0ff","surface-container-low":"#f2f3ff","tertiary":"#795600","success-mint":"#10B981","surface":"#faf8ff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xl":"2rem","gutter":"1rem","margin":"1rem","margin-lg":"2.5rem","space-sm":"0.5rem","space-md":"1rem","margin-md":"1.5rem","space-xs":"0.25rem","gutter-lg":"1.5rem","space-lg":"1.5rem"},"fontFamily":{"code-md":["JetBrains Mono"],"body-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"]},"fontSize":{"code-md":["0.9375rem",{"lineHeight":"1.5rem","fontWeight":"500"}],"body-sm":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"400"}],"headline-lg-mobile":["1.5rem",{"lineHeight":"2rem","fontWeight":"700"}],"label-lg":["1rem",{"lineHeight":"1.5rem","fontWeight":"600"}],"display-lg":["3rem",{"lineHeight":"3.5rem","fontWeight":"800"}],"headline-md":["1.5rem",{"lineHeight":"2rem","fontWeight":"700"}],"headline-lg":["2rem",{"lineHeight":"2.5rem","fontWeight":"700"}],"headline-sm":["1.25rem",{"lineHeight":"1.75rem","fontWeight":"600"}],"label-sm":["0.75rem",{"lineHeight":"1rem","fontWeight":"600"}],"label-md":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"600"}],"body-lg":["1.125rem",{"lineHeight":"1.75rem","fontWeight":"400"}],"body-md":["1rem",{"lineHeight":"1.5rem","fontWeight":"400"}]}}}}</script></head><body class="bg-surface-base font-body-md text-on-surface antialiased selection:bg-primary selection:text-on-primary"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-card shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-space-lg px-space-md"><div class="flex flex-col gap-space-lg"><div class="flex items-center justify-between px-space-xs"><div class="flex items-center gap-space-sm"><img alt="TutorPAES Logo Tuto" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhJsSgrecyaNylrsL11P8WkTT9riijET4tzj45TxpXVEvjSiWNn14cDbVAQQc4WreB2LnwUJAgL8Prgmfv3ewiy2jzqUr3SYD9qBTd8jQDXtezo4PoWXvJRn0GaqPPIqM68iQN0fcMhbkEA0vCKEH30ekbBx_54O3ooh1vmO4_fUnmFqCMolTY4yl3d6hsBEGBwjqEcpOfLb8ECCF_u4mZb1d7eweocFeVpy4jqjnYg3c8GXRFu2rbAw"/><span class="font-headline-sm text-headline-sm text-tuto-slate-navy tracking-tight">TutorPAES</span></div><span class="px-space-sm py-space-xs rounded-full bg-tuto-blue-light text-primary font-label-sm text-label-sm">Prep 2026</span></div><div class="px-space-xs"><button class="w-full flex items-center justify-center gap-space-sm py-space-sm px-space-md rounded-xl bg-gradient-to-r from-primary to-secondary-container text-on-primary font-label-md text-label-md shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] hover:opacity-95 transition-opacity" type="button"><span class="material-symbols-outlined text-lg">auto_awesome</span><span>Consultar a Tuto IA</span></button></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-label-md"><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-full transition-colors bg-primary-container text-on-primary font-label-md" data-path="dashboard" href="#"><span class="material-symbols-outlined">home</span><span>Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" data-path="cursos" href="#"><span class="material-symbols-outlined">menu_book</span><span>Cursos</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ensayos" href="#"><span class="material-symbols-outlined">edit_note</span><span>Ensayos</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ranking" href="#"><span class="material-symbols-outlined">emoji_events</span><span>Ranking</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" data-path="mi-perfil" href="#"><span class="material-symbols-outlined">person</span><span>Mi Perfil</span></a></nav></div><div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-success-mint animate-pulse"></div><div class="flex flex-col"><span class="font-label-sm text-label-sm text-tuto-slate-navy">Modo PAES 2026</span><span class="font-body-sm text-body-sm text-text-muted">En línea</span></div></div><span class="material-symbols-outlined text-outline">verified</span></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-20 bg-surface-card/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40"><div class="h-20 w-full px-gutter-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-outline">school</span><span class="font-body-sm text-body-sm text-text-muted">Plataforma PAES</span><span class="font-body-sm text-body-sm text-outline-variant">/</span><span class="font-label-md text-label-md text-tuto-slate-navy">Preparación Integral</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-coral-soft"><span class="material-symbols-outlined text-streak-fire text-lg">local_fire_department</span><span class="font-label-sm text-label-sm text-secondary font-bold">1 Día de Racha</span></div><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-tertiary-fixed"><span class="material-symbols-outlined text-tertiary text-lg">star</span><span class="font-label-sm text-label-sm text-on-tertiary-fixed font-bold">475 XP</span></div><div class="h-8 w-px bg-surface-border mx-space-xs"></div><div class="flex items-center gap-space-sm pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBICQATp5VDgk2jqn6O_r-__VTQRoCcedOBp84ZijPP0yWZ1vwvq7qhT2sw7Mwhm66j_N8VIvwWzOkFenjcgMOgmNsceD5EmvYijecIsNIz9axCRC7l4q_R_ckulHKZHe_H6_7Aki2gN8OAOByb0wZCmkNgGMqQqE32cC1yzeJuPq29cM6Q323LfoHr8np-0UQxjDxdynIh0SrebeY1ZfQEclGo-uGRzk46VtTtbWPRoFQKzXyAcCeafQ"/><div class="hidden md:flex flex-col"><span class="font-label-md text-label-md text-tuto-slate-navy leading-tight">Patricio Aylwin</span><span class="font-label-sm text-label-sm text-text-muted">Estudiante</span></div></div></div></div></header><main class="w-full pt-20 px-gutter-lg pb-space-xl bg-surface-base min-h-screen"><div class="flex flex-col w-full">
+<div class="max-w-[1200px] w-full mx-auto space-y-space-lg">
+<!-- Hero Welcome Banner -->
+<section class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-surface-card via-tuto-blue-light to-surface-container-high/60 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] p-space-lg lg:p-space-xl transition-all duration-300">
+<div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-gradient-to-br from-primary-fixed/30 to-demre-cyan/20 blur-3xl pointer-events-none"></div>
+<div class="absolute left-1/3 -bottom-20 w-64 h-64 rounded-full bg-tertiary-fixed/30 blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+<!-- Left Column: Copy & Goals -->
+<div class="flex flex-col gap-space-md max-w-2xl">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-coral-soft text-secondary font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-streak-fire text-base" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+              1 Día de Racha
+            </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-tertiary text-base" style="font-variation-settings: 'FILL' 1;">stars</span>
+              Nivel 2 • 475 / 500 XP
+            </span>
+<span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-card text-tuto-slate-navy font-label-sm text-label-sm shadow-sm">
+              Meta: Medicina U. de Chile
+            </span>
+</div>
+<div class="space-y-1">
+<h1 class="font-headline-lg text-headline-lg text-tuto-slate-navy tracking-tight">
+              ¡Hola Patricio! Vamos con todo hoy.
+            </h1>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+              Tu meta de <span class="font-semibold text-tuto-slate-navy">Medicina en la U. de Chile</span> está a solo <strong class="text-primary font-bold">40 puntos</strong>. ¡Hoy puedes dar el salto decisivo en M1!
+            </p>
+</div>
+<!-- XP Level Progress Bar -->
+<div class="w-full bg-surface-card/80 backdrop-blur-md rounded-2xl p-space-sm shadow-sm flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-text-secondary px-1">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-tertiary text-sm">military_tech</span>
+                Rango: Aspirante Destacado
+              </span>
+<span class="font-bold text-tuto-slate-navy">Faltan 25 XP para Nivel 3</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full overflow-hidden p-0.5">
+<div class="h-full bg-gradient-to-r from-tertiary-fixed-dim to-tertiary rounded-full transition-all duration-1000 ease-out" style="width: 95%;"></div>
+</div>
+</div>
+<!-- Mascot Recommendation Callout -->
+<div class="flex items-center gap-space-sm bg-surface-card/90 backdrop-blur-sm rounded-xl p-space-sm shadow-sm">
+<div class="w-9 h-9 rounded-full bg-tuto-blue-light flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<p class="font-body-sm text-body-sm text-tuto-slate-navy">
+<span class="font-bold text-primary">Tuto IA:</span> "Tienes 1 ensayo recomendado de Matemática M1 listo para ti."
+            </p>
+</div>
+</div>
+<!-- Right Column: Visual CTA & Mascot Illustration -->
+<div class="flex flex-col sm:flex-row lg:flex-col items-center lg:items-end gap-space-md w-full lg:w-auto shrink-0">
+<div class="relative w-44 h-44 rounded-3xl overflow-hidden shadow-lg bg-surface-card">
+<img class="w-full h-full object-cover" data-alt="A friendly 3D cartoon owl mascot named Tuto wearing round glasses and an academic scarf holding a tablet with mathematical equations, soft lighting, vibrant pastel background, modern learning style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLVtG55Jo6Sw7gR0aRbglNnHEEJdaxYtGNbgCzQhNH2kMkvZkFZaRlBlPWAJhz9-UExAhZ2jblcSvacK82WWoixexvRV37E_N-0K1j2MRKKzRTFOC9K9d3Z0fcidK69F2f-Hsp1LvBAkFQTMHM-QXyCGxoMZZEG9lalxBAiKTqvgm1TJrLmOkDgTU6El9U1Qon_y_iuMpm-wXfksMc2XJNkf1dnqSptLeQMfnyZ5cMsrDfn9oAt7RS8w"/>
+<div class="absolute bottom-2 left-2 right-2 bg-surface-card/90 backdrop-blur-md py-1 px-2 rounded-lg text-center">
+<span class="font-label-sm text-label-sm text-primary font-bold">¡Tu Co-piloto Tuto!</span>
+</div>
+</div>
+<button class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-secondary-container hover:bg-coral-hover text-on-primary font-label-lg text-label-lg shadow-[0_10px_20px_-3px_rgba(255,90,95,0.3)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group" type="button">
+<span>Iniciar Ensayo Rápido</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Sección de Rendimiento PAES -->
+<section class="bg-surface-card rounded-2xl shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] p-space-lg lg:p-space-xl space-y-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-2">
+<span class="p-1.5 rounded-lg bg-primary-fixed text-primary">
+<span class="material-symbols-outlined text-lg">trending_up</span>
+</span>
+<h2 class="font-headline-sm text-headline-sm text-tuto-slate-navy">
+              Evolución de Rendimiento PAES
+            </h2>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-1">
+            Simulación basada en la escala oficial de 100 a 1000 puntos DEMRE
+          </p>
+</div>
+<!-- Filter Pill Tabs -->
+<div class="flex flex-wrap items-center gap-1.5 p-1 bg-surface-base rounded-full" id="subject-tabs">
+<button class="px-3.5 py-1.5 rounded-full font-label-sm text-label-sm bg-primary text-on-primary shadow-sm transition-all" data-subject="all" type="button">Todas</button>
+<button class="px-3.5 py-1.5 rounded-full font-label-sm text-label-sm text-text-secondary hover:text-on-surface hover:bg-surface-card transition-all" data-subject="m1" type="button">Matemática 1</button>
+<button class="px-3.5 py-1.5 rounded-full font-label-sm text-label-sm text-text-secondary hover:text-on-surface hover:bg-surface-card transition-all" data-subject="clec" type="button">Competencia Lectora</button>
+<button class="px-3.5 py-1.5 rounded-full font-label-sm text-label-sm text-text-secondary hover:text-on-surface hover:bg-surface-card transition-all" data-subject="cien" type="button">Ciencias</button>
+</div>
+</div>
+<!-- Score progression badges & Accuracy stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="p-space-md rounded-xl bg-surface-base flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted">Trayectoria Histórica</span>
+<div class="flex items-center gap-1.5 font-headline-sm text-headline-sm text-tuto-slate-navy mt-0.5">
+<span>680</span>
+<span class="material-symbols-outlined text-sm text-outline">arrow_forward</span>
+<span>740</span>
+<span class="material-symbols-outlined text-sm text-outline">arrow_forward</span>
+<span class="text-primary font-bold">810</span>
+<span class="font-body-sm text-body-sm text-text-muted font-normal">pts</span>
+</div>
+</div>
+<span class="text-xs font-semibold px-2 py-1 rounded bg-tuto-blue-light text-primary">Último Ensayo</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-base flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted">Precisión Global Estimada</span>
+<span class="font-headline-sm text-headline-sm text-success-mint font-bold mt-0.5">78%</span>
+</div>
+<div class="flex items-center gap-1 text-success-mint bg-surface-card px-2.5 py-1 rounded-full font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-base">north_east</span>
+<span>+12% esta semana</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-base flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted">Meta Ponderada Medicina</span>
+<span class="font-headline-sm text-headline-sm text-tuto-slate-navy font-bold mt-0.5">850 pts</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-coral-soft text-secondary font-label-sm text-label-sm font-bold">
+            -40 pts
+          </span>
+</div>
+</div>
+<!-- Chart Graphic Area (Interactive SVG Visualization) -->
+<div class="w-full bg-surface-base rounded-2xl p-space-md sm:p-space-lg relative overflow-hidden">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-4 text-label-sm font-label-sm">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="w-3 h-3 rounded-full bg-primary inline-block"></span>
+<span>Puntaje Escala DEMRE</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="w-3 h-3 rounded-full bg-surface-border inline-block"></span>
+<span>Promedio Nacional (580 pts)</span>
+</div>
+</div>
+<span class="font-code-md text-code-md text-text-muted">Semana 1 → Semana 6</span>
+</div>
+<div class="w-full h-64 relative">
+<!-- Baseline Guides -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-30">
+<div class="w-full h-px bg-surface-border flex items-center justify-end"><span class="text-[10px] text-text-muted pr-2">1000 pts</span></div>
+<div class="w-full h-px bg-surface-border flex items-center justify-end"><span class="text-[10px] text-text-muted pr-2">800 pts</span></div>
+<div class="w-full h-px bg-surface-border flex items-center justify-end"><span class="text-[10px] text-text-muted pr-2">600 pts</span></div>
+<div class="w-full h-px bg-surface-border flex items-center justify-end"><span class="text-[10px] text-text-muted pr-2">400 pts</span></div>
+<div class="w-full h-px bg-surface-border flex items-center justify-end"><span class="text-[10px] text-text-muted pr-2">200 pts</span></div>
+</div>
+<!-- Curve SVG -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 800 240">
+<defs>
+<lineargradient id="scoreAreaGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#0058be" stop-opacity="0.25"></stop>
+<stop offset="100%" stop-color="#0058be" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- National average line -->
+<line stroke="#94A3B8" stroke-dasharray="6,6" stroke-width="1.5" x1="0" x2="800" y1="140" y2="140"></line>
+<!-- Area fill -->
+<polygon fill="url(#scoreAreaGradient)" points="40,180 180,150 320,135 460,105 600,85 740,45 740,230 40,230"></polygon>
+<!-- Line Stroke -->
+<polyline fill="none" points="40,180 180,150 320,135 460,105 600,85 740,45" stroke="#0058be" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5"></polyline>
+<!-- Nodes -->
+<circle cx="40" cy="180" fill="#FFFFFF" r="5" stroke="#0058be" stroke-width="3"></circle>
+<circle cx="180" cy="150" fill="#FFFFFF" r="5" stroke="#0058be" stroke-width="3"></circle>
+<circle cx="320" cy="135" fill="#FFFFFF" r="5" stroke="#0058be" stroke-width="3"></circle>
+<circle cx="460" cy="105" fill="#FFFFFF" r="5" stroke="#0058be" stroke-width="3"></circle>
+<circle cx="600" cy="85" fill="#FFFFFF" r="5" stroke="#0058be" stroke-width="3"></circle>
+<!-- Highlight Node with Pulse -->
+<circle class="animate-pulse" cx="740" cy="45" fill="#FF5A5F" r="8" stroke="#FFFFFF" stroke-width="3"></circle>
+</svg>
+<!-- Interactive Float Tooltip at the peak -->
+<div class="absolute right-6 top-2 bg-tuto-slate-navy text-on-primary px-3 py-1.5 rounded-xl shadow-lg flex flex-col items-center pointer-events-none">
+<span class="text-[10px] text-surface-container-highest uppercase font-bold tracking-wider">Último Ensayo</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-primary leading-tight">810 Pts</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-label-sm font-label-sm text-text-muted mt-2 px-6">
+<span>Ensayo Diagnóstico (620)</span>
+<span>Ensayo 1 (680)</span>
+<span>Ensayo 2 (710)</span>
+<span>Ensayo 3 (740)</span>
+<span>Ensayo 4 (770)</span>
+<span class="text-primary font-bold">Ensayo M1 #5 (810)</span>
+</div>
+</div>
+</section>
+<!-- Cuadrícula de Accesos Rápidos (2 Columnas) -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+<!-- Tarjeta 1: Tutores IA Especialistas -->
+<div class="bg-surface-card rounded-2xl p-space-lg shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between gap-space-md hover:shadow-xl transition-shadow">
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-success-mint"></span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">En línea 24/7</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-tuto-blue-light text-primary font-label-sm text-label-sm">GPT-4o PAES Tuned</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-tuto-slate-navy">
+            Tutores IA Especialistas
+          </h3>
+<p class="font-body-sm text-body-sm text-text-secondary">
+            Resuelve paso a paso ejercicios reales con retroalimentación instantánea adaptada al temario DEMRE.
+          </p>
+</div>
+<!-- Mini Avatares Tematizados -->
+<div class="grid grid-cols-3 gap-space-sm py-2">
+<!-- Tuto Matemático -->
+<div class="flex flex-col items-center text-center p-3 rounded-xl bg-surface-base hover:bg-tuto-blue-light/50 transition-colors group cursor-pointer">
+<div class="relative w-12 h-12 rounded-full overflow-hidden mb-2 bg-primary-fixed flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close up icon of an animated friendly avatar wearing square nerd glasses and holding a transparent blue ruler with geometric formulas floating around, modern bright 3D" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKPHvXXH8vCsVVWKbQaXEJtzdmJEpoZAmih0SJo1uZt4mVNVZO5fNP7AuuUQgFVTBVGPu1CTTX1dRYeUoozQjOStT5N_QhSNQW6UO008Rwv9TvzpaYI68hssVDdht1da0IB5Ee4mMQOzjl3y8W0Y3A5q75TCm2uNkD-uTCH0oAaq7DHTDADzqbMpMBRB8A-1ATdRE0ZfGx63elXRs16o_4B5bb3BuJdYJPucEdpHwM2cDqqN-gaBh6Sw"/>
+</div>
+<span class="font-label-sm text-label-sm text-tuto-slate-navy font-bold leading-tight">Tuto M1 &amp; M2</span>
+<span class="text-[11px] text-text-muted mt-0.5">Álgebra y Geom.</span>
+</div>
+<!-- Tuto Científico -->
+<div class="flex flex-col items-center text-center p-3 rounded-xl bg-surface-base hover:bg-tuto-blue-light/50 transition-colors group cursor-pointer">
+<div class="relative w-12 h-12 rounded-full overflow-hidden mb-2 bg-success-mint/20 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close up icon of an animated friendly avatar in a white lab coat holding a bubbling test tube beaker, bright mint and cyan tones, clean modern 3D icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK24VGZzHDDWlhqPOiinVyyzUStn2CrN5Wwuwl4Iq1celDdz1KZZ-ttPJ87sfRZU24Rc10ly4MkbYWgIjpQc2oZfcmfhz7NH7ZZD1iDKLr6unD4PPHqfc-XmHlQR817dC8aYAkevQaiYmISHUWRzb6NF6JrmKg1O1oaL3Abf5d4d_-eCRHgVLnY8q4TsOZFMjymumEQCSAKe4nRkTr9ZctqCrOc0YuVqZYIjteSplg117QEWj4bgCZBA"/>
+</div>
+<span class="font-label-sm text-label-sm text-tuto-slate-navy font-bold leading-tight">Tuto Ciencias</span>
+<span class="text-[11px] text-text-muted mt-0.5">Física y Química</span>
+</div>
+<!-- Tuto Lector -->
+<div class="flex flex-col items-center text-center p-3 rounded-xl bg-surface-base hover:bg-tuto-blue-light/50 transition-colors group cursor-pointer">
+<div class="relative w-12 h-12 rounded-full overflow-hidden mb-2 bg-tertiary-fixed flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close up icon of an animated friendly avatar reading an open hardcover book with illuminated glowing words, warm golden and amber tones, clean 3D illustration" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS2GusbCFxvb9lOFoJdYC7KYfRYrAjDHyHWTAH8R_HaQdxsVkmUfrx7WioHuDbThdl2I8OUcUCZt72fp4SeWa8TCWQkQUQ9cKHYp7GBFfCopQHDTgEavW9lnGKndKrNNReaGfNYutLO7r01ePNRKO2sNeoIS7w-QbOYq1gRttzXn1rVLs-em6sbcIctw6toPjjUoearHtWIMVNOZJNXpknLfSmdSwIGPD1qxV_rMZyLCwuUxODJnez-w"/>
+</div>
+<span class="font-label-sm text-label-sm text-tuto-slate-navy font-bold leading-tight">Tuto Lector</span>
+<span class="text-[11px] text-text-muted mt-0.5">Comprensión</span>
+</div>
+</div>
+<button class="w-full py-3 px-4 rounded-xl bg-surface-base hover:bg-surface-container text-tuto-slate-navy font-label-md text-label-md flex items-center justify-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-primary">chat_bubble</span>
+<span>Chatear con Especialista</span>
+</button>
+</div>
+<!-- Tarjeta 2: Ensayos Oficiales DEMRE -->
+<div class="bg-surface-card rounded-2xl p-space-lg shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between gap-space-md hover:shadow-xl transition-shadow">
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">
+              Simulador Estricto
+            </span>
+<span class="font-code-md text-code-md text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-base">timer</span>
+              Tiempo real
+            </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-tuto-slate-navy">
+            Ensayos Oficiales DEMRE
+          </h3>
+<p class="font-body-sm text-body-sm text-text-secondary">
+            Ensayos de forma completa cronometrada bajo condiciones reales de rendición PAES con clave y solucionario detallado.
+          </p>
+</div>
+<!-- Mini test preview box -->
+<div class="p-space-md rounded-xl bg-surface-base space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-demre-cyan">assignment</span>
+<span class="font-label-md text-label-md text-tuto-slate-navy">Forma Oficial M1 - Regular 2025</span>
+</div>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-surface-card text-text-muted">Nueva</span>
+</div>
+<div class="flex items-center gap-space-md text-label-sm font-label-sm text-text-muted">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">quiz</span>
+              65 preguntas
+            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">schedule</span>
+              2h 20m
+            </span>
+<span class="flex items-center gap-1 text-streak-fire">
+<span class="material-symbols-outlined text-base">bolt</span>
+              +150 XP
+            </span>
+</div>
+</div>
+<button class="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all transform hover:-translate-y-0.5" type="button">
+<span class="material-symbols-outlined">play_circle</span>
+<span>Simular Ensayo</span>
+</button>
+</div>
+</section>
+<!-- Métricas de Eficacia por Asignatura (Fila de 4 tarjetas) -->
+<section class="space-y-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-tuto-slate-navy">
+          Dominio por Asignatura
+        </h3>
+<span class="font-label-sm text-label-sm text-primary hover:underline cursor-pointer flex items-center gap-0.5">
+          Ver temario desagregado
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Tarjeta 1: Competencia Lectora -->
+<div class="bg-surface-card rounded-2xl p-space-md shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between space-y-space-md">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-lg bg-primary-fixed text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">menu_book</span>
+</div>
+<span class="font-code-md text-code-md font-bold text-primary">72%</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-tuto-slate-navy">Competencia Lectora</h4>
+<p class="font-body-sm text-body-sm text-text-muted">Aciertos: <span class="font-bold text-tuto-slate-navy">52</span>/65</p>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 72%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-muted">
+<span>Nivel: Alto</span>
+<span>Meta: 58/65</span>
+</div>
+</div>
+</div>
+<!-- Tarjeta 2: Matemática 1 (M1) -->
+<div class="bg-surface-card rounded-2xl p-space-md shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between space-y-space-md">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-lg bg-demre-cyan/15 text-demre-cyan flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">calculate</span>
+</div>
+<span class="font-code-md text-code-md font-bold text-demre-cyan">61%</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-tuto-slate-navy">Matemática 1 (M1)</h4>
+<p class="font-body-sm text-body-sm text-text-muted">Aciertos: <span class="font-bold text-tuto-slate-navy">40</span>/65</p>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-demre-cyan rounded-full" style="width: 61%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-muted">
+<span class="text-streak-fire font-bold">¡Refuerzo clave!</span>
+<span>Meta: 55/65</span>
+</div>
+</div>
+</div>
+<!-- Tarjeta 3: Ciencias (Módulo Común) -->
+<div class="bg-surface-card rounded-2xl p-space-md shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between space-y-space-md">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-lg bg-success-mint/15 text-success-mint flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">science</span>
+</div>
+<span class="font-code-md text-code-md font-bold text-success-mint">55%</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-tuto-slate-navy">Ciencias (M. Común)</h4>
+<p class="font-body-sm text-body-sm text-text-muted">Aciertos: <span class="font-bold text-tuto-slate-navy">36</span>/65</p>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-success-mint rounded-full" style="width: 55%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-muted">
+<span>Nivel: Medio</span>
+<span>Meta: 50/65</span>
+</div>
+</div>
+</div>
+<!-- Tarjeta 4: Historia y Cs. Sociales -->
+<div class="bg-surface-card rounded-2xl p-space-md shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05),0_4px_10px_-2px_rgba(15,23,42,0.03)] flex flex-col justify-between space-y-space-md">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">public</span>
+</div>
+<span class="font-code-md text-code-md font-bold text-tertiary">40%</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-tuto-slate-navy">Historia y Cs. Sociales</h4>
+<p class="font-body-sm text-body-sm text-text-muted">Aciertos: <span class="font-bold text-tuto-slate-navy">26</span>/65</p>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 40%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-muted">
+<span>Nivel: Inicial</span>
+<span>Meta: 45/65</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<script>
+  // Simple interactive tab switcher for subjects filter
+  document.querySelectorAll('#subject-tabs button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('#subject-tabs button').forEach(b => {
+        b.className = 'px-3.5 py-1.5 rounded-full font-label-sm text-label-sm text-text-secondary hover:text-on-surface hover:bg-surface-card transition-all';
+      });
+      button.className = 'px-3.5 py-1.5 rounded-full font-label-sm text-label-sm bg-primary text-on-primary shadow-sm transition-all';
+    });
+  });
+</script></main></div></body></html>
