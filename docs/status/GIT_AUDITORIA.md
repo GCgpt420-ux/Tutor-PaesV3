@@ -1,6 +1,6 @@
 # 📊 Auditoría Git Dinámica - Tutor-PaesV3
 
-**Generado automáticamente:** 2026-10-04 11:55:47 Local  
+**Generado automáticamente:** 2026-10-04 15:12:49 Local  
 **Repositorio:** https://github.com/GCgpt420-ux/Tutor-PaesV3.git  
 
 ---
@@ -12,16 +12,13 @@
 - **Estado de cambios locales:**
   Cambios locales sin confirmar:
 ```text
-M  tutorpaes/backend/app/services/chatbot_service.py
-M  tutorpaes/frontend/src/components/ui/markdown-math-renderer.tsx
-A  tutorpaes/frontend/src/lib/math/preprocess-math.test.ts
-A  tutorpaes/frontend/src/lib/math/preprocess-math.ts
+A  docs/design/ESTUDIO_IDENTIDAD_Y_MASCOTA_TUTO.md
 ```
 
 ## 2. Métricas de Commits
 
-- **Total commits en la rama actual:** 97
-- **Total commits en main:** 97
+- **Total commits en la rama actual:** 98
+- **Total commits en main:** 98
 - **Merges integrados:** 6
 
 ## 3. Inventario de Ramas
@@ -44,19 +41,20 @@ origin/HEAD -> origin/main
 
 ## 4. Análisis de Divergencia y Ramas Pendientes
 
-- **feature/priority-1-security-testing**: ahead 14, behind 97
+- **feature/priority-1-security-testing**: ahead 14, behind 98
   *Nota: Evaluar si los cambios ya fueron integrados por partes o si debe ser archivada.*
 
 ## 5. Estado de Worktrees Activos
 ```text
-/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             450a43c [main]
+/home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3                             e253561 [main]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-backend   ca4ed82 [sprint-backend]
 /home/gabriel/Escritorio/Proyectos2026/Tutor-PaesV3/.worktrees/sprint-frontend  e337091 [sprint-frontend]
 ```
 
 ## 6. Historial de Commits Recientes (Últimos 15)
 ```text
-450a43c (HEAD -> main, origin/main, origin/HEAD) merge: integración completa de sprint-frontend y sprint-backend en main
+e253561 (HEAD -> main, origin/main, origin/HEAD) fix(tutor, math): forzar sintaxis LaTeX ($ y $$) en prompt de Tuto y normalizador KaTeX en frontend
+450a43c merge: integración completa de sprint-frontend y sprint-backend en main
 e337091 (sprint-frontend) docs(status): documentar paleta violeta/azul residual fuera del alcance de este sprint
 95130c7 feat(quiz, ai): racha de aciertos + microfeedback de borde, avatar T con estados
 450f37a feat(courses): ficha de estudio por tema antes del quiz (modal conceptual)
@@ -70,7 +68,6 @@ be82dba style(pricing): conversión al tema dark High Performance Cockpit
 5f52095 fix(quiz, voice, catalog): fix question rendering, tutor voice, images, catalog order, report modal and telemetry
 0630bb4 fix(client): normalizar endpoints eliminando trailing slash para evitar 308 redirects en Vercel
 2e18ef5 fix(build): compilar con --webpack en Vercel para resolver ENOENT middleware.js.nft.json y forzar dynamic en route handler
-32ba52d fix(proxy): forzar Accept-Encoding identity hacia Cloudflare tunnel para evitar streams truncados en Vercel
 ```
 
 ---
