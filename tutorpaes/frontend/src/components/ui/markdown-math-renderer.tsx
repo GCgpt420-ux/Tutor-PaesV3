@@ -2,13 +2,18 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import { preprocessMath } from '@/src/lib/math/preprocess-math';
 
 interface MarkdownMathRendererProps {
   content: string;
   className?: string;
 }
 
+export { preprocessMath };
+
 export function MarkdownMathRenderer({ content, className }: MarkdownMathRendererProps) {
+  const normalizedContent = preprocessMath(content);
+
   return (
     <div className={className}>
       <ReactMarkdown
@@ -30,7 +35,7 @@ export function MarkdownMathRenderer({ content, className }: MarkdownMathRendere
           strong: ({ children }) => <strong className="font-semibold text-zinc-100">{children}</strong>,
         }}
       >
-        {content}
+        {normalizedContent}
       </ReactMarkdown>
     </div>
   );
